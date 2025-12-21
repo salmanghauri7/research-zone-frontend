@@ -1,7 +1,18 @@
 @import "tailwindcss";
 
+@layer base {
+  :root {
+    --bg-card-dark: #121212;
+  }
+}
+
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --color-gray-950: #030712;
+  --color-gray-950: #030712;
+  --bg-card-dark: #121212;
+}
+
+button:hover {
+  cursor: pointer;
 }

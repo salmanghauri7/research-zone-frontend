@@ -2,6 +2,8 @@
 
 import { useSideBar } from "@/contexts/SidebarContext";
 import { useEffect } from "react";
+import WelcomeCard from "./welcomeCard";
+import ActiveWorkspaces from "./workspace/activeWorkspaces";
 
 export default function Dashboard() {
   const { closeWorkspace } = useSideBar();
@@ -9,8 +11,9 @@ export default function Dashboard() {
     closeWorkspace();
   });
   return (
-    <div className="text-black dark:text-white dark:bg-black">
-      This is dashboard page
+    <div className="w-full space-y-6">
+      <WelcomeCard />
+      <ActiveWorkspaces />
     </div>
   );
 }
