@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { AxiosError } from "axios"; // 👈 Import AxiosError
 import ResendTimer from "@/components/resendTimer";
 import api from "@/utils/axios";
@@ -17,7 +17,6 @@ const isApiError = (data: any): data is ApiErrorResponse => {
 };
 
 export default function VerifyOTPPage() {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -98,13 +97,13 @@ export default function VerifyOTPPage() {
 
   // ✅ Resend OTP logic (simulation)
 
-  const token = sessionStorage.getItem("resendToken");
   const handleResend = async () => {
     try {
       if (!canResend) return;
       setMessage("Sending new OTP... ");
       setCanResend(false);
       debugger;
+      const token = sessionStorage.getItem("resendToken");
       await api.get(`api/users/resendOtp/${token}`);
 
       // simulate delay
@@ -143,7 +142,9 @@ export default function VerifyOTPPage() {
               value={digit}
               onChange={(e) => handleChange(e.target.value, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
-              ref={(el) => (inputRefs.current[index] = el)}
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
               disabled={isVerifying}
               className={`w-12 h-12 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl font-semibold border rounded-lg focus:outline-none focus:ring-2 transition-all ${
                 isVerifying
