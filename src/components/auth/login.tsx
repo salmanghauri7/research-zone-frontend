@@ -38,7 +38,6 @@ export default function LoginPage() {
 
       await new Promise((resolve) => setTimeout(resolve, 600));
       const res = await api.post("/api/users/login", apiData);
-      console.log("res", res.data.data.accessToken);
 
       localStorage.setItem("accessToken", res.data.data.accessToken);
 

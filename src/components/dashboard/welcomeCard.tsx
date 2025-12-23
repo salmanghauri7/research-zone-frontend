@@ -1,10 +1,13 @@
 "use client";
 
+import { useModal } from "@/contexts/ModalContext";
 import Image from "next/image";
 
 export default function WelcomeCard() {
+  const { openModal } = useModal();
+
   return (
-    <div className="bg-white dark:bg-[var(--bg-card-dark)] rounded-3xl px-6 w-full shadow-sm border border-gray-100 dark:border-gray-800 flex items-center justify-between ">
+    <div className="bg-white dark:bg-(--bg-card-dark) rounded-3xl px-6 w-full shadow-sm border border-gray-100 dark:border-gray-800 flex items-center justify-between ">
       <div className="flex-1">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
           Welcome to Research Zone!
@@ -17,12 +20,15 @@ export default function WelcomeCard() {
           <button className="p-3 bg-indigo-500 dark:bg-gray-800  rounded-3xl ">
             Discover Papers
           </button>
-          <button className="p-3 bg-indigo-500 dark:bg-gray-800  rounded-3xl">
+          <button
+            className="p-3 bg-indigo-500 dark:bg-gray-800  rounded-3xl"
+            onClick={openModal}
+          >
             Create new Workspace
           </button>
         </div>
       </div>
-      <div className="ml-8 flex-shrink-0">
+      <div className="ml-8 shrink-0">
         <Image
           src="/robot-arm-illustration.svg"
           alt="Robot illustration"

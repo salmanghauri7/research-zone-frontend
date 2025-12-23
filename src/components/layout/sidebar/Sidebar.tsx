@@ -1,21 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { sidebarItems } from "./sidebarItems";
 import { LuListCollapse } from "react-icons/lu";
 import { FiLogOut } from "react-icons/fi";
 import { logout } from "@/utils/logout";
 import { motion, AnimatePresence } from "framer-motion";
 import { useModal } from "@/contexts/ModalContext";
-import { useSideBar } from "@/contexts/SidebarContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const { openModal } = useModal();
-  const { isWorkspace } = useSideBar();
 
   const handleLogout = async () => {
     await logout();
@@ -98,7 +96,7 @@ export default function Sidebar() {
                   : "text-black/70 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/5"
               }`}
             >
-              <div className="min-w-[3rem] flex justify-center items-center">
+              <div className="min-w-12 flex justify-center items-center">
                 <span className="text-xl">{item.icon}</span>
               </div>
 

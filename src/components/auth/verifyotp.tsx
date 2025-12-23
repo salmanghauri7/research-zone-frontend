@@ -122,7 +122,7 @@ export default function VerifyOTPPage() {
 
         {/* ✅ Email Sent Banner */}
         <p className="text-gray-500 text-center mb-6">
-          We've sent a 6-digit code to your email.
+          We&apose;ve sent a 6-digit code to your email.
           <br />
           <span className="text-sm text-gray-400">
             (The code expires in 5 minutes.)
@@ -157,7 +157,7 @@ export default function VerifyOTPPage() {
 
         {/* ✅ Message */}
         {message && (
-          <p className="text-sm text-gray-700 min-h-[20px] mt-4 transition-all">
+          <p className="text-sm text-gray-700 min-h-5 mt-4 transition-all">
             {message}
           </p>
         )}
