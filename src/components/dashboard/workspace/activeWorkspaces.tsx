@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, Folder, Users, Clock } from "lucide-react";
 import Link from "next/link";
 import workspaceApi from "@/api/workspaceApi";
 import { useSideBar } from "@/contexts/SidebarContext";
+import api from "@/utils/axios";
 import { useModal } from "@/contexts/ModalContext";
 
 interface Workspace {
@@ -19,7 +20,6 @@ interface Workspace {
 export default function ActiveWorkspaces() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [ownerWorkspaces, setOwnerWorkspaces] = useState<Workspace[]>([]);
-  const { setHasWorkspaces } = useSideBar();
   const { openModal } = useModal();
 
   useEffect(() => {
@@ -28,13 +28,11 @@ export default function ActiveWorkspaces() {
         const response = await workspaceApi.getOwnerWorkspaces();
         const workspaces = response.data.data;
         setOwnerWorkspaces(workspaces);
-        setHasWorkspaces(workspaces.length > 0);
       } catch (error) {
         console.error("failed to fetch ", error);
-        setHasWorkspaces(false);
       }
     })();
-  }, [setHasWorkspaces]);
+  }, []);
 
   const displayedWorkspaces = isExpanded
     ? ownerWorkspaces
