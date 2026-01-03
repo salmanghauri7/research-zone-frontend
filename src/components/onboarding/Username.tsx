@@ -2,15 +2,13 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Loader2, Check, AlertCircle, AtSign } from "lucide-react";
-import api from "@/utils/axios";
+import userApi from "@/api/userApi";
 import useDebounce from "@/hooks/useDebounce";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
 const checkUsernameAvailability = async (username: string) => {
-  const res = await api.post("/api/users/checkUsernameAvailability", {
-    username,
-  });
+  const res = await userApi.checkUsernameAvailability(username);
   console.log(res);
   if (res.data.data.available) {
     return true;
@@ -94,7 +92,7 @@ export default function Username() {
     setIsSubmitting(true);
 
     try {
-      await api.post("/api/users/addUsername", { username: form.username });
+      await userApi.addUsername(form.username);
       router.push("/onboarding/picture");
       // Optionally navigate to next onboarding step here
     } catch (err: unknown) {
@@ -171,10 +169,9 @@ export default function Username() {
                   },
                 })}
                 className={`w-full pl-10 pr-10 border rounded-lg px-3 py-2 outline-none transition-all duration-200
-                  ${
-                    errors.username
-                      ? "border-red-500 focus:ring-2 focus:ring-red-100 focus:border-red-500"
-                      : usernameAvailable
+                  ${errors.username
+                    ? "border-red-500 focus:ring-2 focus:ring-red-100 focus:border-red-500"
+                    : usernameAvailable
                       ? "border-green-500 focus:ring-2 focus:ring-green-100 focus:border-green-500"
                       : "border-gray-300 focus:ring-2 focus:ring-black focus:border-black"
                   }

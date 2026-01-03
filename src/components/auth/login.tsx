@@ -5,7 +5,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
 import { loginSchema } from "@/validations/validations";
-import api from "@/utils/axios";
+import userApi from "@/api/userApi";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
@@ -37,7 +37,7 @@ export default function LoginPage() {
         : { username: data.identifier, password: data.password };
 
       await new Promise((resolve) => setTimeout(resolve, 600));
-      const res = await api.post("/api/users/login", apiData);
+      const res = await userApi.login(apiData);
 
       localStorage.setItem("accessToken", res.data.data.accessToken);
 
@@ -84,7 +84,7 @@ export default function LoginPage() {
     }
 
     try {
-      const res = await api.post("/api/users/google-login", { code });
+      const res = await userApi.googleLogin(code);
       const accessToken = res.data.data.accessToken;
 
       localStorage.setItem("accessToken", accessToken);

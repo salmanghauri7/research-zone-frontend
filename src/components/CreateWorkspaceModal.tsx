@@ -4,7 +4,7 @@ import { useModal } from "@/contexts/ModalContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useSideBar } from "@/contexts/SidebarContext";
 import { useForm } from "react-hook-form";
-import api from "@/utils/axios";
+import workspaceApi from "@/api/workspaceApi";
 import { useRouter } from "next/navigation";
 
 type CreateWorkspaceFormData = {
@@ -26,7 +26,7 @@ export default function CreateWorkspaceModal() {
   const createWorkspace = async (data: CreateWorkspaceFormData) => {
     try {
       console.log("data", data);
-      const res = await api.post("/api/workspaces/create", data);
+      const res = await workspaceApi.createWorkspace(data);
       console.log(res);
       setHasWorkspaces(true); // Update context to show sidebar
       closeModal();

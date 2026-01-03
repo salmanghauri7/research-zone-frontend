@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Folder, Users, Clock } from "lucide-react";
 import Link from "next/link";
-import api from "@/utils/axios";
+import workspaceApi from "@/api/workspaceApi";
 import { useSideBar } from "@/contexts/SidebarContext";
 import { useModal } from "@/contexts/ModalContext";
 
@@ -25,7 +25,7 @@ export default function ActiveWorkspaces() {
   useEffect(() => {
     (async () => {
       try {
-        const response = await api.get("/api/workspaces/owner");
+        const response = await workspaceApi.getOwnerWorkspaces();
         const workspaces = response.data.data;
         setOwnerWorkspaces(workspaces);
         setHasWorkspaces(workspaces.length > 0);
