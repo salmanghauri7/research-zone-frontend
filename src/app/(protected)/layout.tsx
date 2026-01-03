@@ -3,10 +3,11 @@
 import { ReactNode } from "react";
 import Sidebar from "@/components/layout/sidebar/Sidebar";
 import Topbar from "@/components/layout/topbar/Topbar";
-import { useSideBar } from "@/contexts/SidebarContext";
+import { usePathname } from "next/navigation";
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
-  const { hasWorkspaces } = useSideBar();
+  const pathname = usePathname();
+  const showSidebar = pathname !== "/dashboard";
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black">
@@ -14,8 +15,8 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
       <Topbar />
 
       <div className="flex pt-16">
-        {/* Sidebar - only show when user has workspaces */}
-        {hasWorkspaces && <Sidebar />}
+        {/* Sidebar - hidden on dashboard route */}
+        {showSidebar && <Sidebar />}
 
         {/* Main content */}
         <main className="flex-1 p-6">{children}</main>
