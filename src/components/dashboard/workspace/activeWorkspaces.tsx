@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Folder, Users, Clock } from "lucide-react";
 import Link from "next/link";
 import api from "@/utils/axios";
+import { useSideBar } from "@/contexts/SidebarContext";
+import { useModal } from "@/contexts/ModalContext";
 
 interface Workspace {
   _id: string;
@@ -17,17 +19,22 @@ interface Workspace {
 export default function ActiveWorkspaces() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [ownerWorkspaces, setOwnerWorkspaces] = useState<Workspace[]>([]);
+  const { setHasWorkspaces } = useSideBar();
+  const { openModal } = useModal();
 
   useEffect(() => {
     (async () => {
       try {
         const response = await api.get("/api/workspaces/owner");
-        setOwnerWorkspaces(response.data.data);
+        const workspaces = response.data.data;
+        setOwnerWorkspaces(workspaces);
+        setHasWorkspaces(workspaces.length > 0);
       } catch (error) {
         console.error("failed to fetch ", error);
+        setHasWorkspaces(false);
       }
     })();
-  }, []);
+  }, [setHasWorkspaces]);
 
   const displayedWorkspaces = isExpanded
     ? ownerWorkspaces
@@ -121,7 +128,10 @@ export default function ActiveWorkspaces() {
           <p className="text-gray-500 dark:text-gray-400 mb-4">
             No workspaces yet
           </p>
-          <button className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl transition-colors">
+          <button
+            onClick={openModal}
+            className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl transition-colors"
+          >
             Create Your First Workspace
           </button>
         </div>

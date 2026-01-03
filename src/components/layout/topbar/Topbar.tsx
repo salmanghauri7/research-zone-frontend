@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Sun, Moon, Laptop } from "lucide-react";
+import { Sun, Moon, Laptop, LogOut } from "lucide-react";
 import { TopbarItems } from "./TopbarItems";
 import { useTheme } from "@/contexts/ThemeContext";
+import { logout } from "@/utils/logout";
 
 // Type for theme options
 type ThemeOption = "light" | "dark" | "system";
@@ -51,6 +52,15 @@ export default function Topbar() {
           <div key={index}>{item.element}</div>
         ))}
 
+        {/* Logout Button */}
+        <button
+          onClick={logout}
+          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all"
+          title="Logout"
+        >
+          <LogOut size={20} />
+        </button>
+
         {/* Theme Dropdown */}
         <div className="relative" ref={themeRef}>
           <button
@@ -68,9 +78,8 @@ export default function Topbar() {
                 <button
                   key={option}
                   onClick={() => handleThemeSelect(option)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 w-full text-left ${
-                    theme === option ? "bg-gray-100 dark:bg-white/10" : ""
-                  }`}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 w-full text-left ${theme === option ? "bg-gray-100 dark:bg-white/10" : ""
+                    }`}
                 >
                   {option === "light" && <Sun size={16} />}
                   {option === "dark" && <Moon size={16} />}

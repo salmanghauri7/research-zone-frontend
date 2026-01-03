@@ -2,6 +2,7 @@
 
 import { useModal } from "@/contexts/ModalContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useSideBar } from "@/contexts/SidebarContext";
 import { useForm } from "react-hook-form";
 import api from "@/utils/axios";
 import { useRouter } from "next/navigation";
@@ -14,6 +15,7 @@ export default function CreateWorkspaceModal() {
   const router = useRouter();
   const { isCreateWorkspaceOpen, closeModal } = useModal();
   const { isDark } = useTheme();
+  const { setHasWorkspaces } = useSideBar();
 
   const {
     register,
@@ -26,6 +28,7 @@ export default function CreateWorkspaceModal() {
       console.log("data", data);
       const res = await api.post("/api/workspaces/create", data);
       console.log(res);
+      setHasWorkspaces(true); // Update context to show sidebar
       closeModal();
       router.push(`/workspace/${res.data.data.inviteCode}`);
     } catch (error) {
@@ -36,34 +39,30 @@ export default function CreateWorkspaceModal() {
   if (!isCreateWorkspaceOpen) return null;
 
   // Fixed typo: "rou}nded" -> "rounded"
-  const surfaceClasses = `w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden transform transition-all duration-300 ${
-    isDark
-      ? "bg-[#0C0F16] border-white/10 shadow-black/50"
-      : "bg-white border-gray-200 shadow-[0_25px_80px_rgba(15,23,42,0.15)]"
-  }`;
+  const surfaceClasses = `w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden transform transition-all duration-300 ${isDark
+    ? "bg-[#0C0F16] border-white/10 shadow-black/50"
+    : "bg-white border-gray-200 shadow-[0_25px_80px_rgba(15,23,42,0.15)]"
+    }`;
 
   // ... (keep your other color variables same as before) ...
   const sectionDivider = isDark ? "border-white/10" : "border-gray-200";
   const titleColor = isDark ? "text-white" : "text-gray-900";
   const subtitleColor = isDark ? "text-white/60" : "text-gray-500";
   const labelColor = isDark ? "text-white/70" : "text-gray-600";
-  const inputClasses = `w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 transition-colors ${
-    isDark
-      ? "bg-white/5 border-white/15 text-white placeholder-white/40 focus:ring-white/30 focus:border-white/30"
-      : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:ring-blue-500/30 focus:border-blue-500"
-  }`;
+  const inputClasses = `w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 transition-colors ${isDark
+    ? "bg-white/5 border-white/15 text-white placeholder-white/40 focus:ring-white/30 focus:border-white/30"
+    : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:ring-blue-500/30 focus:border-blue-500"
+    }`;
 
   // Added disabled styles for the button
-  const primaryButtonClasses = `px-4 py-2 text-sm font-semibold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-    isDark
-      ? "bg-blue-500 text-white hover:bg-blue-400 focus-visible:ring-white/30 focus-visible:ring-offset-[#0C0F16]"
-      : "bg-blue-600 text-white hover:bg-blue-500 focus-visible:ring-blue-400 focus-visible:ring-offset-white"
-  }`;
-  const secondaryButtonClasses = `px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-    isDark
-      ? "text-white/70 hover:text-white hover:bg-white/5 focus-visible:ring-white/20 focus-visible:ring-offset-[#0C0F16]"
-      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus-visible:ring-gray-300 focus-visible:ring-offset-white"
-  }`;
+  const primaryButtonClasses = `px-4 py-2 text-sm font-semibold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isDark
+    ? "bg-blue-500 text-white hover:bg-blue-400 focus-visible:ring-white/30 focus-visible:ring-offset-[#0C0F16]"
+    : "bg-blue-600 text-white hover:bg-blue-500 focus-visible:ring-blue-400 focus-visible:ring-offset-white"
+    }`;
+  const secondaryButtonClasses = `px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${isDark
+    ? "text-white/70 hover:text-white hover:bg-white/5 focus-visible:ring-white/20 focus-visible:ring-offset-[#0C0F16]"
+    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus-visible:ring-gray-300 focus-visible:ring-offset-white"
+    }`;
 
   return (
     <div
@@ -88,11 +87,10 @@ export default function CreateWorkspaceModal() {
             <button
               type="button" // Explicitly set close button to type="button" so it doesn't submit form
               onClick={closeModal}
-              className={`p-2 rounded-full transition-colors ${
-                isDark
-                  ? "text-white/60 hover:text-white hover:bg-white/10"
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-              }`}
+              className={`p-2 rounded-full transition-colors ${isDark
+                ? "text-white/60 hover:text-white hover:bg-white/10"
+                : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                }`}
             >
               {/* SVG Icon */}
               <svg
@@ -135,11 +133,10 @@ export default function CreateWorkspaceModal() {
             </div>
             {/* Info Box */}
             <div
-              className={`rounded-xl border px-4 py-3 text-xs leading-relaxed ${
-                isDark
-                  ? "border-white/10 bg-white/5 text-white/70"
-                  : "border-gray-200 bg-gray-50 text-gray-600"
-              }`}
+              className={`rounded-xl border px-4 py-3 text-xs leading-relaxed ${isDark
+                ? "border-white/10 bg-white/5 text-white/70"
+                : "border-gray-200 bg-gray-50 text-gray-600"
+                }`}
             >
               <p>Workspaces keep research, discussions, and files together.</p>
               <p>Add teammates later from the workspace settings.</p>
