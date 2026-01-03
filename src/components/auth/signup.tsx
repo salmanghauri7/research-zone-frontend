@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema } from "@/validations/validations";
-import api from "@/utils/axios";
+import userApi from "@/api/userApi";
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -39,7 +39,7 @@ export default function SignupPage() {
       setIsLoading(true);
       const { confirmPassword, ...apiData } = data;
 
-      const res = await api.post("/api/users/signup", apiData);
+      const res = await userApi.signup(apiData);
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       sessionStorage.setItem("resendToken", res.data.data.token);
@@ -101,7 +101,7 @@ export default function SignupPage() {
     }
 
     try {
-      const res = await api.post("/api/users/google-login", { code });
+      const res = await userApi.googleLogin(code);
 
       // 2. Handle the successful response from your backend.
       // This is where you typically receive your application's JWT or session token.
@@ -242,11 +242,10 @@ export default function SignupPage() {
               type="password"
               placeholder="Confirm Password"
               {...register("confirmPassword")}
-              className={`w-full border ${
-                errors.confirmPassword
+              className={`w-full border ${errors.confirmPassword
                   ? "border-red-500"
                   : "border-gray-300 dark:border-white/10"
-              } bg-white dark:bg-white/5 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/40 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
+                } bg-white dark:bg-white/5 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/40 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
             />
             {errors.confirmPassword && (
               <p className="text-red-500 text-sm mt-1">

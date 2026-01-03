@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios"; // 👈 Import AxiosError
 import ResendTimer from "@/components/resendTimer";
-import api from "@/utils/axios";
+import userApi from "@/api/userApi";
 
 // A type guard for our specific API error structure
 // This assumes your backend sends { message: "..." } on error
@@ -63,7 +63,7 @@ export default function VerifyOTPPage() {
     setMessage("Verifying... ⏳");
 
     try {
-      const res = await api.post("/api/users/verifyOtp", { otp: enteredOtp });
+      const res = await userApi.verifyOtp(enteredOtp);
       localStorage.setItem("accessToken", res.data.data.accessToken);
 
       setMessage(" OTP Verified Successfully! ");
@@ -104,7 +104,7 @@ export default function VerifyOTPPage() {
       setCanResend(false);
       debugger;
       const token = sessionStorage.getItem("resendToken");
-      await api.get(`api/users/resendOtp/${token}`);
+      await userApi.resendOtp(token!);
 
       // simulate delay
       setTimeout(() => {
@@ -146,11 +146,10 @@ export default function VerifyOTPPage() {
                 inputRefs.current[index] = el;
               }}
               disabled={isVerifying}
-              className={`w-12 h-12 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl font-semibold border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-                isVerifying
+              className={`w-12 h-12 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl font-semibold border rounded-lg focus:outline-none focus:ring-2 transition-all ${isVerifying
                   ? "border-gray-200 bg-gray-100 cursor-not-allowed"
                   : "border-gray-300 focus:border-black focus:ring-black"
-              }`}
+                }`}
             />
           ))}
         </div>
@@ -168,11 +167,10 @@ export default function VerifyOTPPage() {
           <button
             onClick={handleResend}
             disabled={!canResend || isVerifying}
-            className={`font-semibold transition-colors ${
-              !canResend || isVerifying
+            className={`font-semibold transition-colors ${!canResend || isVerifying
                 ? "text-gray-400 cursor-not-allowed"
                 : "text-black hover:underline"
-            }`}
+              }`}
           >
             Resend Code
           </button>
