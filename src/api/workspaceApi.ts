@@ -33,7 +33,7 @@ class WorkspaceApi {
         return api.post(`/api/workspaces/verify-invitation`, { token });
     }
     async getWorkspaces() {
-        return api.get("/api/workspaces");
+        return api.get("/api/workspaces/all");
     }
 }
 
