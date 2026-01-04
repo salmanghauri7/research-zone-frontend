@@ -4,7 +4,7 @@ const baseUrl = "/api";
 // const baseUrl = "http://localhost:5000";
 if (!baseUrl) {
   throw new Error(
-    "Environment variable BASE_URL_API_PROD is not set. Please define it to use the API client."
+    "Environment variable BASE_URL_API_PROD is not set. Please define it to use the API client. "
   );
 }
 
