@@ -25,7 +25,7 @@ export default function WorkspaceSwitcher({
   onClose,
   collapsed,
 }: WorkspaceSwitcherProps) {
-    const router = useRouter();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"owner" | "member">("owner");
   const [allWorkspaces, setAllWorkspaces] = useState<Workspace[]>([]);
   const [ownedWorkspaces, setOwnedWorkspaces] = useState<Workspace[]>([]);
@@ -43,13 +43,13 @@ export default function WorkspaceSwitcher({
     try {
       const response = await workspaceApi.getWorkspaces();
       const workspaces = response.data.data || [];
-      
+
       setAllWorkspaces(workspaces);
 
       // Filter workspaces after fetching
       const owned = workspaces.filter((ws: Workspace) => ws.isOwner);
       const member = workspaces.filter((ws: Workspace) => !ws.isOwner);
-      
+
       setOwnedWorkspaces(owned);
       setMemberWorkspaces(member);
     } catch (error) {
@@ -163,7 +163,12 @@ export default function WorkspaceSwitcher({
 
                       <div className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-sm text-black dark:text-white truncate group-hover:text-black dark:group-hover:text-white transition-colors" onClick={() => router.push(`/workspace/${workspace._id}`)}>
+                          <h3
+                            className="font-medium text-sm text-black dark:text-white truncate group-hover:text-black dark:group-hover:text-white transition-colors"
+                            onClick={() =>
+                              router.push(`/workspace/${workspace._id}`)
+                            }
+                          >
                             {workspace.title}
                           </h3>
                         </div>
