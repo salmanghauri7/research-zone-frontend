@@ -9,10 +9,12 @@ import { FiLogOut } from "react-icons/fi";
 import { logout } from "@/utils/logout";
 import { motion, AnimatePresence } from "framer-motion";
 import { useModal } from "@/contexts/ModalContext";
+import WorkspaceSwitcher from "./WorkspaceSwitcher";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [isWorkspaceSwitcherOpen, setIsWorkspaceSwitcherOpen] = useState(false);
   const { openModal } = useModal();
 
   const handleLogout = async () => {
@@ -27,8 +29,11 @@ export default function Sidebar() {
         className="p-4 flex flex-col gap-4 border-b border-gray-200 dark:border-white/10"
       >
         <div className="flex items-center justify-between h-6">
-          <div className="flex items-center gap-2 pl-1 overflow-hidden">
-            <span className="w-3 h-3 bg-blue-500 rounded-full shrink-0"></span>
+          <button
+            onClick={() => setIsWorkspaceSwitcherOpen(true)}
+            className="flex items-center gap-2 pl-1 overflow-hidden hover:bg-gray-100 dark:hover:bg-white/5 rounded-md px-2 py-1 -ml-2 transition-colors group"
+          >
+            <span className="w-3 h-3 bg-blue-500 rounded-full shrink-0 group-hover:scale-110 transition-transform"></span>
             <motion.p
               layout
               initial={{ opacity: 0, width: 0 }}
@@ -37,11 +42,11 @@ export default function Sidebar() {
                 width: collapsed ? 0 : "auto",
               }}
               transition={{ duration: 0.3 }}
-              className="text-black/80 dark:text-white/80 text-sm font-medium whitespace-nowrap"
+              className="text-black/80 dark:text-white/80 text-sm font-medium whitespace-nowrap group-hover:text-black dark:group-hover:text-white"
             >
               Workspaces
             </motion.p>
-          </div>
+          </button>
 
           <button
             onClick={() => setCollapsed(!collapsed)}
@@ -82,7 +87,7 @@ export default function Sidebar() {
       </motion.div>
 
       {/* Navigation */}
-      {}
+      { }
       <nav className="flex-1 flex flex-col overflow-x-hidden pb-20">
         {sidebarItems.map((item) => {
           const isActive = pathname === item.href;
@@ -90,11 +95,10 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center mx-2 my-1 p-2 rounded-md transition-colors duration-200 group relative ${
-                isActive
-                  ? "bg-gray-100 dark:bg-white/10 text-black dark:text-white"
-                  : "text-black/70 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/5"
-              }`}
+              className={`flex items-center mx-2 my-1 p-2 rounded-md transition-colors duration-200 group relative ${isActive
+                ? "bg-gray-100 dark:bg-white/10 text-black dark:text-white"
+                : "text-black/70 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/5"
+                }`}
             >
               <div className="min-w-12 flex justify-center items-center">
                 <span className="text-xl">{item.icon}</span>
@@ -151,9 +155,8 @@ export default function Sidebar() {
       {/* Profile Section */}
       <motion.div
         layout
-        className={`border-t fixed bottom-0 left-0 h-16 border-gray-200 dark:border-white/10 bg-white dark:bg-black p-4 flex items-center transition-all duration-300 ${
-          collapsed ? "w-20 justify-center" : "w-60"
-        }`}
+        className={`border-t fixed bottom-0 left-0 h-16 border-gray-200 dark:border-white/10 bg-white dark:bg-black p-4 flex items-center transition-all duration-300 ${collapsed ? "w-20 justify-center" : "w-60"
+          }`}
       >
         {collapsed ? (
           <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold shrink-0">
@@ -179,9 +182,17 @@ export default function Sidebar() {
             >
               <FiLogOut className="text-lg" />
             </button>
+
           </>
         )}
       </motion.div>
+
+      {/* Workspace Switcher Modal */}
+      <WorkspaceSwitcher
+        isOpen={isWorkspaceSwitcherOpen}
+        onClose={() => setIsWorkspaceSwitcherOpen(false)}
+        collapsed={collapsed}
+      />
     </aside>
   );
 }

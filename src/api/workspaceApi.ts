@@ -23,6 +23,15 @@ class WorkspaceApi {
     async getOwnerWorkspaces() {
         return api.get("/api/workspaces/owner");
     }
+    async sendInvite(email: string, description: string, workspaceId: string) {
+        return api.post(`/api/workspaces/${workspaceId}/invite`, { email, description });
+    }
+    async acceptInvite(inviteId: string) {
+        return api.post(`/api/workspaces/invite/accept/${inviteId}`);
+    }
+    async getWorkspaces() {
+        return api.get("/api/workspaces");
+    }
 }
 
 // Export singleton instance
