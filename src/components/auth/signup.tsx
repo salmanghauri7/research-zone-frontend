@@ -108,6 +108,27 @@ export default function SignupPage() {
       const accessToken = res.data.data.accessToken;
 
       localStorage.setItem("accessToken", accessToken);
+
+      // Check if user is in invitation flow
+      const { isInInvitationFlow, getInvitationToken, getPendingWorkspaceId, clearInvitationData } = await import("@/utils/invitationStorage");
+
+      if (isInInvitationFlow()) {
+        const invitationToken = getInvitationToken();
+        const workspaceId = getPendingWorkspaceId();
+
+        if (invitationToken && workspaceId) {
+          try {
+            const workspaceApi = (await import("@/api/workspaceApi")).default;
+            await workspaceApi.acceptInvite(invitationToken);
+            router.push(`/workspace/${workspaceId}`);
+            return;
+          } catch (error) {
+            console.error("Failed to accept invitation:", error);
+            clearInvitationData();
+          }
+        }
+      }
+
       // Redirect to the dashboard or home page
 
       if (res.data.data.newUser) {
@@ -243,8 +264,8 @@ export default function SignupPage() {
               placeholder="Confirm Password"
               {...register("confirmPassword")}
               className={`w-full border ${errors.confirmPassword
-                  ? "border-red-500"
-                  : "border-gray-300 dark:border-white/10"
+                ? "border-red-500"
+                : "border-gray-300 dark:border-white/10"
                 } bg-white dark:bg-white/5 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/40 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
             />
             {errors.confirmPassword && (

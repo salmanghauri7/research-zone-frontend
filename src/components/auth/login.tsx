@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
 import { loginSchema } from "@/validations/validations";
 import userApi from "@/api/userApi";
+import workspaceApi from "@/api/workspaceApi";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
@@ -43,6 +44,31 @@ export default function LoginPage() {
 
       setButtonText("Logging you in...");
       await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Check if user is in invitation flow
+      const { isInInvitationFlow, getInvitationToken, getPendingWorkspaceId, clearInvitationData } = await import("@/utils/invitationStorage");
+
+      if (isInInvitationFlow()) {
+        const invitationToken = getInvitationToken();
+        const workspaceId = getPendingWorkspaceId();
+
+        if (invitationToken && workspaceId) {
+          try {
+            setButtonText("Accepting invitation...");
+            await workspaceApi.acceptInvite(invitationToken);
+
+            setButtonText("Redirecting to workspace...");
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
+            router.push(`/workspace/${workspaceId}`);
+            return;
+          } catch (error) {
+            console.error("Failed to accept invitation:", error);
+            // Clear invitation data and continue to dashboard
+            clearInvitationData();
+          }
+        }
+      }
 
       setButtonText("Redirecting...");
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -88,6 +114,26 @@ export default function LoginPage() {
       const accessToken = res.data.data.accessToken;
 
       localStorage.setItem("accessToken", accessToken);
+
+      // Check if user is in invitation flow
+      const { isInInvitationFlow, getInvitationToken, getPendingWorkspaceId, clearInvitationData } = await import("@/utils/invitationStorage");
+
+      if (isInInvitationFlow()) {
+        const invitationToken = getInvitationToken();
+        const workspaceId = getPendingWorkspaceId();
+
+        if (invitationToken && workspaceId) {
+          try {
+            await workspaceApi.acceptInvite(invitationToken);
+            router.push(`/workspace/${workspaceId}`);
+            return;
+          } catch (error) {
+            console.error("Failed to accept invitation:", error);
+            clearInvitationData();
+          }
+        }
+      }
+
       if (res.data.data.newUser) {
         router.push("/onboarding/username");
       } else {

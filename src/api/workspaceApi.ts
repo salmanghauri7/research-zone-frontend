@@ -26,8 +26,11 @@ class WorkspaceApi {
     async sendInvite(email: string, description: string, workspaceId: string) {
         return api.post(`/api/workspaces/${workspaceId}/invite`, { email, description });
     }
-    async acceptInvite(inviteId: string) {
-        return api.post(`/api/workspaces/invite/accept/${inviteId}`);
+    async acceptInvite(token: string) {
+        return api.post(`/api/workspaces/accept-invitation`, { token });
+    }
+    async verifyInvite(token: string) {
+        return api.post(`/api/workspaces/verify-invitation`, { token });
     }
     async getWorkspaces() {
         return api.get("/api/workspaces");
