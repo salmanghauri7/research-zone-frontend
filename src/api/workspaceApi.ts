@@ -30,7 +30,7 @@ class WorkspaceApi {
         return api.post(`/api/workspaces/invite/accept/${inviteId}`);
     }
     async getWorkspaces() {
-        return api.get("/api/workspaces");
+        return api.get("/api/workspaces/all");
     }
 }
 
