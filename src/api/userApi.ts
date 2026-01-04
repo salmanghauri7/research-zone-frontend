@@ -28,56 +28,56 @@ class UserApi {
      * User signup
      */
     async signup(data: SignupData) {
-        return api.post("/api/users/signup", data);
+        return api.post("/users/signup", data);
     }
 
     /**
      * Verify OTP after signup
      */
     async verifyOtp(otp: string) {
-        return api.post("/api/users/verifyOtp", { otp });
+        return api.post("/users/verifyOtp", { otp });
     }
 
     /**
      * User login with email and password
      */
     async login(data: LoginData) {
-        return api.post("/api/users/login", data);
+        return api.post("/users/login", data);
     }
 
     /**
      * Google OAuth login
      */
     async googleLogin(code: string) {
-        return api.post("/api/users/google-login", { code });
+        return api.post("/users/google-login", { code });
     }
 
     /**
      * Resend OTP to user
      */
     async resendOtp(token: string) {
-        return api.get(`api/users/resendOtp/${token}`);
+        return api.get(`/users/resendOtp/${token}`);
     }
 
     /**
      * Refresh access token
      */
     async refresh() {
-        return api.get("/api/users/refresh");
+        return api.get("/users/refresh");
     }
 
     /**
      * Check if username is available
      */
     async checkUsernameAvailability(username: string) {
-        return api.post("/api/users/checkUsernameAvailability", { username });
+        return api.post("/users/checkUsernameAvailability", { username });
     }
 
     /**
      * Add username to user profile
      */
     async addUsername(username: string) {
-        return api.post("/api/users/addUsername", { username });
+        return api.post("/users/addUsername", { username });
     }
 }
 
