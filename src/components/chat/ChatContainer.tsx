@@ -11,10 +11,18 @@ interface ChatContainerProps {
   messages: Message[];
   currentUser: User;
   channelName?: string;
-  onSendMessage: (content: string, attachments?: File[], replyTo?: Message) => void;
+  onSendMessage: (
+    content: string,
+    attachments?: File[],
+    replyTo?: Message,
+  ) => void;
   onEditMessage: (messageId: string, newContent: string) => void;
   onDeleteMessage: (messageId: string) => void;
-  onSendThreadReply: (parentId: string, content: string, attachments?: File[]) => void;
+  onSendThreadReply: (
+    parentId: string,
+    content: string,
+    attachments?: File[],
+  ) => void;
   threadReplies?: Record<string, Message[]>;
 }
 

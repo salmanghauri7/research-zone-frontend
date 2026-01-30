@@ -21,7 +21,9 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
         {showSidebar && <Sidebar />}
 
         {/* Main content */}
-        <main className={`flex-1 min-h-0 ${isChatPage ? 'overflow-hidden' : 'overflow-auto p-6'}`}>
+        <main
+          className={`flex-1 min-h-0 ${isChatPage ? "overflow-hidden" : "overflow-auto p-6"}`}
+        >
           {children}
         </main>
       </div>

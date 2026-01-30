@@ -176,7 +176,7 @@ function AttachmentPreview({ attachment }: { attachment: Attachment }) {
         <span className="text-xs text-gray-500 dark:text-white/50">
           {attachment.duration
             ? `${Math.floor(attachment.duration / 60)}:${String(
-                attachment.duration % 60
+                attachment.duration % 60,
               ).padStart(2, "0")}`
             : "0:00"}
         </span>

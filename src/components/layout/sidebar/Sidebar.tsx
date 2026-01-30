@@ -87,7 +87,7 @@ export default function Sidebar() {
       </motion.div>
 
       {/* Navigation */}
-      { }
+      {}
       <nav className="flex-1 flex flex-col overflow-x-hidden overflow-y-auto custom-scrollbar">
         {sidebarItems.map((item) => {
           const isActive = pathname === item.href;
@@ -95,10 +95,11 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center mx-2 my-1 p-2 rounded-md transition-colors duration-200 group relative ${isActive
-                ? "bg-gray-100 dark:bg-white/10 text-black dark:text-white"
-                : "text-black/70 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/5"
-                }`}
+              className={`flex items-center mx-2 my-1 p-2 rounded-md transition-colors duration-200 group relative ${
+                isActive
+                  ? "bg-gray-100 dark:bg-white/10 text-black dark:text-white"
+                  : "text-black/70 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/5"
+              }`}
             >
               <div className="min-w-12 flex justify-center items-center">
                 <span className="text-xl">{item.icon}</span>
