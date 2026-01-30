@@ -7,7 +7,7 @@ import { sidebarItems } from "./sidebarItems";
 import { LuListCollapse } from "react-icons/lu";
 import { FiLogOut } from "react-icons/fi";
 import { logout } from "@/utils/logout";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useModal } from "@/contexts/ModalContext";
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
 
@@ -22,7 +22,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="relative h-screen flex flex-col border-r border-gray-200 dark:border-white/10 bg-white dark:bg-black">
+    <aside className="relative h-full flex flex-col border-r border-gray-200 dark:border-white/10 bg-white dark:bg-black">
       {/* Sidebar Header */}
       <motion.div
         layout
@@ -88,7 +88,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       { }
-      <nav className="flex-1 flex flex-col overflow-x-hidden pb-20">
+      <nav className="flex-1 flex flex-col overflow-x-hidden overflow-y-auto custom-scrollbar">
         {sidebarItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -129,38 +129,25 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Logout Button for Collapsed */}
-      <AnimatePresence>
-        {collapsed && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-20 left-0 w-20 p-4 bg-white dark:bg-black border-t border-gray-200 dark:border-white/10 flex justify-center"
-          >
-            <button
-              onClick={handleLogout}
-              className="w-10 h-10 rounded-full bg-red-500/10 hover:bg-red-500/20 dark:bg-red-500/10 dark:hover:bg-red-500/20 flex items-center justify-center text-red-600 dark:text-red-400 transition-colors group relative"
-              title="Logout"
-            >
-              <FiLogOut className="text-lg" />
-              <div className="absolute left-full ml-2 px-2 py-1 bg-black dark:bg-white text-white dark:text-black text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap">
-                Logout
-              </div>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Profile Section */}
       <motion.div
         layout
-        className={`border-t fixed bottom-0 left-0 h-16 border-gray-200 dark:border-white/10 bg-white dark:bg-black p-4 flex items-center transition-all duration-300 ${collapsed ? "w-20 justify-center" : "w-60"
-          }`}
+        className={`border-t border-gray-200 dark:border-white/10 bg-white dark:bg-black p-4 flex items-center shrink-0 ${
+          collapsed ? "justify-center" : ""
+        }`}
       >
         {collapsed ? (
-          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold shrink-0">
-            Z
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold shrink-0">
+              Z
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-2 bg-red-500/10 hover:bg-red-500/20 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-md transition-colors"
+              title="Logout"
+            >
+              <FiLogOut className="text-lg" />
+            </button>
           </div>
         ) : (
           <>
@@ -182,7 +169,6 @@ export default function Sidebar() {
             >
               <FiLogOut className="text-lg" />
             </button>
-
           </>
         )}
       </motion.div>
