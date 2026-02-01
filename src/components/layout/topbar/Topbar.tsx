@@ -1,20 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Sun, Moon, Laptop, LogOut } from "lucide-react";
-import { TopbarItems } from "./TopbarItems";
+import { useState, useRef, useEffect, memo, useCallback, useMemo } from "react";
+import { Sun, Moon, Monitor, LogOut, Search, Bell } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { logout } from "@/utils/logout";
 
-// Type for theme options
 type ThemeOption = "light" | "dark" | "system";
 
-export default function Topbar() {
+const Topbar = memo(function Topbar() {
   const [themeMenuOpen, setThemeMenuOpen] = useState<boolean>(false);
   const themeRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useTheme();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -28,71 +25,120 @@ export default function Topbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleThemeSelect = (selectedTheme: ThemeOption) => {
-    setTheme(selectedTheme);
-    setThemeMenuOpen(false);
-  };
+  const handleThemeSelect = useCallback(
+    (selectedTheme: ThemeOption) => {
+      setTheme(selectedTheme);
+      setThemeMenuOpen(false);
+    },
+    [setTheme],
+  );
+
+  const toggleThemeMenu = useCallback(() => {
+    setThemeMenuOpen((prev) => !prev);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    logout();
+  }, []);
+
+  const ThemeIcon = useMemo(() => {
+    if (theme === "light") return <Sun size={18} />;
+    if (theme === "dark") return <Moon size={18} />;
+    return <Monitor size={18} />;
+  }, [theme]);
+
+  const themeOptions: {
+    value: ThemeOption;
+    label: string;
+    icon: React.ReactNode;
+  }[] = [
+    { value: "light", label: "Light", icon: <Sun size={16} /> },
+    { value: "dark", label: "Dark", icon: <Moon size={16} /> },
+    { value: "system", label: "System", icon: <Monitor size={16} /> },
+  ];
 
   return (
-    <header className="w-full h-16 fixed top-0 left-0 z-10 bg-white dark:bg-black px-6 py-3 flex items-center justify-between border-b border-gray-200 dark:border-white/10">
-      {/* Left Logo + Title */}
-      <div className="flex items-center gap-2">
-        <div className="w-6 h-6 rounded-md bg-black dark:bg-white flex items-center justify-center text-white dark:text-black font-bold">
+    <header className="w-full h-14 fixed top-0 left-0 z-10 bg-[var(--bg-secondary)]/80 backdrop-blur-xl px-4 flex items-center justify-between border-b border-[var(--border-primary)]">
+      {/* Left: Logo */}
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
           R
         </div>
-        <span className="text-black dark:text-white text-xl font-semibold">
+        <span className="text-[var(--text-primary)] text-lg font-semibold tracking-tight">
           ResearchZone
         </span>
       </div>
 
-      {/* Right Icons & Profile */}
-      <div className="flex items-center gap-6 text-black/70 dark:text-white/70">
-        {/* Existing Topbar Items */}
-        {TopbarItems?.map((item: any, index: number) => (
-          <div key={index}>{item.element}</div>
-        ))}
+      {/* Center: Search (optional - hidden on mobile) */}
+      <div className="hidden md:flex flex-1 max-w-md mx-8">
+        <div className="relative w-full">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]"
+          />
+          <input
+            type="text"
+            placeholder="Search papers, projects..."
+            className="w-full pl-9 pr-4 py-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border-primary)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] text-sm focus:outline-none focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)] transition-all"
+          />
+        </div>
+      </div>
 
-        {/* Logout Button */}
+      {/* Right: Actions */}
+      <div className="flex items-center gap-1">
+        {/* Notifications */}
         <button
-          onClick={logout}
-          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all"
-          title="Logout"
+          className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all relative"
+          title="Notifications"
         >
-          <LogOut size={20} />
+          <Bell size={18} />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[var(--accent-primary)] rounded-full" />
         </button>
 
         {/* Theme Dropdown */}
         <div className="relative" ref={themeRef}>
           <button
-            onClick={() => setThemeMenuOpen(!themeMenuOpen)}
-            className="p-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-all"
+            onClick={toggleThemeMenu}
+            className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all"
+            title="Theme"
           >
-            {theme === "light" && <Sun size={20} />}
-            {theme === "dark" && <Moon size={20} />}
-            {theme === "system" && <Laptop size={20} />}
+            {ThemeIcon}
           </button>
 
           {themeMenuOpen && (
-            <div className="absolute right-0 mt-2 bg-white dark:bg-black border border-gray-200 dark:border-white/10 shadow-xl rounded-xl w-40 p-2 animate-fade-in">
-              {(["light", "dark", "system"] as ThemeOption[]).map((option) => (
+            <div className="absolute right-0 mt-2 bg-[var(--bg-elevated)] border border-[var(--border-primary)] shadow-xl rounded-xl w-36 p-1.5 animate-fade-in">
+              {themeOptions.map((option) => (
                 <button
-                  key={option}
-                  onClick={() => handleThemeSelect(option)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 w-full text-left ${theme === option ? "bg-gray-100 dark:bg-white/10" : ""
-                    }`}
+                  key={option.value}
+                  onClick={() => handleThemeSelect(option.value)}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg w-full text-left transition-all text-sm ${
+                    theme === option.value
+                      ? "bg-[var(--accent-subtle)] text-[var(--accent-primary)]"
+                      : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                  }`}
                 >
-                  {option === "light" && <Sun size={16} />}
-                  {option === "dark" && <Moon size={16} />}
-                  {option === "system" && <Laptop size={16} />}
-                  <span className="text-black dark:text-white">
-                    {option.charAt(0).toUpperCase() + option.slice(1)}
-                  </span>
+                  {option.icon}
+                  <span className="font-medium">{option.label}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
+
+        {/* Divider */}
+        <div className="w-px h-6 bg-[var(--border-primary)] mx-1" />
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="p-2 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--error)] hover:bg-[var(--error-light)] transition-all"
+          title="Sign out"
+        >
+          <LogOut size={18} />
+        </button>
       </div>
     </header>
   );
-}
+});
+
+export default Topbar;

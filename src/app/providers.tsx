@@ -1,23 +1,39 @@
 "use client";
+
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import React from "react";
+import React, { lazy, Suspense, memo } from "react";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ModalProvider } from "@/contexts/ModalContext";
 import { WorkspaceProvider } from "@/contexts/SidebarContext";
-import { SocketProvider } from "@/contexts/SocketContext";
+
+// Lazy load socket provider as it's only needed for authenticated users
+const SocketProvider = lazy(() =>
+  import("@/contexts/SocketContext").then((mod) => ({
+    default: mod.SocketProvider,
+  })),
+);
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string;
 
-export default function Provider({ children }: { children: React.ReactNode }) {
+// Memoize provider to prevent unnecessary re-renders
+const Provider = memo(function Provider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <SocketProvider>
-      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-        <ThemeProvider>
-          <ModalProvider>
-            <WorkspaceProvider>{children}</WorkspaceProvider>
-          </ModalProvider>
-        </ThemeProvider>
-      </GoogleOAuthProvider>
-    </SocketProvider>
+    <Suspense fallback={null}>
+      <SocketProvider>
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+          <ThemeProvider>
+            <ModalProvider>
+              <WorkspaceProvider>{children}</WorkspaceProvider>
+            </ModalProvider>
+          </ThemeProvider>
+        </GoogleOAuthProvider>
+      </SocketProvider>
+    </Suspense>
   );
-}
+});
+
+export default Provider;

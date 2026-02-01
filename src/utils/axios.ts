@@ -1,10 +1,10 @@
 import axios from "axios";
 
 const baseUrl = "/api";
-// const baseUrl = "http://localhost:5000";
+// const baseUrl = "http://localhost:5000/api";
 if (!baseUrl) {
   throw new Error(
-    "Environment variable BASE_URL_API_PROD is not set. Please define it to use the API client. "
+    "Environment variable BASE_URL_API_PROD is not set. Please define it to use the API client. ",
   );
 }
 
@@ -31,8 +31,7 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Don't retry if this is already the refresh endpoint to prevent infinite loop
-    const isRefreshEndpoint =
-      originalRequest.url?.includes("/api/users/refresh");
+    const isRefreshEndpoint = originalRequest.url?.includes("/users/refresh");
 
     // Handle token refresh
     if (
@@ -42,7 +41,7 @@ api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       try {
-        const res = await axios.get(`${baseUrl}/api/users/refresh`, {
+        const res = await axios.get(`${baseUrl}/users/refresh`, {
           withCredentials: true,
         });
         localStorage.setItem("accessToken", res.data.data.accessToken);
@@ -87,7 +86,7 @@ api.interceptors.response.use(
     error.customMessage = message;
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

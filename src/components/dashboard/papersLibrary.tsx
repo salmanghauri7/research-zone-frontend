@@ -1,10 +1,13 @@
-"use client"
+"use client";
 
-export default function paperLibrary() {
+import { memo } from "react";
 
-    return (
-        <div className="text-black dark:text-white">
-            this is papers library page
-        </div>
-    )
-}
+const PaperLibrary = memo(function PaperLibrary() {
+  return (
+    <div className="text-black dark:text-white">
+      this is papers library page
+    </div>
+  );
+});
+
+export default PaperLibrary;

@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoClose } from "react-icons/io5";
+import { X, Folder } from "lucide-react";
 import workspaceApi from "@/api/workspaceApi";
-import { Router } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Workspace {
@@ -72,53 +71,58 @@ export default function WorkspaceSwitcher({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
           />
 
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -20, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -20, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className={`fixed w-72 top-28 bg-white dark:bg-black rounded-lg shadow-2xl z-50 border border-gray-200 dark:border-white/10 transition-all duration-300 ${
+            className={`fixed w-80 top-28 bg-[var(--bg-primary)] rounded-xl shadow-2xl z-50 border border-[var(--border-primary)] overflow-hidden ${
               collapsed ? "left-5" : "left-5"
             }`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-white/10">
-              <h2 className="text-lg font-semibold text-black dark:text-white">
-                Workspaces
-              </h2>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-[var(--accent-primary)]/10">
+                  <Folder size={18} className="text-[var(--accent-primary)]" />
+                </div>
+                <h2 className="text-base font-semibold text-[var(--text-primary)]">
+                  Workspaces
+                </h2>
+              </div>
               <button
                 onClick={onClose}
-                className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-white/10 text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[var(--bg-tertiary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               >
-                <IoClose className="text-xl" />
+                <X size={18} />
               </button>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 p-4 border-b border-gray-200 dark:border-white/10">
+            <div className="flex gap-2 p-4 border-b border-[var(--border-primary)]">
               <button
                 onClick={() => setActiveTab("owner")}
-                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   activeTab === "owner"
-                    ? "bg-blue-500 text-white shadow-md"
-                    : "bg-gray-100 dark:bg-white/5 text-black/70 dark:text-white/70 hover:bg-gray-200 dark:hover:bg-white/10"
+                    ? "bg-[var(--accent-primary)] text-white"
+                    : "bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
                 }`}
               >
-                I'm Owner
+                My Workspaces
               </button>
               <button
                 onClick={() => setActiveTab("member")}
-                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   activeTab === "member"
-                    ? "bg-blue-500 text-white shadow-md"
-                    : "bg-gray-100 dark:bg-white/5 text-black/70 dark:text-white/70 hover:bg-gray-200 dark:hover:bg-white/10"
+                    ? "bg-[var(--accent-primary)] text-white"
+                    : "bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
                 }`}
               >
-                I'm Member
+                Shared With Me
               </button>
             </div>
 
@@ -126,14 +130,17 @@ export default function WorkspaceSwitcher({
             <div className="p-4">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-3 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : currentWorkspaces.length === 0 ? (
-                <div className="text-center py-12 text-black/50 dark:text-white/50">
-                  <p className="text-sm">
+                <div className="text-center py-12">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--bg-secondary)] mb-3">
+                    <Folder size={24} className="text-[var(--text-muted)]" />
+                  </div>
+                  <p className="text-sm text-[var(--text-muted)]">
                     {activeTab === "owner"
-                      ? "You don't own any workspaces yet"
-                      : "You're not a member of any workspaces yet"}
+                      ? "No workspaces created yet"
+                      : "No shared workspaces"}
                   </p>
                 </div>
               ) : (
@@ -142,18 +149,22 @@ export default function WorkspaceSwitcher({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="max-h-80 overflow-y-auto pr-2 space-y-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-white/20 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-white/30"
+                  className="max-h-80 overflow-y-auto pr-1 space-y-2 custom-scrollbar"
                 >
                   {currentWorkspaces.map((workspace) => (
                     <motion.div
                       key={workspace._id}
-                      whileHover={{ x: 4 }}
+                      whileHover={{ x: 2 }}
                       transition={{
                         type: "spring",
                         stiffness: 400,
                         damping: 25,
                       }}
-                      className="group relative pl-4 pr-3 py-3.5 rounded-lg bg-gray-50/50 dark:bg-white/[0.03] hover:bg-gray-100/80 dark:hover:bg-white/[0.08] cursor-pointer transition-all duration-200 border border-gray-200/50 dark:border-white/[0.08] hover:border-gray-300/80 dark:hover:border-white/20 hover:shadow-sm"
+                      onClick={() => {
+                        router.push(`/workspace/${workspace._id}`);
+                        onClose();
+                      }}
+                      className="group relative pl-4 pr-3 py-3 rounded-lg bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] cursor-pointer transition-all duration-200 border border-[var(--border-primary)] hover:border-[var(--accent-primary)]/30"
                     >
                       {/* Colored vertical line */}
                       <div
@@ -163,12 +174,7 @@ export default function WorkspaceSwitcher({
 
                       <div className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
-                          <h3
-                            className="font-medium text-sm text-black dark:text-white truncate group-hover:text-black dark:group-hover:text-white transition-colors"
-                            onClick={() =>
-                              router.push(`/workspace/${workspace._id}`)
-                            }
-                          >
+                          <h3 className="font-medium text-sm text-[var(--text-primary)] truncate group-hover:text-[var(--accent-primary)] transition-colors">
                             {workspace.title}
                           </h3>
                         </div>

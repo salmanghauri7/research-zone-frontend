@@ -8,19 +8,22 @@ import CreateWorkspaceModal from "@/components/CreateWorkspaceModal";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap", // Prevent FOIT (Flash of Invisible Text)
+  preload: true,
 });
 
 export const metadata: Metadata = {
   title: "Research Zone",
   description: "A collaboration platform for researchers",
 };
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
         <NextProgress />
         <Provider>

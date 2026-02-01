@@ -14,7 +14,7 @@ class WorkspaceApi {
    * Create a new workspace
    */
   async createWorkspace(data: CreateWorkspaceData) {
-    return api.post("/api/workspaces/create", data);
+    return api.post("/workspaces/create", data);
   }
 
   /**

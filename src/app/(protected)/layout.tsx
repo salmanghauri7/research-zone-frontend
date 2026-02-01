@@ -1,14 +1,41 @@
 "use client";
 
-import { ReactNode } from "react";
-import Sidebar from "@/components/layout/sidebar/Sidebar";
-import Topbar from "@/components/layout/topbar/Topbar";
+import { ReactNode, memo, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 
-export default function ProtectedLayout({ children }: { children: ReactNode }) {
+// Dynamic imports for layout components - they're heavy with animations
+const Sidebar = dynamic(
+  () => import("@/components/layout/sidebar/Sidebar"),
+  {
+    ssr: false,
+    loading: () => (
+      <aside className="w-[72px] h-full border-r border-gray-200 dark:border-white/10 bg-white dark:bg-black" />
+    ),
+  }
+);
+
+const Topbar = dynamic(
+  () => import("@/components/layout/topbar/Topbar"),
+  {
+    ssr: false,
+    loading: () => (
+      <header className="w-full h-16 fixed top-0 left-0 z-10 bg-white dark:bg-black border-b border-gray-200 dark:border-white/10" />
+    ),
+  }
+);
+
+// Memoize the layout to prevent re-renders when children change
+const ProtectedLayout = memo(function ProtectedLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const pathname = usePathname();
-  const showSidebar = pathname !== "/dashboard";
-  const isChatPage = pathname === "/chat";
+
+  // Memoize computed values
+  const showSidebar = useMemo(() => pathname !== "/dashboard", [pathname]);
+  const isChatPage = useMemo(() => pathname === "/chat", [pathname]);
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-black overflow-hidden">
@@ -29,4 +56,6 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
       </div>
     </div>
   );
-}
+});
+
+export default ProtectedLayout;

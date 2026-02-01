@@ -2,126 +2,164 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, memo, useCallback, lazy, Suspense } from "react";
 import { sidebarItems } from "./sidebarItems";
-import { LuListCollapse } from "react-icons/lu";
-import { FiLogOut } from "react-icons/fi";
 import { logout } from "@/utils/logout";
 import { motion } from "framer-motion";
 import { useModal } from "@/contexts/ModalContext";
-import WorkspaceSwitcher from "./WorkspaceSwitcher";
+import { getCurrentWorkspaceId } from "@/utils/invitationStorage";
+import {
+  PanelLeftClose,
+  PanelLeftOpen,
+  Plus,
+  LogOut,
+  Layers,
+} from "lucide-react";
 
-export default function Sidebar() {
+// Lazy load WorkspaceSwitcher - it's a modal that's rarely used
+const WorkspaceSwitcher = lazy(() => import("./WorkspaceSwitcher"));
+
+const Sidebar = memo(function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const [isWorkspaceSwitcherOpen, setIsWorkspaceSwitcherOpen] = useState(false);
+  const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(
+    null,
+  );
   const { openModal } = useModal();
 
-  const handleLogout = async () => {
+  useEffect(() => {
+    const workspaceId = getCurrentWorkspaceId();
+    setCurrentWorkspaceId(workspaceId);
+  }, [pathname]);
+
+  const handleLogout = useCallback(async () => {
     await logout();
-  };
+  }, []);
+
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((prev) => !prev);
+  }, []);
+
+  const openWorkspaceSwitcher = useCallback(() => {
+    setIsWorkspaceSwitcherOpen(true);
+  }, []);
+
+  const closeWorkspaceSwitcher = useCallback(() => {
+    setIsWorkspaceSwitcherOpen(false);
+  }, []);
 
   return (
-    <aside className="relative h-full flex flex-col border-r border-gray-200 dark:border-white/10 bg-white dark:bg-black">
+    <aside
+      className={`relative h-full flex flex-col border-r border-[var(--border-primary)] bg-[var(--bg-secondary)] transition-all duration-300 ${
+        collapsed ? "w-[72px]" : "w-64"
+      }`}
+    >
       {/* Sidebar Header */}
-      <motion.div
-        layout
-        className="p-4 flex flex-col gap-4 border-b border-gray-200 dark:border-white/10"
-      >
-        <div className="flex items-center justify-between h-6">
+      <div className="p-4 flex flex-col gap-3 border-b border-[var(--border-primary)]">
+        {/* Workspace selector & collapse button */}
+        <div className="flex items-center justify-between">
           <button
-            onClick={() => setIsWorkspaceSwitcherOpen(true)}
-            className="flex items-center gap-2 pl-1 overflow-hidden hover:bg-gray-100 dark:hover:bg-white/5 rounded-md px-2 py-1 -ml-2 transition-colors group"
+            onClick={openWorkspaceSwitcher}
+            className={`flex items-center gap-2.5 overflow-hidden hover:bg-[var(--bg-hover)] rounded-lg px-2 py-1.5 -ml-1 transition-all group ${
+              collapsed ? "justify-center w-full" : ""
+            }`}
           >
-            <span className="w-3 h-3 bg-blue-500 rounded-full shrink-0 group-hover:scale-110 transition-transform"></span>
-            <motion.p
-              layout
-              initial={{ opacity: 0, width: 0 }}
-              animate={{
-                opacity: collapsed ? 0 : 1,
-                width: collapsed ? 0 : "auto",
-              }}
-              transition={{ duration: 0.3 }}
-              className="text-black/80 dark:text-white/80 text-sm font-medium whitespace-nowrap group-hover:text-black dark:group-hover:text-white"
-            >
-              Workspaces
-            </motion.p>
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shrink-0 shadow-sm">
+              <Layers size={14} className="text-white" />
+            </div>
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-[var(--text-primary)] text-sm font-medium truncate group-hover:text-[var(--accent-primary)] transition-colors"
+              >
+                Workspaces
+              </motion.span>
+            )}
           </button>
 
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-colors"
-          >
-            <motion.span
-              animate={{ rotate: collapsed ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
-              className="block text-xl"
+          {!collapsed && (
+            <button
+              onClick={toggleCollapsed}
+              className="p-1.5 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all"
+              title="Collapse sidebar"
             >
-              <LuListCollapse />
-            </motion.span>
-          </button>
+              <PanelLeftClose size={18} />
+            </button>
+          )}
         </div>
 
-        {/* Create Workspace Button */}
-        <motion.button
-          layout
-          onClick={openModal}
-          className="flex items-center border border-gray-300 dark:border-white/10 bg-white dark:bg-white/5 text-black dark:text-white font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors duration-200 py-2 overflow-hidden"
-        >
-          <div className="w-12 flex justify-center shrink-0">
-            <span className="text-2xl leading-none pb-1">+</span>
-          </div>
-          <motion.span
-            layout
-            initial={{ opacity: 0, width: 0 }}
-            animate={{
-              opacity: collapsed ? 0 : 1,
-              width: collapsed ? 0 : "auto",
-            }}
-            transition={{ duration: 0.3 }}
-            className="whitespace-nowrap"
+        {/* Expand button when collapsed */}
+        {collapsed && (
+          <button
+            onClick={toggleCollapsed}
+            className="p-1.5 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all mx-auto"
+            title="Expand sidebar"
           >
-            Create Workspace
-          </motion.span>
-        </motion.button>
-      </motion.div>
+            <PanelLeftOpen size={18} />
+          </button>
+        )}
+
+        {/* Create Workspace Button */}
+        <button
+          onClick={openModal}
+          className={`flex items-center gap-2.5 rounded-xl border border-dashed border-[var(--border-secondary)] bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] hover:border-[var(--accent-primary)] text-[var(--text-secondary)] hover:text-[var(--accent-primary)] transition-all duration-200 ${
+            collapsed ? "p-2.5 justify-center" : "px-3 py-2.5"
+          }`}
+        >
+          <Plus size={18} />
+          {!collapsed && (
+            <span className="text-sm font-medium">New Workspace</span>
+          )}
+        </button>
+      </div>
 
       {/* Navigation */}
-      {}
-      <nav className="flex-1 flex flex-col overflow-x-hidden overflow-y-auto custom-scrollbar">
+      <nav className="flex-1 flex flex-col p-2 overflow-x-hidden overflow-y-auto custom-scrollbar">
         {sidebarItems.map((item) => {
-          const isActive = pathname === item.href;
+          const dynamicHref =
+            item.isDynamic && currentWorkspaceId
+              ? `/workspace/${currentWorkspaceId}`
+              : item.href;
+
+          const isActive =
+            pathname === dynamicHref ||
+            (item.isDynamic && pathname.startsWith("/workspace/"));
+
           return (
             <Link
               key={item.href}
-              href={item.href}
-              className={`flex items-center mx-2 my-1 p-2 rounded-md transition-colors duration-200 group relative ${
+              href={dynamicHref}
+              prefetch={true}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative my-0.5 ${
                 isActive
-                  ? "bg-gray-100 dark:bg-white/10 text-black dark:text-white"
-                  : "text-black/70 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/5"
-              }`}
+                  ? "bg-[var(--accent-subtle)] text-[var(--accent-primary)]"
+                  : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+              } ${collapsed ? "justify-center px-2.5" : ""}`}
             >
-              <div className="min-w-12 flex justify-center items-center">
-                <span className="text-xl">{item.icon}</span>
-              </div>
-
-              <motion.span
-                layout
-                initial={{ opacity: 0, x: 20 }}
-                animate={{
-                  opacity: collapsed ? 0 : 1,
-                  x: collapsed ? 20 : 0,
-                  width: collapsed ? 0 : "auto",
-                }}
-                transition={{ duration: 0.3 }}
-                className="ml-2 whitespace-nowrap overflow-hidden"
+              <span
+                className={`text-lg shrink-0 ${
+                  isActive ? "text-[var(--accent-primary)]" : ""
+                }`}
               >
-                {item.label}
-              </motion.span>
+                {item.icon}
+              </span>
 
-              {/* Tooltip for collapsed */}
+              {!collapsed && (
+                <span className="text-sm font-medium truncate">
+                  {item.label}
+                </span>
+              )}
+
+              {/* Active indicator */}
+              {isActive && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[var(--accent-primary)] rounded-r-full" />
+              )}
+
+              {/* Tooltip for collapsed state */}
               {collapsed && (
-                <div className="absolute left-full ml-2 px-2 py-1 bg-black dark:bg-white text-white dark:text-black text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap">
+                <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-[var(--bg-elevated)] border border-[var(--border-primary)] shadow-lg text-[var(--text-primary)] text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap">
                   {item.label}
                 </div>
               )}
@@ -131,55 +169,47 @@ export default function Sidebar() {
       </nav>
 
       {/* Profile Section */}
-      <motion.div
-        layout
-        className={`border-t border-gray-200 dark:border-white/10 bg-white dark:bg-black p-4 flex items-center shrink-0 ${
-          collapsed ? "justify-center" : ""
-        }`}
-      >
-        {collapsed ? (
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold shrink-0">
-              Z
-            </div>
-            <button
-              onClick={handleLogout}
-              className="p-2 bg-red-500/10 hover:bg-red-500/20 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-md transition-colors"
-              title="Logout"
-            >
-              <FiLogOut className="text-lg" />
-            </button>
+      <div className="border-t border-[var(--border-primary)] p-3">
+        <div
+          className={`flex items-center gap-3 ${collapsed ? "flex-col" : ""}`}
+        >
+          {/* Avatar */}
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 shadow-sm">
+            Z
           </div>
-        ) : (
-          <>
-            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold shrink-0">
-              Z
-            </div>
 
-            <div className="flex flex-col overflow-hidden ml-3 flex-1">
-              <p className="text-sm font-medium text-black dark:text-white">
+          {!collapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                 zeeshan
               </p>
-              <p className="text-xs text-gray-500 dark:text-white/50">Free</p>
+              <p className="text-xs text-[var(--text-tertiary)]">Free plan</p>
             </div>
+          )}
 
-            <button
-              onClick={handleLogout}
-              className="ml-2 p-2 bg-red-500/10 hover:bg-red-500/20 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-md transition-colors"
-              title="Logout"
-            >
-              <FiLogOut className="text-lg" />
-            </button>
-          </>
-        )}
-      </motion.div>
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className={`p-2 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--error)] hover:bg-[var(--error-light)] transition-all ${
+              collapsed ? "mt-2" : ""
+            }`}
+            title="Sign out"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
+      </div>
 
       {/* Workspace Switcher Modal */}
-      <WorkspaceSwitcher
-        isOpen={isWorkspaceSwitcherOpen}
-        onClose={() => setIsWorkspaceSwitcherOpen(false)}
-        collapsed={collapsed}
-      />
+      <Suspense fallback={null}>
+        <WorkspaceSwitcher
+          isOpen={isWorkspaceSwitcherOpen}
+          onClose={closeWorkspaceSwitcher}
+          collapsed={collapsed}
+        />
+      </Suspense>
     </aside>
   );
-}
+});
+
+export default Sidebar;

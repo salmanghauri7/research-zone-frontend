@@ -1,7 +1,18 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { ChatContainer, Message, User } from "@/components/chat";
+import { useState, useCallback, Suspense } from "react";
+import dynamic from "next/dynamic";
+import { Message, User } from "@/components/chat";
+
+// Lazy load the heavy ChatContainer component
+const ChatContainer = dynamic(() => import("@/components/chat/ChatContainer"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex-1 flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+    </div>
+  ),
+});
 
 // Mock current user
 const currentUser: User = {
@@ -210,16 +221,24 @@ export default function ChatPage() {
 
   return (
     <div className="h-full flex flex-col">
-      <ChatContainer
-        messages={messages}
-        currentUser={currentUser}
-        channelName="Research Discussion"
-        onSendMessage={handleSendMessage}
-        onEditMessage={handleEditMessage}
-        onDeleteMessage={handleDeleteMessage}
-        onSendThreadReply={handleSendThreadReply}
-        threadReplies={threadReplies}
-      />
+      <Suspense
+        fallback={
+          <div className="flex-1 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+          </div>
+        }
+      >
+        <ChatContainer
+          messages={messages}
+          currentUser={currentUser}
+          channelName="Research Discussion"
+          onSendMessage={handleSendMessage}
+          onEditMessage={handleEditMessage}
+          onDeleteMessage={handleDeleteMessage}
+          onSendThreadReply={handleSendThreadReply}
+          threadReplies={threadReplies}
+        />
+      </Suspense>
     </div>
   );
 }

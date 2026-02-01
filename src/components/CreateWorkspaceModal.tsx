@@ -1,10 +1,10 @@
 "use client";
 
 import { useModal } from "@/contexts/ModalContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useForm } from "react-hook-form";
 import workspaceApi from "@/api/workspaceApi";
 import { useRouter } from "next/navigation";
+import { X, FolderPlus, Info } from "lucide-react";
 
 type CreateWorkspaceFormData = {
   title: string;
@@ -13,19 +13,16 @@ type CreateWorkspaceFormData = {
 export default function CreateWorkspaceModal() {
   const router = useRouter();
   const { isCreateWorkspaceOpen, closeModal } = useModal();
-  const { isDark } = useTheme();
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting }, // 1. Get isSubmitting
+    formState: { errors, isSubmitting },
   } = useForm<CreateWorkspaceFormData>();
 
   const createWorkspace = async (data: CreateWorkspaceFormData) => {
     try {
-      console.log("data", data);
       const res = await workspaceApi.createWorkspace(data);
-      console.log(res);
       closeModal();
       router.push(`/workspace/${res.data.data._id}`);
     } catch (error) {
@@ -35,130 +32,100 @@ export default function CreateWorkspaceModal() {
 
   if (!isCreateWorkspaceOpen) return null;
 
-  // Fixed typo: "rou}nded" -> "rounded"
-  const surfaceClasses = `w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden transform transition-all duration-300 ${isDark
-      ? "bg-[#0C0F16] border-white/10 shadow-black/50"
-      : "bg-white border-gray-200 shadow-[0_25px_80px_rgba(15,23,42,0.15)]"
-    }`;
-
-  // ... (keep your other color variables same as before) ...
-  const sectionDivider = isDark ? "border-white/10" : "border-gray-200";
-  const titleColor = isDark ? "text-white" : "text-gray-900";
-  const subtitleColor = isDark ? "text-white/60" : "text-gray-500";
-  const labelColor = isDark ? "text-white/70" : "text-gray-600";
-  const inputClasses = `w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 transition-colors ${isDark
-      ? "bg-white/5 border-white/15 text-white placeholder-white/40 focus:ring-white/30 focus:border-white/30"
-      : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:ring-blue-500/30 focus:border-blue-500"
-    }`;
-
-  // Added disabled styles for the button
-  const primaryButtonClasses = `px-4 py-2 text-sm font-semibold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isDark
-      ? "bg-blue-500 text-white hover:bg-blue-400 focus-visible:ring-white/30 focus-visible:ring-offset-[#0C0F16]"
-      : "bg-blue-600 text-white hover:bg-blue-500 focus-visible:ring-blue-400 focus-visible:ring-offset-white"
-    }`;
-  const secondaryButtonClasses = `px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${isDark
-      ? "text-white/70 hover:text-white hover:bg-white/5 focus-visible:ring-white/20 focus-visible:ring-offset-[#0C0F16]"
-      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus-visible:ring-gray-300 focus-visible:ring-offset-white"
-    }`;
-
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 sm:px-6 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-colors"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-black/40 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
+      onClick={closeModal}
     >
-      <div className={surfaceClasses}>
-        {/* 2. Changed <div> to <form> and added onSubmit */}
+      <div
+        className="w-full max-w-md rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-primary)] shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         <form onSubmit={handleSubmit(createWorkspace)}>
-          <div
-            className={`flex items-start justify-between gap-4 px-6 py-5 border-b ${sectionDivider}`}
-          >
-            <div>
-              <h2 className={`text-xl font-semibold ${titleColor}`}>
-                Create New Workspace
-              </h2>
-              <p className={`text-sm ${subtitleColor}`}>
-                Give your space a name. You can invite collaborators later.
-              </p>
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--border-primary)]">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-[var(--accent-primary)]/10">
+                <FolderPlus
+                  size={20}
+                  className="text-[var(--accent-primary)]"
+                />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                  Create Workspace
+                </h2>
+                <p className="text-sm text-[var(--text-muted)]">
+                  Start a new project space
+                </p>
+              </div>
             </div>
             <button
-              type="button" // Explicitly set close button to type="button" so it doesn't submit form
+              type="button"
               onClick={closeModal}
-              className={`p-2 rounded-full transition-colors ${isDark
-                  ? "text-white/60 hover:text-white hover:bg-white/10"
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-                }`}
+              className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
             >
-              {/* SVG Icon */}
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
+              <X size={18} />
             </button>
           </div>
 
+          {/* Body */}
           <div className="px-6 py-5 space-y-5">
             <div className="space-y-2">
-              <label className={`block text-sm font-medium ${labelColor}`}>
+              <label className="block text-sm font-medium text-[var(--text-secondary)]">
                 Workspace Name
               </label>
               <input
                 type="text"
                 placeholder="e.g. AI Research Group"
-                className={inputClasses}
+                className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-4 py-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/30 focus:border-[var(--accent-primary)] transition-colors"
                 autoFocus
-                disabled={isSubmitting} // Disable input while submitting
+                disabled={isSubmitting}
                 {...register("title", {
                   required: "Title is required",
-                  //   validate: (value) =>
-                  //     value.trim().split(/\s+/).length >= 2 ||
-                  //     "Must be at least two words",
                 })}
               />
               {errors.title && (
-                <p className="text-red-500">{errors.title.message}</p>
+                <p className="text-sm text-red-500">{errors.title.message}</p>
               )}
             </div>
+
             {/* Info Box */}
-            <div
-              className={`rounded-xl border px-4 py-3 text-xs leading-relaxed ${isDark
-                  ? "border-white/10 bg-white/5 text-white/70"
-                  : "border-gray-200 bg-gray-50 text-gray-600"
-                }`}
-            >
-              <p>Workspaces keep research, discussions, and files together.</p>
-              <p>Add teammates later from the workspace settings.</p>
+            <div className="flex gap-3 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-4 py-3">
+              <Info
+                size={16}
+                className="text-[var(--accent-primary)] shrink-0 mt-0.5"
+              />
+              <div className="text-xs text-[var(--text-muted)] leading-relaxed">
+                <p>
+                  Workspaces keep research, discussions, and files together.
+                </p>
+                <p className="mt-1">
+                  Add teammates later from the workspace settings.
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className={`px-6 py-4 border-t ${sectionDivider}`}>
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={closeModal}
-                className={secondaryButtonClasses}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
-              {/* 3. Changed onClick to type="submit" */}
-              <button
-                type="submit"
-                className={primaryButtonClasses}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Creating..." : "Create Workspace"}
-              </button>
-            </div>
+          {/* Footer */}
+          <div className="flex justify-end gap-3 px-6 py-4 border-t border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+            <button
+              type="button"
+              onClick={closeModal}
+              className="px-4 py-2.5 text-sm font-medium rounded-xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2.5 text-sm font-semibold rounded-xl bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-secondary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating..." : "Create Workspace"}
+            </button>
           </div>
         </form>
       </div>

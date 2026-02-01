@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useMemo,
+  useCallback,
+} from "react";
 
 interface ModalContextType {
   isCreateWorkspaceOpen: boolean;
@@ -11,14 +18,17 @@ const ModalContext = createContext<ModalContextType | undefined>(undefined);
 export const ModalProvider = ({ children }: { children: ReactNode }) => {
   const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] =
     useState<boolean>(false);
-  const openModal = () => setIsCreateWorkspaceOpen(true);
-  const closeModal = () => setIsCreateWorkspaceOpen(false);
 
-  return (
-    <ModalContext value={{ isCreateWorkspaceOpen, openModal, closeModal }}>
-      {children}
-    </ModalContext>
+  const openModal = useCallback(() => setIsCreateWorkspaceOpen(true), []);
+  const closeModal = useCallback(() => setIsCreateWorkspaceOpen(false), []);
+
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo(
+    () => ({ isCreateWorkspaceOpen, openModal, closeModal }),
+    [isCreateWorkspaceOpen, openModal, closeModal],
   );
+
+  return <ModalContext value={value}>{children}</ModalContext>;
 };
 
 export const useModal = () => {
