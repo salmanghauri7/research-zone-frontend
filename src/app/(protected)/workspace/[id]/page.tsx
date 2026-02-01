@@ -1,12 +1,7 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
-import { useParams } from "next/navigation";
+import { Suspense } from "react";
 import dynamic from "next/dynamic";
-import {
-  clearInvitationData,
-  getPendingWorkspaceId,
-} from "@/utils/invitationStorage";
 
 // Lazy load WorkSpace component
 const WorkSpace = dynamic(
@@ -23,18 +18,6 @@ const WorkSpace = dynamic(
 );
 
 export default function WorkspacePage() {
-  const params = useParams();
-  const workspaceId = params.id as string;
-
-  useEffect(() => {
-    // Clean up invitation data if this is the workspace user was invited to
-    const pendingWorkspaceId = getPendingWorkspaceId();
-
-    if (pendingWorkspaceId === workspaceId) {
-      clearInvitationData();
-    }
-  }, [workspaceId]);
-
   return (
     <div>
       <Suspense

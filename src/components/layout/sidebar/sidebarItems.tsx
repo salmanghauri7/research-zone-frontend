@@ -4,6 +4,7 @@ import {
   FileText,
   MessageSquare,
   Sparkles,
+  Settings,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -40,5 +41,11 @@ export const sidebarItems: SidebarItem[] = [
     label: "AI Tools",
     href: "/ai-tools",
     icon: <Sparkles size={20} />,
+  },
+  {
+    label: "Settings",
+    href: "/workspace/settings",
+    icon: <Settings size={20} />,
+    isDynamic: true,
   },
 ];

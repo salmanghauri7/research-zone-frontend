@@ -23,11 +23,6 @@ const WorkSpace = memo(function WorkSpace() {
     }
   }, [id]);
 
-  const handleSendInvite = useCallback((email: string, description: string) => {
-    // TODO: Implement send invite logic here
-    console.log("Sending invite to:", email, "with description:", description);
-    setIsModalOpen(false);
-  }, []);
 
   const openModal = useCallback(() => {
     setIsModalOpen(true);
@@ -52,7 +47,6 @@ const WorkSpace = memo(function WorkSpace() {
           <InviteModal
             isOpen={isModalOpen}
             onClose={closeModal}
-            onSendInvite={handleSendInvite}
             workspaceId={workspaceId}
           />
         </Suspense>

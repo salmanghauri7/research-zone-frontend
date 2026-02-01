@@ -8,6 +8,7 @@ import { logout } from "@/utils/logout";
 import { motion } from "framer-motion";
 import { useModal } from "@/contexts/ModalContext";
 import { getCurrentWorkspaceId } from "@/utils/invitationStorage";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 import {
   PanelLeftClose,
   PanelLeftOpen,
@@ -27,6 +28,7 @@ const Sidebar = memo(function Sidebar() {
     null,
   );
   const { openModal } = useModal();
+  const { currentWorkspaceId: storeWorkspaceId } = useWorkspaceStore();
 
   useEffect(() => {
     const workspaceId = getCurrentWorkspaceId();
@@ -120,12 +122,23 @@ const Sidebar = memo(function Sidebar() {
         {sidebarItems.map((item) => {
           const dynamicHref =
             item.isDynamic && currentWorkspaceId
-              ? `/workspace/${currentWorkspaceId}`
+              ? item.href.replace(
+                  "/workspace",
+                  `/workspace/${currentWorkspaceId}`,
+                )
               : item.href;
 
-          const isActive =
-            pathname === dynamicHref ||
-            (item.isDynamic && pathname.startsWith("/workspace/"));
+          // Check if this item should be active
+          let isActive = pathname === dynamicHref;
+
+          // Special handling for workspace main page - only Dashboard should be active
+          if (
+            item.label === "Dashboard" &&
+            pathname.startsWith("/workspace/") &&
+            !pathname.includes("/settings")
+          ) {
+            isActive = true;
+          }
 
           return (
             <Link

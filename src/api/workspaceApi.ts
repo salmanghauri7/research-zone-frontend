@@ -38,6 +38,13 @@ class WorkspaceApi {
   async getWorkspaces() {
     return api.get("/workspaces/all");
   }
+  async leaveWorkspace(workspaceId: string) {
+    return api.delete(`/workspaces/leave/${workspaceId}`);
+  }
+
+  async checkWorkspaceRole(workspaceId: string) {
+    return api.get(`/workspaces/check-role/${workspaceId}`);
+  }
 }
 
 // Export singleton instance
