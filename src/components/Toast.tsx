@@ -41,7 +41,7 @@ export default function Toast({
 
   return (
     <div
-      className={`fixed top-6 right-6 z-[60] flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-sm shadow-lg animate-slide-in-right ${styles[type]}`}
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-sm shadow-lg animate-slide-in-right ${styles[type]}`}
       style={{ maxWidth: "320px" }}
     >
       <div className="shrink-0">{icons[type]}</div>

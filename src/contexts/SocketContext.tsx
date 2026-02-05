@@ -8,7 +8,6 @@ import React, {
   useRef,
   useState,
   useMemo,
-  useCallback,
 } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -34,13 +33,20 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     initializedRef.current = true;
 
     // Access localStorage only on the client
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("accessToken");
+
+    console.log("🔌 SocketProvider: Initializing...");
+    console.log("🔑 Token exists:", !!token);
 
     // Only initialize socket if user is authenticated
-    if (!token) return;
+    if (!token) {
+      console.log("❌ No token found, skipping socket initialization");
+      return;
+    }
 
     // Initialize the persistent instance in the Ref
     if (!socketRef.current) {
+      console.log("✅ Creating socket connection to:", config.LOCAL_SERVER_URL);
       socketRef.current = io(config.LOCAL_SERVER_URL, {
         withCredentials: true,
         autoConnect: true,
@@ -60,16 +66,27 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     setSocketApi(socket);
 
     // Status Listeners
-    const onConnect = () => setIsConnected(true);
-    const onDisconnect = () => setIsConnected(false);
+    const onConnect = () => {
+      console.log("🟢 Socket connected!");
+      setIsConnected(true);
+    };
+    const onDisconnect = () => {
+      console.log("🔴 Socket disconnected!");
+      setIsConnected(false);
+    };
+    const onConnectError = (error: Error) => {
+      console.error("❌ Socket connection error:", error);
+    };
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
+    socket.on("connect_error", onConnectError);
 
     // Cleanup
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
+      socket.off("connect_error", onConnectError);
     };
   }, []);
 

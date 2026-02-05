@@ -1,7 +1,10 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { useParams } from "next/navigation";
+import { useSocket } from "@/contexts/SocketContext";
+import { useWorkspaceEvents } from "@/hooks/websocket";
 
 // Lazy load WorkSpace component
 const WorkSpace = dynamic(
@@ -18,6 +21,32 @@ const WorkSpace = dynamic(
 );
 
 export default function WorkspacePage() {
+  const { socket } = useSocket();
+  const params = useParams();
+  const workspaceId = params.id as string;
+
+  // Use modular websocket event handling
+  const { joinWorkspace } = useWorkspaceEvents({
+    socket,
+    workspaceId,
+    onWorkspaceJoined: (data) => {
+      console.log("📊 Workspace data:", data);
+      // You can update workspace state here if needed
+    },
+    onUserJoined: (data) => {
+      console.log("👥 New member:", data);
+      // You can refresh member list or update UI here
+    },
+    onError: (error) => {
+      console.error("⚠️ Workspace error:", error);
+      // Error is already shown via notification
+    },
+  });
+
+  useEffect(() => {
+    joinWorkspace();
+  }, [joinWorkspace]);
+
   return (
     <div>
       <Suspense
