@@ -34,8 +34,9 @@ export const sidebarItems: SidebarItem[] = [
   },
   {
     label: "Team Chat",
-    href: "/chat",
+    href: "/workspace/chat",
     icon: <MessageSquare size={20} />,
+    isDynamic: true,
   },
   {
     label: "AI Tools",
