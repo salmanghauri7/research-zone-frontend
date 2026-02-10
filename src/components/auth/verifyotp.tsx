@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AxiosError } from "axios"; // 👈 Import AxiosError
 import ResendTimer from "@/components/resendTimer";
 import userApi from "@/api/userApi";
+import { useUserStore } from "@/store/userStore";
 
 // A type guard for our specific API error structure
 // This assumes your backend sends { message: "..." } on error
@@ -23,6 +24,7 @@ export default function VerifyOTPPage() {
   const [message, setMessage] = useState<string>("");
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const [canResend, setCanResend] = useState<boolean>(false);
+  const setUser = useUserStore((state) => state.setUser);
 
   // ✅ Focus first input on page load
   useEffect(() => {
@@ -65,6 +67,7 @@ export default function VerifyOTPPage() {
     try {
       const res = await userApi.verifyOtp(enteredOtp);
       localStorage.setItem("accessToken", res.data.data.accessToken);
+      setUser(res.data.data.user);
 
       setMessage(" OTP Verified Successfully! ");
 

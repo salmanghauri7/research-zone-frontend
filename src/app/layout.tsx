@@ -15,6 +15,13 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Research Zone",
   description: "A collaboration platform for researchers",
+  openGraph: {
+    title: "Research Zone",
+    description: "A collaboration platform for researchers",
+    url: "https://research-zone-frontend.vercel.app",
+    siteName: "ResearchZone",
+    type: "website"
+  }
 };
 
 export default function RootLayout({

@@ -1,19 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { Socket } from "socket.io-client";
 import { useNotification } from "@/contexts/NotificationContext";
-
-interface MessageData {
-  id: string;
-  content: string;
-  sender: string;
-  timestamp: string;
-}
+import { SendMessagePayload, MessageData, AttachmentPayload } from "./types";
 
 interface UseChatEventsProps {
   socket: Socket | null;
-  chatId: string;
+  workspaceId: string;
   onMessageReceived?: (message: MessageData) => void;
   onTyping?: (userId: string) => void;
   onStopTyping?: (userId: string) => void;
@@ -21,12 +15,12 @@ interface UseChatEventsProps {
 
 export const useChatEvents = ({
   socket,
-  chatId,
+  workspaceId,
   onMessageReceived,
   onTyping,
   onStopTyping,
 }: UseChatEventsProps) => {
-  const { showSuccess, showError } = useNotification();
+  const { showError } = useNotification();
 
   // Handle new message
   useEffect(() => {
@@ -64,26 +58,57 @@ export const useChatEvents = ({
     };
   }, [socket, onTyping, onStopTyping]);
 
-  // Send message
-  const sendMessage = (content: string) => {
-    if (!socket) {
-      showError("Not connected to chat");
-      return;
-    }
+  // Send message with full payload
+  const sendMessage = useCallback(
+    ({
+      content,
+      messageType = "text",
+      attachments,
+      parentMessageId,
+      quotedMessageId,
+    }: {
+      content: string;
+      messageType?: "text" | "file" | "image";
+      attachments?: AttachmentPayload[];
+      parentMessageId?: string;
+      quotedMessageId?: string;
+    }) => {
+      if (!socket) {
+        showError("Not connected to chat");
+        return;
+      }
 
-    socket.emit("send-message", { chatId, content });
-  };
+      // Validate: content can't be empty unless attachments exist
+      if (!content.trim() && (!attachments || attachments.length === 0)) {
+        showError("Message cannot be empty");
+        return;
+      }
+
+      const payload: SendMessagePayload = {
+        workspaceId,
+        content: content.trim(),
+        messageType,
+        ...(attachments && attachments.length > 0 && { attachments }),
+        ...(parentMessageId && { parentMessageId }),
+        ...(quotedMessageId && { quotedMessageId }),
+      };
+
+      console.log("📤 Sending message:", payload);
+      socket.emit("send-message", payload);
+    },
+    [socket, workspaceId, showError],
+  );
 
   // Send typing indicator
-  const startTyping = () => {
+  const startTyping = useCallback(() => {
     if (!socket) return;
-    socket.emit("start-typing", { chatId });
-  };
+    socket.emit("start-typing", { workspaceId });
+  }, [socket, workspaceId]);
 
-  const stopTyping = () => {
+  const stopTyping = useCallback(() => {
     if (!socket) return;
-    socket.emit("stop-typing", { chatId });
-  };
+    socket.emit("stop-typing", { workspaceId });
+  }, [socket, workspaceId]);
 
   return {
     sendMessage,

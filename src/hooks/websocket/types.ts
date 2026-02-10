@@ -20,6 +20,40 @@ export interface JoinWorkspaceErrorData {
   error?: string;
 }
 
+// Chat/Message events
+export interface AttachmentPayload {
+  url: string;
+}
+
+export interface SendMessagePayload {
+  workspaceId: string;
+  content: string;
+  messageType: "text" | "file" | "image";
+  attachments?: AttachmentPayload[];
+  parentMessageId?: string; // For thread replies
+  quotedMessageId?: string; // For quote replies
+}
+
+export interface MessageData {
+  id: string;
+  workspaceId: string;
+  sender: {
+    _id: string;
+    firstName: string;
+    username?: string;
+  };
+  content: string;
+  messageType: "text" | "file" | "image";
+  attachments?: AttachmentPayload[];
+  parentMessageId?: string;
+  quotedMessageId?: string;
+  replyCount?: number;
+  isEdited: boolean;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Generic event handler types
-export type EventHandler<T = any> = (data: T) => void;
+export type EventHandler<T = unknown> = (data: T) => void;
 export type ErrorHandler = (error: JoinWorkspaceErrorData) => void;

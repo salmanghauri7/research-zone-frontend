@@ -67,6 +67,7 @@ const { joinWorkspace } = useWorkspaceEvents({
 ### Listened Events
 
 - `joined-workspace`: Successfully joined workspace
+
   ```ts
   {
     _id: string;
@@ -77,6 +78,7 @@ const { joinWorkspace } = useWorkspaceEvents({
   ```
 
 - `user-joined-workspace`: Another user joined the workspace
+
   ```ts
   {
     userId: string;
@@ -96,6 +98,7 @@ const { joinWorkspace } = useWorkspaceEvents({
 ## Notifications
 
 All events automatically show notifications via the `NotificationContext`:
+
 - ✅ Success: When you join a workspace
 - ℹ️ Info: When another user joins
 - ❌ Error: When there's an error

@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useCallback, Suspense } from "react";
+import { useState, useCallback, useMemo, Suspense, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Message, User } from "@/components/chat";
+import { useUserStore } from "@/store/userStore";
+import { useWorkspaceStore } from "@/store/workspaceStore";
+import { useSocket } from "@/contexts/SocketContext";
+import { useChatEvents } from "@/hooks/websocket/useChatEvents";
+import { AttachmentPayload } from "@/hooks/websocket/types";
+import { chatApi, BackendMessage } from "@/api/chatApi";
 
 // Lazy load the heavy ChatContainer component
 const ChatContainer = dynamic(() => import("@/components/chat/ChatContainer"), {
@@ -14,120 +20,198 @@ const ChatContainer = dynamic(() => import("@/components/chat/ChatContainer"), {
   ),
 });
 
-// Mock current user
-const currentUser: User = {
-  id: "user-1",
-  name: "John Doe",
-  avatar: undefined,
-  isOnline: true,
-};
+// Helper function to transform backend messages to frontend format
+const transformBackendMessage = (
+  backendMsg: BackendMessage,
+  quotedMessagesMap: Map<string, BackendMessage>,
+): Message => {
+  const message: Message = {
+    id: backendMsg._id,
+    content: backendMsg.content,
+    sender: {
+      id: backendMsg.sender._id,
+      name: `${backendMsg.sender.firstName}${backendMsg.sender.lastName ? " " + backendMsg.sender.lastName : ""}`,
+      avatar: backendMsg.sender.avatar,
+    },
+    timestamp: new Date(backendMsg.createdAt),
+    isEdited: backendMsg.isEdited,
+    threadCount: backendMsg.replyCount || 0,
+  };
 
-// Mock messages for demonstration
-const mockMessages: Message[] = [
-  {
-    id: "msg-1",
-    content:
-      "Hey team! I've been reviewing the latest research paper on quantum computing. Some fascinating insights on error correction.",
-    sender: {
-      id: "user-2",
-      name: "Alice Johnson",
-    },
-    timestamp: new Date(Date.now() - 3600000 * 24),
-    threadCount: 3,
-  },
-  {
-    id: "msg-2",
-    content: "That sounds interesting! Can you share the key findings?",
-    sender: currentUser,
-    timestamp: new Date(Date.now() - 3600000 * 23),
-    replyTo: {
-      id: "msg-1",
-      content:
-        "Hey team! I've been reviewing the latest research paper on quantum computing.",
-      sender: { id: "user-2", name: "Alice Johnson" },
-      timestamp: new Date(Date.now() - 3600000 * 24),
-    },
-  },
-  {
-    id: "msg-3",
-    content:
-      "Sure! The main takeaway is that they achieved a 99.5% fidelity rate using a novel surface code approach. I'll upload the PDF shortly.",
-    sender: {
-      id: "user-2",
-      name: "Alice Johnson",
-    },
-    timestamp: new Date(Date.now() - 3600000 * 22),
-  },
-  {
-    id: "msg-4",
-    content:
-      "I've also been looking into the implications for our current project. We might need to adjust our approach to the optimization algorithm.",
-    sender: {
-      id: "user-3",
-      name: "Bob Smith",
-    },
-    timestamp: new Date(Date.now() - 3600000 * 2),
-    threadCount: 1,
-  },
-  {
-    id: "msg-5",
-    content:
-      "Great point, Bob! Let's schedule a meeting to discuss the potential changes. How does everyone's calendar look for tomorrow afternoon?",
-    sender: {
-      id: "user-2",
-      name: "Alice Johnson",
-    },
-    timestamp: new Date(Date.now() - 3600000),
-  },
-  {
-    id: "msg-6",
-    content: "Works for me! I'll send out a calendar invite.",
-    sender: currentUser,
-    timestamp: new Date(Date.now() - 1800000),
-  },
-];
+  // Handle quoted message (reply in main chat)
+  if (
+    backendMsg.quotedMessageId &&
+    quotedMessagesMap.has(backendMsg.quotedMessageId)
+  ) {
+    const quotedMsg = quotedMessagesMap.get(backendMsg.quotedMessageId)!;
+    message.replyTo = {
+      id: quotedMsg._id,
+      content: quotedMsg.content,
+      sender: {
+        id: quotedMsg.sender._id,
+        name: `${quotedMsg.sender.firstName}${quotedMsg.sender.lastName ? " " + quotedMsg.sender.lastName : ""}`,
+        avatar: quotedMsg.sender.avatar,
+      },
+      timestamp: new Date(quotedMsg.createdAt),
+    };
+  }
 
-// Mock thread replies
-const mockThreadReplies: Record<string, Message[]> = {
-  "msg-1": [
-    {
-      id: "reply-1",
-      content: "I've read that paper too! The methodology is quite innovative.",
-      sender: { id: "user-3", name: "Bob Smith" },
-      timestamp: new Date(Date.now() - 3600000 * 20),
-    },
-    {
-      id: "reply-2",
-      content:
-        "Should we consider implementing something similar in our project?",
-      sender: currentUser,
-      timestamp: new Date(Date.now() - 3600000 * 18),
-    },
-    {
-      id: "reply-3",
-      content:
-        "Definitely worth exploring. I can prepare a feasibility analysis.",
-      sender: { id: "user-2", name: "Alice Johnson" },
-      timestamp: new Date(Date.now() - 3600000 * 16),
-    },
-  ],
-  "msg-4": [
-    {
-      id: "reply-4",
-      content: "What specific changes are you thinking about?",
-      sender: { id: "user-2", name: "Alice Johnson" },
-      timestamp: new Date(Date.now() - 3600000 * 1.5),
-    },
-  ],
+  // Handle attachments
+  if (backendMsg.attachments && backendMsg.attachments.length > 0) {
+    message.attachments = backendMsg.attachments.map((att, index) => ({
+      id: `${backendMsg._id}-att-${index}`,
+      type: backendMsg.messageType === "image" ? "image" : "file",
+      url: att.url,
+      name: att.url.split("/").pop() || "attachment",
+    }));
+  }
+
+  return message;
 };
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
-  const [threadReplies, setThreadReplies] =
-    useState<Record<string, Message[]>>(mockThreadReplies);
+  // Get user data from store
+  const user = useUserStore((state) => state.user);
+  const currentWorkspaceId = useWorkspaceStore(
+    (state) => state.currentWorkspaceId,
+  );
+
+  // Get socket connection
+  const { socket, isConnected } = useSocket();
+
+  // Create currentUser object from store data with fallback
+  const currentUser: User = useMemo(
+    () => ({
+      id: user?.id || "user-1",
+      name: user?.firstName || "Guest User",
+      avatar: undefined,
+      isOnline: true,
+    }),
+    [user],
+  );
+
+  // State
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [threadReplies, setThreadReplies] = useState<Record<string, Message[]>>(
+    {},
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+
+  // Fetch initial messages
+  useEffect(() => {
+    const fetchInitialMessages = async () => {
+      if (!currentWorkspaceId) return;
+
+      try {
+        setIsLoading(true);
+        const response = await chatApi.fetchMessages({
+          workspaceId: currentWorkspaceId,
+          limit: 50,
+          cursor: null,
+        });
+
+        // Create a map of all messages for quoted message lookup
+        const messagesMap = new Map(
+          response.messages.map((msg) => [msg._id, msg]),
+        );
+
+        // Transform messages to frontend format
+        const transformedMessages = response.messages
+          .filter((msg) => !msg.parentMessageId) // Only main messages
+          .map((msg) => transformBackendMessage(msg, messagesMap));
+
+        setMessages(transformedMessages);
+        setCursor(response.cursor);
+        setHasMore(response.hasMore);
+
+        // TODO: Handle thread replies separately if needed
+        // For now, thread replies will be fetched when opening a thread
+      } catch (error) {
+        console.error("Failed to fetch messages:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInitialMessages();
+  }, [currentWorkspaceId]);
+
+  // Load more messages (pagination)
+  const handleLoadMore = useCallback(async () => {
+    if (!currentWorkspaceId || !hasMore || isLoadingMore) return;
+
+    try {
+      setIsLoadingMore(true);
+      const response = await chatApi.fetchMessages({
+        workspaceId: currentWorkspaceId,
+        limit: 50,
+        cursor,
+      });
+
+      const messagesMap = new Map(
+        response.messages.map((msg) => [msg._id, msg]),
+      );
+
+      const transformedMessages = response.messages
+        .filter((msg) => !msg.parentMessageId)
+        .map((msg) => transformBackendMessage(msg, messagesMap));
+
+      // Prepend older messages
+      setMessages((prev) => [...transformedMessages, ...prev]);
+      setCursor(response.cursor);
+      setHasMore(response.hasMore);
+    } catch (error) {
+      console.error("Failed to load more messages:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [currentWorkspaceId, cursor, hasMore, isLoadingMore]);
+
+  // Initialize chat events hook
+  const { sendMessage: sendMessageViaSocket } = useChatEvents({
+    socket,
+    workspaceId: currentWorkspaceId || "",
+    onMessageReceived: (messageData) => {
+      console.log("Received message:", messageData);
+      // TODO: Add received message to state
+      // This will be handled when we integrate real-time message reception
+    },
+  });
 
   const handleSendMessage = useCallback(
     (content: string, attachments?: File[], replyTo?: Message) => {
+      // Determine message type based on attachments
+      let messageType: "text" | "file" | "image" = "text";
+      let attachmentPayload: AttachmentPayload[] | undefined;
+
+      if (attachments && attachments.length > 0) {
+        // Check if all attachments are images
+        const allImages = attachments.every((file) =>
+          file.type.startsWith("image/"),
+        );
+        messageType = allImages ? "image" : "file";
+
+        // Convert File objects to AttachmentPayload
+        // Note: In production, you'd upload these files first and get URLs
+        attachmentPayload = attachments.map((file) => ({
+          url: URL.createObjectURL(file), // Temporary URL for now
+        }));
+      }
+
+      // Send via WebSocket
+      if (isConnected && user?.id && currentWorkspaceId) {
+        sendMessageViaSocket({
+          content,
+          messageType,
+          attachments: attachmentPayload,
+          quotedMessageId: replyTo?.id, // Use replyTo as quotedMessage for quote replies
+        });
+      }
+
+      // Optimistic UI update - add message to local state immediately
       const newMessage: Message = {
         id: `msg-${Date.now()}`,
         content,
@@ -142,9 +226,16 @@ export default function ChatPage() {
           size: file.size,
         })),
       };
+
       setMessages((prev) => [...prev, newMessage]);
     },
-    [],
+    [
+      currentUser,
+      user?.id,
+      currentWorkspaceId,
+      isConnected,
+      sendMessageViaSocket,
+    ],
   );
 
   const handleEditMessage = useCallback(
@@ -188,6 +279,34 @@ export default function ChatPage() {
 
   const handleSendThreadReply = useCallback(
     (parentId: string, content: string, attachments?: File[]) => {
+      // Determine message type based on attachments
+      let messageType: "text" | "file" | "image" = "text";
+      let attachmentPayload: AttachmentPayload[] | undefined;
+
+      if (attachments && attachments.length > 0) {
+        // Check if all attachments are images
+        const allImages = attachments.every((file) =>
+          file.type.startsWith("image/"),
+        );
+        messageType = allImages ? "image" : "file";
+
+        // Convert File objects to AttachmentPayload
+        attachmentPayload = attachments.map((file) => ({
+          url: URL.createObjectURL(file),
+        }));
+      }
+
+      // Send via WebSocket with parentMessageId for thread replies
+      if (isConnected && user?.id && currentWorkspaceId) {
+        sendMessageViaSocket({
+          content,
+          messageType,
+          attachments: attachmentPayload,
+          parentMessageId: parentId, // This makes it a thread reply
+        });
+      }
+
+      // Optimistic UI update
       const newReply: Message = {
         id: `reply-${Date.now()}`,
         content,
@@ -216,8 +335,22 @@ export default function ChatPage() {
         ),
       );
     },
-    [],
+    [
+      currentUser,
+      user?.id,
+      currentWorkspaceId,
+      isConnected,
+      sendMessageViaSocket,
+    ],
   );
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col">
@@ -228,6 +361,18 @@ export default function ChatPage() {
           </div>
         }
       >
+        {/* Load More Button */}
+        {hasMore && (
+          <div className="p-4 text-center border-b border-gray-200 dark:border-gray-700">
+            <button
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              className="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoadingMore ? "Loading..." : "Load older messages"}
+            </button>
+          </div>
+        )}
         <ChatContainer
           messages={messages}
           currentUser={currentUser}

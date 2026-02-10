@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { useGoogleLogin } from "@react-oauth/google";
 import Link from "next/link";
+import { useUserStore } from "@/store/userStore";
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
@@ -19,6 +20,7 @@ export default function LoginPage() {
   const [buttonText, setButtonText] = useState("Sign in");
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
   const router = useRouter();
+  const setUser = useUserStore((state) => state.setUser);
 
   const {
     register,
@@ -41,6 +43,7 @@ export default function LoginPage() {
       const res = await userApi.login(apiData);
 
       localStorage.setItem("accessToken", res.data.data.accessToken);
+      setUser(res.data.data.user);
 
       setButtonText("Success!");
       await new Promise((resolve) => setTimeout(resolve, 800));
