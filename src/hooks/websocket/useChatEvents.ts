@@ -99,6 +99,22 @@ export const useChatEvents = ({
     [socket, workspaceId, showError],
   );
 
+  const deleteMessage = useCallback(
+    (messageId: string) => {
+      if (!socket) {
+        showError("Not connected to chat");
+        return;
+      }
+
+      console.log("🗑️ Deleting message:", messageId);
+      socket.emit("delete-message", {
+        workspaceId,
+        messageId,
+      });
+    },
+    [socket, workspaceId, showError],
+  );
+
   // Send typing indicator
   const startTyping = useCallback(() => {
     if (!socket) return;
@@ -114,5 +130,6 @@ export const useChatEvents = ({
     sendMessage,
     startTyping,
     stopTyping,
+    deleteMessage,
   };
 };

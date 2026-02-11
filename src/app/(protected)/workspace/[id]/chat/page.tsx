@@ -113,8 +113,6 @@ export default function ChatPage() {
           cursor: null,
         });
 
-        console.log(response);
-
         // Create a map of all messages for quoted message lookup
         const messagesMap = new Map(
           response.messages.map((msg) => [msg._id, msg]),
@@ -122,18 +120,42 @@ export default function ChatPage() {
 
         console.log(messagesMap);
 
-        // Transform messages to frontend format
-        const transformedMessages = response.messages
-          .filter((msg) => !msg.parentMessageId) // Only main messages
+        // Separate main messages and thread replies
+        const mainMessages = response.messages.filter(
+          (msg) => !msg.parentMessageId,
+        );
+        const threadMessages = response.messages.filter(
+          (msg) => msg.parentMessageId,
+        );
+
+        // Transform main messages to frontend format
+        const transformedMessages = mainMessages
           .map((msg) => transformBackendMessage(msg, messagesMap))
           .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()); // Sort chronologically (oldest first)
 
+        // Group thread replies by parent message ID
+        const threadRepliesMap: Record<string, Message[]> = {};
+        threadMessages.forEach((msg) => {
+          const parentId = msg.parentMessageId!;
+          if (!threadRepliesMap[parentId]) {
+            threadRepliesMap[parentId] = [];
+          }
+          threadRepliesMap[parentId].push(
+            transformBackendMessage(msg, messagesMap),
+          );
+        });
+
+        // Sort each thread's replies chronologically
+        Object.keys(threadRepliesMap).forEach((parentId) => {
+          threadRepliesMap[parentId].sort(
+            (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+          );
+        });
+
         setMessages(transformedMessages);
+        setThreadReplies(threadRepliesMap);
         setCursor(response.cursor);
         setHasMore(response.hasMore);
-
-        // TODO: Handle thread replies separately if needed
-        // For now, thread replies will be fetched when opening a thread
       } catch (error) {
         console.error("Failed to fetch messages:", error);
       } finally {
@@ -160,13 +182,52 @@ export default function ChatPage() {
         response.messages.map((msg) => [msg._id, msg]),
       );
 
-      const transformedMessages = response.messages
-        .filter((msg) => !msg.parentMessageId)
+      // Separate main messages and thread replies
+      const mainMessages = response.messages.filter(
+        (msg) => !msg.parentMessageId,
+      );
+      const threadMessages = response.messages.filter(
+        (msg) => msg.parentMessageId,
+      );
+
+      const transformedMessages = mainMessages
         .map((msg) => transformBackendMessage(msg, messagesMap))
         .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()); // Sort chronologically (oldest first)
 
+      // Group thread replies by parent message ID
+      const threadRepliesMap: Record<string, Message[]> = {};
+      threadMessages.forEach((msg) => {
+        const parentId = msg.parentMessageId!;
+        if (!threadRepliesMap[parentId]) {
+          threadRepliesMap[parentId] = [];
+        }
+        threadRepliesMap[parentId].push(
+          transformBackendMessage(msg, messagesMap),
+        );
+      });
+
+      // Sort each thread's replies chronologically
+      Object.keys(threadRepliesMap).forEach((parentId) => {
+        threadRepliesMap[parentId].sort(
+          (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+        );
+      });
+
       // Prepend older messages
       setMessages((prev) => [...transformedMessages, ...prev]);
+
+      // Merge thread replies with existing ones
+      setThreadReplies((prev) => {
+        const merged = { ...prev };
+        Object.keys(threadRepliesMap).forEach((parentId) => {
+          merged[parentId] = [
+            ...threadRepliesMap[parentId],
+            ...(prev[parentId] || []),
+          ];
+        });
+        return merged;
+      });
+
       setCursor(response.cursor);
       setHasMore(response.hasMore);
     } catch (error) {
@@ -176,15 +237,166 @@ export default function ChatPage() {
     }
   }, [currentWorkspaceId, cursor, hasMore, isLoadingMore]);
 
+  // Listen for message deletion events from other users
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    const handleMessageDeleted = (data: { messageId: string }) => {
+      console.log("Message deleted by another user:", data.messageId);
+
+      // Remove from main messages
+      setMessages((prev) => prev.filter((msg) => msg.id !== data.messageId));
+
+      // Remove from thread replies
+      setThreadReplies((prev) => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach((threadId) => {
+          updated[threadId] = updated[threadId].filter(
+            (msg) => msg.id !== data.messageId,
+          );
+        });
+        return updated;
+      });
+    };
+
+    const handleMessageDeletionCompleted = (data: { messageId: string }) => {
+      console.log("Message deletion confirmed:", data.messageId);
+      // Optimistic update already handled, this is just confirmation
+    };
+
+    // Listen for deletions from other users
+    socket.on("message-deleted", handleMessageDeleted);
+    // Listen for own deletion confirmation
+    socket.on("message-deletion-completed", handleMessageDeletionCompleted);
+
+    return () => {
+      socket.off("message-deleted", handleMessageDeleted);
+      socket.off("message-deletion-completed", handleMessageDeletionCompleted);
+    };
+  }, [socket, isConnected]);
+
+  // Handle incoming messages from WebSocket
+  const handleMessageReceived = useCallback((messageData: any) => {
+    console.log("Received message:", messageData);
+
+    // Transform received message to frontend format
+    const receivedMessage: Message = {
+      id: messageData.id,
+      content: messageData.content,
+      sender: {
+        id: messageData.sender._id,
+        name: `${messageData.sender.firstName}${messageData.sender.username ? ` (${messageData.sender.username})` : ""}`,
+        avatar: undefined,
+      },
+      timestamp: new Date(messageData.createdAt),
+      isEdited: messageData.isEdited,
+      threadCount: messageData.replyCount || 0,
+      attachments: messageData.attachments?.map((att: any, index: number) => ({
+        id: `${messageData.id}-att-${index}`,
+        type: messageData.messageType === "image" ? "image" : "file",
+        url: att.url,
+        name: att.url.split("/").pop() || "attachment",
+      })),
+    };
+
+    // Check if this is a thread reply (has parentMessageId)
+    if (messageData.parentMessageId) {
+      handleThreadReply(
+        messageData.parentMessageId,
+        receivedMessage,
+        messageData.replyCount,
+      );
+    } else {
+      handleMainMessage(receivedMessage, messageData.id);
+    }
+  }, []);
+
+  // Handle thread reply messages
+  const handleThreadReply = useCallback(
+    (parentId: string, receivedMessage: Message, replyCount?: number) => {
+      setThreadReplies((prev) => {
+        const currentReplies = prev[parentId] || [];
+
+        // Check if this is replacing an optimistic message
+        const optimisticIndex = currentReplies.findIndex(
+          (msg) =>
+            msg.sender.id === receivedMessage.sender.id &&
+            msg.content === receivedMessage.content &&
+            Math.abs(
+              msg.timestamp.getTime() - receivedMessage.timestamp.getTime(),
+            ) < 5000,
+        );
+
+        if (optimisticIndex !== -1) {
+          // Replace optimistic message with real one
+          const updatedReplies = [...currentReplies];
+          updatedReplies[optimisticIndex] = receivedMessage;
+          return { ...prev, [parentId]: updatedReplies };
+        }
+
+        // Otherwise, add as new reply
+        return {
+          ...prev,
+          [parentId]: [...currentReplies, receivedMessage],
+        };
+      });
+
+      // Update thread count on parent message
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === parentId
+            ? { ...msg, threadCount: replyCount || msg.threadCount || 0 }
+            : msg,
+        ),
+      );
+    },
+    [],
+  );
+
+  // Handle main chat messages (non-thread)
+  const handleMainMessage = useCallback(
+    (receivedMessage: Message, messageId: string) => {
+      setMessages((prev) => {
+        // Check if this is replacing an optimistic message
+        const optimisticIndex = prev.findIndex(
+          (msg) =>
+            msg.sender.id === receivedMessage.sender.id &&
+            msg.content === receivedMessage.content &&
+            Math.abs(
+              msg.timestamp.getTime() - receivedMessage.timestamp.getTime(),
+            ) < 5000,
+        );
+
+        if (optimisticIndex !== -1) {
+          // Replace optimistic message with real one
+          const updated = [...prev];
+          updated[optimisticIndex] = receivedMessage;
+          return updated;
+        }
+
+        // Check if message already exists (by ID)
+        const exists = prev.some((msg) => msg.id === messageId);
+        if (exists) {
+          return prev.map((msg) =>
+            msg.id === messageId ? receivedMessage : msg,
+          );
+        }
+
+        // Otherwise, add as new message
+        return [...prev, receivedMessage];
+      });
+    },
+    [],
+  );
+
   // Initialize chat events hook
-  const { sendMessage: sendMessageViaSocket } = useChatEvents({
+  const {
+    sendMessage: sendMessageViaSocket,
+    deleteMessage: deleteMessageViaSocket,
+  } = useChatEvents({
     socket,
     workspaceId: currentWorkspaceId || "",
-    onMessageReceived: (messageData) => {
-      console.log("Received message:", messageData);
-      // TODO: Add received message to state
-      // This will be handled when we integrate real-time message reception
-    },
+    onMessageReceived: handleMessageReceived,
   });
 
   const handleSendMessage = useCallback(
@@ -269,19 +481,28 @@ export default function ChatPage() {
     [],
   );
 
-  const handleDeleteMessage = useCallback((messageId: string) => {
-    setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
-    // Also delete from thread replies
-    setThreadReplies((prev) => {
-      const updated = { ...prev };
-      Object.keys(updated).forEach((threadId) => {
-        updated[threadId] = updated[threadId].filter(
-          (msg) => msg.id !== messageId,
-        );
+  const handleDeleteMessage = useCallback(
+    (messageId: string) => {
+      // Optimistic UI update - instantly remove from state
+      setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+      // Also delete from thread replies
+      setThreadReplies((prev) => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach((threadId) => {
+          updated[threadId] = updated[threadId].filter(
+            (msg) => msg.id !== messageId,
+          );
+        });
+        return updated;
       });
-      return updated;
-    });
-  }, []);
+
+      // Send delete request via WebSocket using the hook
+      if (isConnected) {
+        deleteMessageViaSocket(messageId);
+      }
+    },
+    [isConnected, deleteMessageViaSocket],
+  );
 
   const handleSendThreadReply = useCallback(
     (parentId: string, content: string, attachments?: File[]) => {
