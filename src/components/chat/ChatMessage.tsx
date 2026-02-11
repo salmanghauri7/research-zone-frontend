@@ -9,7 +9,7 @@ import Image from "next/image";
 
 interface ChatMessageProps {
   message: Message;
-  isOwn?: boolean;
+  isOwn?: boolean;  
   onReply?: (message: Message) => void;
   onEdit?: (message: Message) => void;
   onDelete?: (messageId: string) => void;
@@ -25,7 +25,6 @@ export default function ChatMessage({
   onThreadOpen,
 }: ChatMessageProps) {
   const [isHovered, setIsHovered] = useState(false);
-
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString("en-US", {
       hour: "numeric",
@@ -116,7 +115,7 @@ export default function ChatMessage({
         )}
 
         {/* Thread Count */}
-        {message.threadCount && message.threadCount > 0 && (
+        {message.threadCount && message.threadCount > 0 ? (
           <button
             onClick={() => onThreadOpen?.(message)}
             className="mt-2 flex items-center gap-1.5 text-xs font-medium transition-colors text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
@@ -125,7 +124,7 @@ export default function ChatMessage({
             <span className="text-gray-400 dark:text-white/30">·</span>
             <span>View thread</span>
           </button>
-        )}
+        ) : null}
       </div>
 
       {/* Message Actions - Shown on hover */}

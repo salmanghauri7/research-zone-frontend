@@ -109,19 +109,24 @@ export default function ChatPage() {
         setIsLoading(true);
         const response = await chatApi.fetchMessages({
           workspaceId: currentWorkspaceId,
-          limit: 50,
+          limit: 20,
           cursor: null,
         });
+
+        console.log(response);
 
         // Create a map of all messages for quoted message lookup
         const messagesMap = new Map(
           response.messages.map((msg) => [msg._id, msg]),
         );
 
+        console.log(messagesMap);
+
         // Transform messages to frontend format
         const transformedMessages = response.messages
           .filter((msg) => !msg.parentMessageId) // Only main messages
-          .map((msg) => transformBackendMessage(msg, messagesMap));
+          .map((msg) => transformBackendMessage(msg, messagesMap))
+          .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()); // Sort chronologically (oldest first)
 
         setMessages(transformedMessages);
         setCursor(response.cursor);
@@ -157,7 +162,8 @@ export default function ChatPage() {
 
       const transformedMessages = response.messages
         .filter((msg) => !msg.parentMessageId)
-        .map((msg) => transformBackendMessage(msg, messagesMap));
+        .map((msg) => transformBackendMessage(msg, messagesMap))
+        .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()); // Sort chronologically (oldest first)
 
       // Prepend older messages
       setMessages((prev) => [...transformedMessages, ...prev]);

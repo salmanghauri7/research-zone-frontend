@@ -97,21 +97,10 @@ export default function ChatContainer({
         }`}
       >
         {/* Chat Header */}
-        <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10">
+        <div className="shrink-0 flex items-center justify-between px-6 py-1 border-b border-gray-200 dark:border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-500/20">
-              <span className="text-lg text-blue-600 dark:text-blue-400">
-                #
-              </span>
-            </div>
-            <div>
-              <h2 className="font-semibold text-gray-900 dark:text-white">
-                {channelName}
-              </h2>
-              <p className="text-xs text-gray-500 dark:text-white/50">
-                {messages.length} messages
-              </p>
-            </div>
+            
+            
           </div>
 
           {/* Header Actions */}
@@ -155,7 +144,7 @@ export default function ChatContainer({
           className="flex-1 min-h-0 overflow-y-auto custom-scrollbar"
         >
           {messages.length === 0 ? (
-            <EmptyState channelName={channelName} />
+            <EmptyState />
           ) : (
             <div className="py-4">
               {Object.entries(groupedMessages).map(([date, msgs]) => (
@@ -221,7 +210,7 @@ export default function ChatContainer({
 }
 
 // Empty State Component
-function EmptyState({ channelName }: { channelName: string }) {
+function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center h-full px-6 py-12">
       <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6 bg-blue-50 dark:bg-blue-500/10">
@@ -240,7 +229,7 @@ function EmptyState({ channelName }: { channelName: string }) {
         </svg>
       </div>
       <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
-        Welcome to #{channelName}
+        Welcome
       </h3>
       <p className="text-center max-w-md text-gray-500 dark:text-white/50">
         This is the beginning of your conversation. Start by sending a message
@@ -253,6 +242,7 @@ function EmptyState({ channelName }: { channelName: string }) {
 // Helper function to group messages by date
 function groupMessagesByDate(messages: Message[]): Record<string, Message[]> {
   const groups: Record<string, Message[]> = {};
+  const dateToTimestamp: Record<string, number> = {}; // Track timestamps for sorting groups
 
   messages.forEach((message) => {
     const date = new Date(message.timestamp);
@@ -276,9 +266,23 @@ function groupMessagesByDate(messages: Message[]): Record<string, Message[]> {
 
     if (!groups[dateKey]) {
       groups[dateKey] = [];
+      dateToTimestamp[dateKey] = date.getTime();
     }
     groups[dateKey].push(message);
   });
 
-  return groups;
+  // Sort messages within each group chronologically (oldest first)
+  Object.keys(groups).forEach(key => {
+    groups[key].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  });
+
+  // Sort groups by their timestamp and rebuild the object in order
+  const sortedGroups: Record<string, Message[]> = {};
+  Object.keys(groups)
+    .sort((a, b) => dateToTimestamp[a] - dateToTimestamp[b])
+    .forEach(key => {
+      sortedGroups[key] = groups[key];
+    });
+
+  return sortedGroups;
 }
