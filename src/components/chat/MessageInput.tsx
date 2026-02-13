@@ -17,7 +17,6 @@ interface MessageInputProps {
   onSend: (content: string, attachments?: File[]) => void;
   replyTo?: Message | null;
   onCancelReply?: () => void;
-  placeholder?: string;
   disabled?: boolean;
 }
 
@@ -25,7 +24,6 @@ export default function MessageInput({
   onSend,
   replyTo,
   onCancelReply,
-  placeholder = "Type a message...",
   disabled = false,
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
@@ -239,7 +237,7 @@ export default function MessageInput({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={placeholder}
+            placeholder="Type message here..."
             disabled={disabled || isRecording}
             rows={1}
             className="flex-1 resize-none px-4 py-3 bg-transparent outline-none text-sm text-gray-900 placeholder-gray-500 dark:text-white dark:placeholder-white/40"

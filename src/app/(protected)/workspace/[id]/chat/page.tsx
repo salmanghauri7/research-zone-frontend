@@ -113,6 +113,8 @@ export default function ChatPage() {
           cursor: null,
         });
 
+        console.log(response);
+
         // Create a map of all messages for quoted message lookup
         const messagesMap = new Map(
           response.messages.map((msg) => [msg._id, msg]),
@@ -275,41 +277,7 @@ export default function ChatPage() {
     };
   }, [socket, isConnected]);
 
-  // Handle incoming messages from WebSocket
-  const handleMessageReceived = useCallback((messageData: any) => {
-    console.log("Received message:", messageData);
-
-    // Transform received message to frontend format
-    const receivedMessage: Message = {
-      id: messageData.id,
-      content: messageData.content,
-      sender: {
-        id: messageData.sender._id,
-        name: `${messageData.sender.firstName}${messageData.sender.username ? ` (${messageData.sender.username})` : ""}`,
-        avatar: undefined,
-      },
-      timestamp: new Date(messageData.createdAt),
-      isEdited: messageData.isEdited,
-      threadCount: messageData.replyCount || 0,
-      attachments: messageData.attachments?.map((att: any, index: number) => ({
-        id: `${messageData.id}-att-${index}`,
-        type: messageData.messageType === "image" ? "image" : "file",
-        url: att.url,
-        name: att.url.split("/").pop() || "attachment",
-      })),
-    };
-
-    // Check if this is a thread reply (has parentMessageId)
-    if (messageData.parentMessageId) {
-      handleThreadReply(
-        messageData.parentMessageId,
-        receivedMessage,
-        messageData.replyCount,
-      );
-    } else {
-      handleMainMessage(receivedMessage, messageData.id);
-    }
-  }, []);
+ 
 
   // Handle thread reply messages
   const handleThreadReply = useCallback(
@@ -388,6 +356,42 @@ export default function ChatPage() {
     },
     [],
   );
+
+   // Handle incoming messages from WebSocket
+  const handleMessageReceived = useCallback((messageData: any) => {
+    console.log("Received message:", messageData);
+
+    // Transform received message to frontend format
+    const receivedMessage: Message = {
+      id: messageData.id,
+      content: messageData.content,
+      sender: {
+        id: messageData.sender._id,
+        name: `${messageData.sender.firstName}${messageData.sender.username ? ` (${messageData.sender.username})` : ""}`,
+        avatar: undefined,
+      },
+      timestamp: new Date(messageData.createdAt),
+      isEdited: messageData.isEdited,
+      threadCount: messageData.replyCount || 0,
+      attachments: messageData.attachments?.map((att: any, index: number) => ({
+        id: `${messageData.id}-att-${index}`,
+        type: messageData.messageType === "image" ? "image" : "file",
+        url: att.url,
+        name: att.url.split("/").pop() || "attachment",
+      })),
+    };
+
+    // Check if this is a thread reply (has parentMessageId)
+    if (messageData.parentMessageId) {
+      handleThreadReply(
+        messageData.parentMessageId,
+        receivedMessage,
+        messageData.replyCount,
+      );
+    } else {
+      handleMainMessage(receivedMessage, messageData.id);
+    }
+  }, [handleThreadReply, handleMainMessage]);
 
   // Initialize chat events hook
   const {

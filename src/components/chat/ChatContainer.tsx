@@ -182,7 +182,7 @@ export default function ChatContainer({
           onSend={handleSendMessage}
           replyTo={replyTo}
           onCancelReply={handleCancelReply}
-          placeholder={`Message #${channelName}`}
+          
         />
       </div>
 
