@@ -7,6 +7,7 @@ import { useUserStore } from "@/store/userStore";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import { useSocket } from "@/contexts/SocketContext";
 import { useChatEvents } from "@/hooks/websocket/useChatEvents";
+import { useWorkspaceEvents } from "@/hooks/websocket/useWorkspaceEvents";
 import { AttachmentPayload } from "@/hooks/websocket/types";
 import { chatApi, BackendMessage } from "@/api/chatApi";
 
@@ -113,14 +114,10 @@ export default function ChatPage() {
           cursor: null,
         });
 
-        console.log(response);
-
         // Create a map of all messages for quoted message lookup
         const messagesMap = new Map(
           response.messages.map((msg) => [msg._id, msg]),
         );
-
-        console.log(messagesMap);
 
         // Separate main messages and thread replies
         const mainMessages = response.messages.filter(
@@ -277,8 +274,6 @@ export default function ChatPage() {
     };
   }, [socket, isConnected]);
 
- 
-
   // Handle thread reply messages
   const handleThreadReply = useCallback(
     (parentId: string, receivedMessage: Message, replyCount?: number) => {
@@ -357,41 +352,60 @@ export default function ChatPage() {
     [],
   );
 
-   // Handle incoming messages from WebSocket
-  const handleMessageReceived = useCallback((messageData: any) => {
-    console.log("Received message:", messageData);
+  // Handle incoming messages from WebSocket
+  const handleMessageReceived = useCallback(
+    (messageData: any) => {
+      console.log("📨 Received message in chat page:", messageData);
 
-    // Transform received message to frontend format
-    const receivedMessage: Message = {
-      id: messageData.id,
-      content: messageData.content,
-      sender: {
-        id: messageData.sender._id,
-        name: `${messageData.sender.firstName}${messageData.sender.username ? ` (${messageData.sender.username})` : ""}`,
-        avatar: undefined,
-      },
-      timestamp: new Date(messageData.createdAt),
-      isEdited: messageData.isEdited,
-      threadCount: messageData.replyCount || 0,
-      attachments: messageData.attachments?.map((att: any, index: number) => ({
-        id: `${messageData.id}-att-${index}`,
-        type: messageData.messageType === "image" ? "image" : "file",
-        url: att.url,
-        name: att.url.split("/").pop() || "attachment",
-      })),
-    };
+      // Transform received message to frontend format
+      const receivedMessage: Message = {
+        id: messageData._id || messageData.id, // Backend uses _id
+        content: messageData.content,
+        sender: {
+          id: messageData.sender._id || messageData.sender.id,
+          name: `${messageData.sender.firstName}${messageData.sender.username ? ` (${messageData.sender.username})` : ""}`,
+          avatar: messageData.sender.avatar,
+        },
+        timestamp: new Date(messageData.createdAt),
+        isEdited: messageData.isEdited,
+        threadCount: messageData.replyCount || 0,
+        attachments: messageData.attachments?.map(
+          (att: any, index: number) => ({
+            id: `${messageData._id || messageData.id}-att-${index}`,
+            type: messageData.messageType === "image" ? "image" : "file",
+            url: att.url,
+            name: att.url.split("/").pop() || "attachment",
+          }),
+        ),
+      };
 
-    // Check if this is a thread reply (has parentMessageId)
-    if (messageData.parentMessageId) {
-      handleThreadReply(
-        messageData.parentMessageId,
-        receivedMessage,
-        messageData.replyCount,
-      );
-    } else {
-      handleMainMessage(receivedMessage, messageData.id);
+      // Check if this is a thread reply (has parentMessageId)
+      if (messageData.parentMessageId) {
+        handleThreadReply(
+          messageData.parentMessageId,
+          receivedMessage,
+          messageData.replyCount,
+        );
+      } else {
+        handleMainMessage(receivedMessage, messageData._id || messageData.id);
+      }
+    },
+    [handleThreadReply, handleMainMessage],
+  );
+
+  // Initialize workspace events hook and join workspace room
+  const { joinWorkspace } = useWorkspaceEvents({
+    socket,
+    workspaceId: currentWorkspaceId || "",
+  });
+
+  // Join workspace room when socket connects or workspace changes
+  useEffect(() => {
+    if (socket && isConnected && currentWorkspaceId) {
+      console.log("🚀 Joining workspace room for chat:", currentWorkspaceId);
+      joinWorkspace();
     }
-  }, [handleThreadReply, handleMainMessage]);
+  }, [socket, isConnected, currentWorkspaceId, joinWorkspace]);
 
   // Initialize chat events hook
   const {

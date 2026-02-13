@@ -27,7 +27,8 @@ export const useChatEvents = ({
     if (!socket) return;
 
     const handleNewMessage = (data: MessageData) => {
-      console.log("💬 New message:", data);
+      console.log("💬 New message received in useChatEvents:", data);
+      console.log("🔍 Socket ID:", socket.id);
       onMessageReceived?.(data);
     };
 
