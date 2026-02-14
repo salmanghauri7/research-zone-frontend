@@ -32,12 +32,20 @@ api.interceptors.response.use(
 
     // Don't retry if this is already the refresh endpoint to prevent infinite loop
     const isRefreshEndpoint = originalRequest.url?.includes("/users/refresh");
+    
+    // Don't retry token refresh for authentication endpoints
+    const isAuthEndpoint = 
+      originalRequest.url?.includes("/users/login") ||
+      originalRequest.url?.includes("/users/signup") ||
+      originalRequest.url?.includes("/users/google-login") ||
+      originalRequest.url?.includes("/users/verifyOtp");
 
     // Handle token refresh
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !isRefreshEndpoint
+      !isRefreshEndpoint &&
+      !isAuthEndpoint
     ) {
       originalRequest._retry = true;
       try {
