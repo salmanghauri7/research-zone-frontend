@@ -9,6 +9,7 @@ interface UseChatEventsProps {
   socket: Socket | null;
   workspaceId: string;
   onMessageReceived?: (message: MessageData) => void;
+  onMessageSent?: (message: MessageData) => void;
   onTyping?: (userId: string) => void;
   onStopTyping?: (userId: string) => void;
 }
@@ -17,6 +18,7 @@ export const useChatEvents = ({
   socket,
   workspaceId,
   onMessageReceived,
+  onMessageSent,
   onTyping,
   onStopTyping,
 }: UseChatEventsProps) => {
@@ -37,6 +39,21 @@ export const useChatEvents = ({
       socket.off("new-message", handleNewMessage);
     };
   }, [socket, onMessageReceived]);
+
+  // Handle message sent confirmation (to replace optimistic message with real ID)
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleMessageSent = (data: MessageData) => {
+      console.log("✅ Message sent confirmation received:", data);
+      onMessageSent?.(data);
+    };
+
+    socket.on("message-sent", handleMessageSent);
+    return () => {
+      socket.off("message-sent", handleMessageSent);
+    };
+  }, [socket, onMessageSent]);
 
   // Handle typing indicators
   useEffect(() => {

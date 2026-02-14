@@ -43,7 +43,6 @@ export const useWorkspaceEvents = ({
       }
 
       socket.emit("join-workspace", { workspaceId });
-      console.log("🚀 Joining workspace:", workspaceId);
       hasJoinedRef.current = workspaceId;
     }
   }, [socket, workspaceId]);
