@@ -43,9 +43,9 @@ export default function WorkspacePage() {
     },
   });
 
-  useEffect(() => {
-    joinWorkspace();
-  }, [joinWorkspace]);
+  // useEffect(() => {
+  //   joinWorkspace();
+  // }, [joinWorkspace]);
 
   return (
     <div>

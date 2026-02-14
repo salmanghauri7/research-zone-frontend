@@ -100,14 +100,29 @@ export default function ChatPage() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [lastFetchedWorkspaceId, setLastFetchedWorkspaceId] = useState<
+    string | null
+  >(null);
 
   // Fetch initial messages
   useEffect(() => {
     const fetchInitialMessages = async () => {
-      if (!currentWorkspaceId) return;
+      if (!currentWorkspaceId) {
+        console.log("🚫 No workspace ID, skipping fetch");
+        return;
+      }
+
+      // Prevent duplicate fetches for the same workspace
+      if (currentWorkspaceId === lastFetchedWorkspaceId) {
+        console.log("⏭️ Already fetched for this workspace, skipping");
+        return;
+      }
+
+      console.log("🔄 Fetching messages for workspace:", currentWorkspaceId);
 
       try {
         setIsLoading(true);
+        setLastFetchedWorkspaceId(currentWorkspaceId);
         const response = await chatApi.fetchMessages({
           workspaceId: currentWorkspaceId,
           limit: 20,
@@ -400,12 +415,6 @@ export default function ChatPage() {
   });
 
   // Join workspace room when socket connects or workspace changes
-  useEffect(() => {
-    if (socket && isConnected && currentWorkspaceId) {
-      console.log("🚀 Joining workspace room for chat:", currentWorkspaceId);
-      joinWorkspace();
-    }
-  }, [socket, isConnected, currentWorkspaceId, joinWorkspace]);
 
   // Initialize chat events hook
   const {

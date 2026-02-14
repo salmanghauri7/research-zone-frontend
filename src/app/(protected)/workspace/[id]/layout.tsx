@@ -8,6 +8,8 @@ import {
 } from "@/utils/invitationStorage";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import workspaceApi from "@/api/workspaceApi";
+import { useSocket } from "@/contexts/SocketContext";
+import { useWorkspaceEvents } from "@/hooks/websocket";
 
 export default function WorkspaceIdLayout({
   children,
@@ -16,7 +18,13 @@ export default function WorkspaceIdLayout({
 }) {
   const params = useParams();
   const workspaceId = params.id as string;
-  const { setWorkspace, clearWorkspace } = useWorkspaceStore();
+  const { setWorkspace, clearWorkspace, currentWorkspaceId } =
+    useWorkspaceStore();
+  const { socket, isConnected } = useSocket();
+  const { joinWorkspace } = useWorkspaceEvents({
+    socket,
+    workspaceId: workspaceId,
+  });
 
   useEffect(() => {
     // Clean up invitation data if this is the workspace user was invited to
@@ -46,11 +54,21 @@ export default function WorkspaceIdLayout({
 
     fetchWorkspaceDetails();
 
-    // Cleanup function to clear workspace state when leaving workspace entirely
+    // Cleanup function to clear workspace state when component unmounts
     return () => {
       clearWorkspace();
     };
-  }, [workspaceId, setWorkspace, clearWorkspace]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspaceId]);
+
+  useEffect(() => {
+    if (socket && isConnected) {
+      console.log("🚀 Joining workspace room for chat:", workspaceId);
+      joinWorkspace();
+    }
+    // joinWorkspace is memoized and includes duplicate prevention
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, isConnected, workspaceId]);
 
   return <>{children}</>;
 }

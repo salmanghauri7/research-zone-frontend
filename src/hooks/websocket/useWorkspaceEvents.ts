@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { Socket } from "socket.io-client";
 import {
   JoinedWorkspaceData,
@@ -25,12 +25,26 @@ export const useWorkspaceEvents = ({
   onError,
 }: UseWorkspaceEventsProps) => {
   const { showSuccess, showError, showInfo } = useNotification();
+  const hasJoinedRef = useRef<string | null>(null);
 
   // Join workspace
   const joinWorkspace = useCallback(() => {
     if (socket && workspaceId) {
+      // Prevent re-joining the same workspace
+      if (hasJoinedRef.current === workspaceId) {
+        console.log("⏭️ Already joined workspace:", workspaceId);
+        return;
+      }
+
+      // If joining a different workspace, emit leave for the old one first
+      if (hasJoinedRef.current && hasJoinedRef.current !== workspaceId) {
+        console.log("🚪 Leaving previous workspace:", hasJoinedRef.current);
+        socket.emit("leave-workspace", { workspaceId: hasJoinedRef.current });
+      }
+
       socket.emit("join-workspace", { workspaceId });
       console.log("🚀 Joining workspace:", workspaceId);
+      hasJoinedRef.current = workspaceId;
     }
   }, [socket, workspaceId]);
 
@@ -47,6 +61,8 @@ export const useWorkspaceEvents = ({
     const handleJoinError = (error: JoinWorkspaceErrorData) => {
       console.error("❌ Failed to join workspace:", error);
       showError(error.message || "Failed to join workspace");
+      // Reset ref on error so user can retry
+      hasJoinedRef.current = null;
       onError?.(error);
     };
 
@@ -75,6 +91,20 @@ export const useWorkspaceEvents = ({
       socket.off("user-joined-workspace", handleUserJoined);
     };
   }, [socket, showInfo, onUserJoined]);
+
+  // Cleanup: leave workspace when component unmounts
+  useEffect(() => {
+    return () => {
+      if (socket && hasJoinedRef.current) {
+        console.log(
+          "🚪 Component unmounting, leaving workspace:",
+          hasJoinedRef.current,
+        );
+        socket.emit("leave-workspace", { workspaceId: hasJoinedRef.current });
+        hasJoinedRef.current = null;
+      }
+    };
+  }, [socket]);
 
   return {
     joinWorkspace,
