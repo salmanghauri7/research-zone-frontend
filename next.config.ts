@@ -5,14 +5,13 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
 
   async rewrites() {
+    const apiUrl =
+      process.env.NEXT_PUBLIC_BASE_URL_API_PROD ||
+      "https://13.205.7.218.sslip.io";
     return [
       {
         source: "/api/:path*", // When the browser requests /api/...
-        destination: "https://13.205.7.218.sslip.io/api/:path*", // ...Next.js forwards it here
-      },
-      {
-        source: "/socket.io/:path*", // Proxy Socket.IO connections
-        destination: "https://13.205.7.218.sslip.io/socket.io/:path*",
+        destination: `${apiUrl}/api/:path*`, // ...Next.js forwards it here
       },
     ];
   },

@@ -46,18 +46,25 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Initialize the persistent instance in the Ref
     if (!socketRef.current) {
-      console.log("✅ Creating socket connection to:", window.location.origin);
-      socketRef.current = io(window.location.origin, {
+      const serverUrl = config.SERVER_URL;
+      console.log("✅ Creating socket connection to:", serverUrl);
+      console.log("🌍 Environment:", process.env.NODE_ENV);
+      
+      if (!serverUrl || serverUrl.includes('localhost') && typeof window !== 'undefined' && !window.location.hostname.includes('localhost')) {
+        console.error("⚠️ WARNING: Socket URL appears to be misconfigured for production!");
+      }
+      
+      socketRef.current = io(serverUrl, {
         withCredentials: true,
         autoConnect: true,
         auth: {
           token,
         },
-        path: "/socket.io", // Explicitly set Socket.IO path
-        // Optimize socket connection
-        transports: ["websocket"], // Skip long-polling for faster connection
+        path: "/socket.io",
+        transports: ["websocket", "polling"], // Allow fallback to polling
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
+        reconnectionAttempts: 5,
       });
     }
 
