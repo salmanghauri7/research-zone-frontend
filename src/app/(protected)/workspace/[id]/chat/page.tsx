@@ -10,6 +10,7 @@ import { useChatEvents } from "@/hooks/websocket/useChatEvents";
 import { useWorkspaceEvents } from "@/hooks/websocket/useWorkspaceEvents";
 import { AttachmentPayload } from "@/hooks/websocket/types";
 import { chatApi, BackendMessage } from "@/api/chatApi";
+import DeleteConfirmModal from "@/components/chat/DeleteConfirmModal";
 
 // Lazy load the heavy ChatContainer component
 const ChatContainer = dynamic(() => import("@/components/chat/ChatContainer"), {
@@ -36,6 +37,7 @@ const transformBackendMessage = (
     },
     timestamp: new Date(backendMsg.createdAt),
     isEdited: backendMsg.isEdited,
+    isDeleted: backendMsg.isDeleted || false,
     threadCount: backendMsg.replyCount || 0,
   };
 
@@ -104,6 +106,11 @@ export default function ChatPage() {
     string | null
   >(null);
 
+  // Delete confirmation modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Fetch initial messages
   useEffect(() => {
     const fetchInitialMessages = async () => {
@@ -117,8 +124,6 @@ export default function ChatPage() {
         console.log("⏭️ Already fetched for this workspace, skipping");
         return;
       }
-
-      console.log("🔄 Fetching messages for workspace:", currentWorkspaceId);
 
       try {
         setIsLoading(true);
@@ -259,15 +264,19 @@ export default function ChatPage() {
     const handleMessageDeleted = (data: { messageId: string }) => {
       console.log("Message deleted by another user:", data.messageId);
 
-      // Remove from main messages
-      setMessages((prev) => prev.filter((msg) => msg.id !== data.messageId));
+      // Mark message as deleted in main messages
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === data.messageId ? { ...msg, isDeleted: true } : msg,
+        ),
+      );
 
-      // Remove from thread replies
+      // Mark message as deleted in thread replies
       setThreadReplies((prev) => {
         const updated = { ...prev };
         Object.keys(updated).forEach((threadId) => {
-          updated[threadId] = updated[threadId].filter(
-            (msg) => msg.id !== data.messageId,
+          updated[threadId] = updated[threadId].map((msg) =>
+            msg.id === data.messageId ? { ...msg, isDeleted: true } : msg,
           );
         });
         return updated;
@@ -276,7 +285,22 @@ export default function ChatPage() {
 
     const handleMessageDeletionCompleted = (data: { messageId: string }) => {
       console.log("Message deletion confirmed:", data.messageId);
-      // Optimistic update already handled, this is just confirmation
+      // Mark as deleted (confirmation)
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === data.messageId ? { ...msg, isDeleted: true } : msg,
+        ),
+      );
+
+      setThreadReplies((prev) => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach((threadId) => {
+          updated[threadId] = updated[threadId].map((msg) =>
+            msg.id === data.messageId ? { ...msg, isDeleted: true } : msg,
+          );
+        });
+        return updated;
+      });
     };
 
     // Listen for deletions from other users
@@ -509,6 +533,30 @@ export default function ChatPage() {
     }
   }, []);
 
+  // Handle message deleted from useChatEvents hook
+  const handleMessageDeleted = useCallback(
+    (data: { messageId: string; workspaceId: string }) => {
+      console.log("🗑️ Marking message as deleted in UI:", data.messageId);
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.id === data.messageId ? { ...msg, isDeleted: true } : msg,
+        ),
+      );
+
+      // Also mark as deleted in threads if it exists there
+      setThreadReplies((prevThreads) => {
+        const updatedThreads = { ...prevThreads };
+        Object.keys(updatedThreads).forEach((threadId) => {
+          updatedThreads[threadId] = updatedThreads[threadId].map((msg) =>
+            msg.id === data.messageId ? { ...msg, isDeleted: true } : msg,
+          );
+        });
+        return updatedThreads;
+      });
+    },
+    [],
+  );
+
   // Initialize chat events hook
   const {
     sendMessage: sendMessageViaSocket,
@@ -518,6 +566,7 @@ export default function ChatPage() {
     workspaceId: currentWorkspaceId || "",
     onMessageReceived: handleMessageReceived,
     onMessageSent: handleMessageSent,
+    onMessageDeleted: handleMessageDeleted,
   });
 
   const handleSendMessage = useCallback(
@@ -602,28 +651,50 @@ export default function ChatPage() {
     [],
   );
 
-  const handleDeleteMessage = useCallback(
-    (messageId: string) => {
-      // Optimistic UI update - instantly remove from state
-      setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
-      // Also delete from thread replies
-      setThreadReplies((prev) => {
-        const updated = { ...prev };
-        Object.keys(updated).forEach((threadId) => {
-          updated[threadId] = updated[threadId].filter(
-            (msg) => msg.id !== messageId,
-          );
-        });
-        return updated;
-      });
+  const handleDeleteMessage = useCallback((messageId: string) => {
+    // Show confirmation modal instead of deleting immediately
+    setMessageToDelete(messageId);
+    setShowDeleteModal(true);
+  }, []);
 
-      // Send delete request via WebSocket using the hook
-      if (isConnected) {
-        deleteMessageViaSocket(messageId);
-      }
-    },
-    [isConnected, deleteMessageViaSocket],
-  );
+  const confirmDeleteMessage = useCallback(() => {
+    if (!messageToDelete) return;
+
+    setIsDeleting(true);
+
+    // Optimistic UI update - instantly mark as deleted
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageToDelete ? { ...msg, isDeleted: true } : msg,
+      ),
+    );
+    // Also mark as deleted in thread replies
+    setThreadReplies((prev) => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach((threadId) => {
+        updated[threadId] = updated[threadId].map((msg) =>
+          msg.id === messageToDelete ? { ...msg, isDeleted: true } : msg,
+        );
+      });
+      return updated;
+    });
+
+    // Send delete request via WebSocket using the hook
+    if (isConnected) {
+      deleteMessageViaSocket(messageToDelete);
+    }
+
+    // Close modal and reset state
+    setShowDeleteModal(false);
+    setMessageToDelete(null);
+    setIsDeleting(false);
+  }, [messageToDelete, isConnected, deleteMessageViaSocket]);
+
+  const cancelDeleteMessage = useCallback(() => {
+    setShowDeleteModal(false);
+    setMessageToDelete(null);
+    setIsDeleting(false);
+  }, []);
 
   const handleSendThreadReply = useCallback(
     (parentId: string, content: string, attachments?: File[]) => {
@@ -732,6 +803,14 @@ export default function ChatPage() {
           threadReplies={threadReplies}
         />
       </Suspense>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={cancelDeleteMessage}
+        onConfirm={confirmDeleteMessage}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }

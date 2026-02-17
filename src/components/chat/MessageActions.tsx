@@ -153,17 +153,7 @@ export default function MessageActions({
                 </button>
               )}
 
-              {/* Reply in Thread */}
-              <button
-                onClick={() => {
-                  onThreadOpen?.(message);
-                  setShowMenu(false);
-                }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-white/80 dark:hover:bg-white/5 dark:hover:text-white"
-              >
-                <FiMessageSquare className="w-4 h-4" />
-                <span>Reply in thread</span>
-              </button>
+             
             </motion.div>
           )}
         </AnimatePresence>

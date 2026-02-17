@@ -10,6 +10,7 @@ interface UseChatEventsProps {
   workspaceId: string;
   onMessageReceived?: (message: MessageData) => void;
   onMessageSent?: (message: MessageData) => void;
+  onMessageDeleted?: (data: { messageId: string; workspaceId: string }) => void;
   onTyping?: (userId: string) => void;
   onStopTyping?: (userId: string) => void;
 }
@@ -19,6 +20,7 @@ export const useChatEvents = ({
   workspaceId,
   onMessageReceived,
   onMessageSent,
+  onMessageDeleted,
   onTyping,
   onStopTyping,
 }: UseChatEventsProps) => {
@@ -54,6 +56,29 @@ export const useChatEvents = ({
       socket.off("message-sent", handleMessageSent);
     };
   }, [socket, onMessageSent]);
+
+  // Handle message deleted (broadcast to all users in workspace)
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleMessageDeleted = (data: { messageId: string; workspaceId: string }) => {
+      console.log("🗑️ Message deleted event received:", data);
+      onMessageDeleted?.(data);
+    };
+
+    const handleMessageDeletionCompleted = (data: { messageId: string; workspaceId: string }) => {
+      console.log("✅ Message deletion completed:", data);
+      onMessageDeleted?.(data);
+    };
+
+    socket.on("message-deleted", handleMessageDeleted);
+    socket.on("message-deletion-completed", handleMessageDeletionCompleted);
+
+    return () => {
+      socket.off("message-deleted", handleMessageDeleted);
+      socket.off("message-deletion-completed", handleMessageDeletionCompleted);
+    };
+  }, [socket, onMessageDeleted]);
 
   // Handle typing indicators
   useEffect(() => {

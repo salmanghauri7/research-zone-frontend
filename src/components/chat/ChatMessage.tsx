@@ -9,7 +9,7 @@ import Image from "next/image";
 
 interface ChatMessageProps {
   message: Message;
-  isOwn?: boolean;  
+  isOwn?: boolean;
   onReply?: (message: Message) => void;
   onEdit?: (message: Message) => void;
   onDelete?: (messageId: string) => void;
@@ -47,7 +47,7 @@ export default function ChatMessage({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={`group relative flex gap-3 px-4 py-2 transition-colors ${
-        isHovered ? "bg-gray-50/50 dark:bg-white/[0.02]" : "bg-transparent"
+        isHovered ? "bg-gray-50/50 dark:bg-white/2" : "bg-transparent"
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -79,57 +79,71 @@ export default function ChatMessage({
           <span className="text-xs text-gray-400 dark:text-white/40">
             {formatTime(message.timestamp)}
           </span>
-          {message.isEdited && (
+          {message.isEdited && !message.isDeleted && (
             <span className="text-xs text-gray-400 dark:text-white/30">
               (edited)
             </span>
           )}
         </div>
 
-        {/* Reply Reference */}
-        {message.replyTo && (
-          <div className="flex items-center gap-2 mb-2 pl-3 py-1.5 border-l-2 rounded-r-md border-blue-400 bg-blue-50/50 dark:border-blue-500/50 dark:bg-white/[0.03]">
-            <FiCornerUpLeft className="w-3 h-3 text-gray-400 dark:text-white/40" />
-            <span className="text-xs font-medium text-gray-600 dark:text-white/60">
-              {message.replyTo.sender.name}
-            </span>
-            <span className="text-xs truncate text-gray-500 dark:text-white/40">
-              {message.replyTo.content.slice(0, 50)}
-              {message.replyTo.content.length > 50 && "..."}
-            </span>
+        {/* Deleted Message Display */}
+        {message.isDeleted ? (
+          <div className="flex items-center gap-2 py-1">
+            <p className="text-sm italic text-gray-400 dark:text-white/40">
+              This message was deleted
+            </p>
           </div>
+        ) : (
+          <>
+            {/* Reply Reference */}
+            {message.replyTo && (
+              <div className="flex items-center gap-2 mb-2 pl-3 py-1.5 border-l-2 rounded-r-md border-blue-400 bg-blue-50/50 dark:border-blue-500/50 dark:bg-white/3">
+                <FiCornerUpLeft className="w-3 h-3 text-gray-400 dark:text-white/40" />
+                <span className="text-xs font-medium text-gray-600 dark:text-white/60">
+                  {message.replyTo.sender.name}
+                </span>
+                <span className="text-xs truncate text-gray-500 dark:text-white/40">
+                  {message.replyTo.content.slice(0, 50)}
+                  {message.replyTo.content.length > 50 && "..."}
+                </span>
+              </div>
+            )}
+
+            {/* Message Text */}
+            <p className="text-sm leading-relaxed break-all text-gray-700 dark:text-white/90">
+              {message.content}
+            </p>
+
+            {/* Attachments */}
+            {message.attachments && message.attachments.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {message.attachments.map((attachment) => (
+                  <AttachmentPreview
+                    key={attachment.id}
+                    attachment={attachment}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Thread Count */}
+            {message.threadCount && message.threadCount > 0 ? (
+              <button
+                onClick={() => onThreadOpen?.(message)}
+                className="mt-2 flex items-center gap-1.5 text-xs font-medium transition-colors text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                <span>{message.threadCount} replies</span>
+                <span className="text-gray-400 dark:text-white/30">·</span>
+                <span>View thread</span>
+              </button>
+            ) : null}
+          </>
         )}
-
-        {/* Message Text */}
-        <p className="text-sm leading-relaxed break-all text-gray-700 dark:text-white/90">
-          {message.content}
-        </p>
-
-        {/* Attachments */}
-        {message.attachments && message.attachments.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {message.attachments.map((attachment) => (
-              <AttachmentPreview key={attachment.id} attachment={attachment} />
-            ))}
-          </div>
-        )}
-
-        {/* Thread Count */}
-        {message.threadCount && message.threadCount > 0 ? (
-          <button
-            onClick={() => onThreadOpen?.(message)}
-            className="mt-2 flex items-center gap-1.5 text-xs font-medium transition-colors text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-          >
-            <span>{message.threadCount} replies</span>
-            <span className="text-gray-400 dark:text-white/30">·</span>
-            <span>View thread</span>
-          </button>
-        ) : null}
       </div>
 
-      {/* Message Actions - Shown on hover */}
+      {/* Message Actions - Shown on hover, but not for deleted messages */}
       <AnimatePresence>
-        {isHovered && (
+        {isHovered && !message.isDeleted && (
           <MessageActions
             message={message}
             isOwn={isOwn}

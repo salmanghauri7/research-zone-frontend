@@ -20,6 +20,7 @@ export interface Message {
   sender: User;
   timestamp: Date;
   isEdited?: boolean;
+  isDeleted?: boolean;
   attachments?: Attachment[];
   replyTo?: Message;
   threadCount?: number;
