@@ -10,7 +10,7 @@ type ThemeOption = "light" | "dark" | "system";
 const Topbar = memo(function Topbar() {
   const [themeMenuOpen, setThemeMenuOpen] = useState<boolean>(false);
   const themeRef = useRef<HTMLDivElement>(null);
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, mounted } = useTheme();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -42,10 +42,11 @@ const Topbar = memo(function Topbar() {
   }, []);
 
   const ThemeIcon = useMemo(() => {
+    if (!mounted) return <Sun size={18} />;
     if (theme === "light") return <Sun size={18} />;
     if (theme === "dark") return <Moon size={18} />;
     return <Monitor size={18} />;
-  }, [theme]);
+  }, [theme, mounted]);
 
   const themeOptions: {
     value: ThemeOption;

@@ -46,15 +46,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Initialize the persistent instance in the Ref
     if (!socketRef.current) {
-      const serverUrl = config.SERVER_URL;
-      console.log("✅ Creating socket connection to:", serverUrl);
-      console.log("🌍 Environment:", process.env.NODE_ENV);
-      
-      if (!serverUrl || serverUrl.includes('localhost') && typeof window !== 'undefined' && !window.location.hostname.includes('localhost')) {
-        console.error("⚠️ WARNING: Socket URL appears to be misconfigured for production!");
-      }
-      
-      socketRef.current = io(serverUrl, {
+      console.log("✅ Creating socket connection to:", config.SERVER_URL);
+      socketRef.current = io(config.SERVER_URL, {
         withCredentials: true,
         autoConnect: true,
         auth: {

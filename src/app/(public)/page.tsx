@@ -11,7 +11,7 @@ type ThemeOption = "light" | "dark" | "system";
 // ------------------- Navigation -------------------
 const Navigation: React.FC = () => {
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, mounted } = useTheme();
 
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState<boolean>(false);
@@ -75,9 +75,15 @@ const Navigation: React.FC = () => {
                 onClick={() => setThemeMenuOpen(!themeMenuOpen)}
                 className="p-2.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-lg transition-all"
               >
-                {theme === "light" && <Sun size={18} />}
-                {theme === "dark" && <Moon size={18} />}
-                {theme === "system" && <Monitor size={18} />}
+                {!mounted ? (
+                  <Sun size={18} />
+                ) : (
+                  <>
+                    {theme === "light" && <Sun size={18} />}
+                    {theme === "dark" && <Moon size={18} />}
+                    {theme === "system" && <Monitor size={18} />}
+                  </>
+                )}
               </button>
 
               {themeMenuOpen && (
