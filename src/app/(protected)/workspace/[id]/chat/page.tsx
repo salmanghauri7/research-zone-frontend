@@ -561,6 +561,7 @@ export default function ChatPage() {
   const {
     sendMessage: sendMessageViaSocket,
     deleteMessage: deleteMessageViaSocket,
+    editMessage: editMessageViaSocket,
   } = useChatEvents({
     socket,
     workspaceId: currentWorkspaceId || "",
@@ -628,6 +629,7 @@ export default function ChatPage() {
 
   const handleEditMessage = useCallback(
     (messageId: string, newContent: string) => {
+      // Optimistic UI update
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === messageId
@@ -647,8 +649,13 @@ export default function ChatPage() {
         });
         return updated;
       });
+
+      // Emit edit-message event via WebSocket
+      if (isConnected) {
+        editMessageViaSocket(messageId, newContent);
+      }
     },
-    [],
+    [isConnected, editMessageViaSocket],
   );
 
   const handleDeleteMessage = useCallback((messageId: string) => {

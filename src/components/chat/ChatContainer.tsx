@@ -5,7 +5,7 @@ import { Message, User } from "./types";
 import ChatMessage from "./ChatMessage";
 import MessageInput from "./MessageInput";
 import ThreadPanel from "./ThreadPanel";
-import EditMessageModal from "./EditMessageModal";
+// import EditMessageModal from "./EditMessageModal"; // No longer needed - using inline editing
 
 interface ChatContainerProps {
   messages: Message[];
@@ -64,11 +64,13 @@ export default function ChatContainer({
     setEditingMessage(message);
   };
 
-  const handleSaveEdit = (newContent: string) => {
-    if (editingMessage) {
-      onEditMessage(editingMessage.id, newContent);
-      setEditingMessage(null);
-    }
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
+  };
+
+  const handleSaveEdit = (messageId: string, newContent: string) => {
+    onEditMessage(messageId, newContent);
+    setEditingMessage(null);
   };
 
   const handleOpenThread = (message: Message) => {
@@ -98,10 +100,7 @@ export default function ChatContainer({
       >
         {/* Chat Header */}
         <div className="shrink-0 flex items-center justify-between px-6 py-1 border-b border-gray-200 dark:border-white/10">
-          <div className="flex items-center gap-3">
-            
-            
-          </div>
+          <div className="flex items-center gap-3"></div>
 
           {/* Header Actions */}
           <div className="flex items-center gap-2">
@@ -180,9 +179,11 @@ export default function ChatContainer({
         {/* Message Input */}
         <MessageInput
           onSend={handleSendMessage}
+          onEditMessage={handleSaveEdit}
           replyTo={replyTo}
+          editingMessage={editingMessage}
           onCancelReply={handleCancelReply}
-          
+          onCancelEdit={handleCancelEdit}
         />
       </div>
 
@@ -198,13 +199,7 @@ export default function ChatContainer({
         currentUserId={currentUser.id}
       />
 
-      {/* Edit Message Modal */}
-      <EditMessageModal
-        message={editingMessage}
-        isOpen={!!editingMessage}
-        onClose={() => setEditingMessage(null)}
-        onSave={handleSaveEdit}
-      />
+      {/* Edit Message Modal - Removed, now using inline editing in MessageInput */}
     </div>
   );
 }
@@ -272,7 +267,7 @@ function groupMessagesByDate(messages: Message[]): Record<string, Message[]> {
   });
 
   // Sort messages within each group chronologically (oldest first)
-  Object.keys(groups).forEach(key => {
+  Object.keys(groups).forEach((key) => {
     groups[key].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   });
 
@@ -280,7 +275,7 @@ function groupMessagesByDate(messages: Message[]): Record<string, Message[]> {
   const sortedGroups: Record<string, Message[]> = {};
   Object.keys(groups)
     .sort((a, b) => dateToTimestamp[a] - dateToTimestamp[b])
-    .forEach(key => {
+    .forEach((key) => {
       sortedGroups[key] = groups[key];
     });
 

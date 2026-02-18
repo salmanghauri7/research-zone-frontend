@@ -11,19 +11,26 @@ import {
   FiX,
   FiCornerUpLeft,
   FiSquare,
+  FiEdit3,
 } from "react-icons/fi";
 
 interface MessageInputProps {
   onSend: (content: string, attachments?: File[]) => void;
+  onEditMessage?: (messageId: string, newContent: string) => void;
   replyTo?: Message | null;
+  editingMessage?: Message | null;
   onCancelReply?: () => void;
+  onCancelEdit?: () => void;
   disabled?: boolean;
 }
 
 export default function MessageInput({
   onSend,
+  onEditMessage,
   replyTo,
+  editingMessage,
   onCancelReply,
+  onCancelEdit,
   disabled = false,
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
@@ -34,6 +41,15 @@ export default function MessageInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Pre-populate textarea when editing
+  useEffect(() => {
+    if (editingMessage) {
+      setMessage(editingMessage.content);
+      // Clear attachments when editing (we don't support editing attachments)
+      setAttachments([]);
+    }
+  }, [editingMessage]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -46,14 +62,27 @@ export default function MessageInput({
     }
   }, [message]);
 
-  // Focus textarea when replying
+  // Focus textarea when replying or editing
   useEffect(() => {
-    if (replyTo && textareaRef.current) {
+    if ((replyTo || editingMessage) && textareaRef.current) {
       textareaRef.current.focus();
     }
-  }, [replyTo]);
+  }, [replyTo, editingMessage]);
 
   const handleSend = () => {
+    // If editing, call edit handler
+    if (editingMessage && onEditMessage) {
+      if (message.trim() && message.trim() !== editingMessage.content) {
+        onEditMessage(editingMessage.id, message.trim());
+        setMessage("");
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "auto";
+        }
+      }
+      return;
+    }
+
+    // Normal send
     if (message.trim() || attachments.length > 0) {
       onSend(message.trim(), attachments.length > 0 ? attachments : undefined);
       setMessage("");
@@ -104,9 +133,40 @@ export default function MessageInput({
 
   return (
     <div className="shrink-0 border-t border-gray-200 bg-white dark:border-white/10 dark:bg-black">
+      {/* Edit Preview */}
+      <AnimatePresence>
+        {editingMessage && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="flex items-center gap-3 px-4 py-2 border-b bg-amber-50 border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20">
+              <FiEdit3 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                  Edit message
+                </span>
+                <p className="text-xs truncate text-amber-600 dark:text-amber-500/80">
+                  {editingMessage.content}
+                </p>
+              </div>
+              <button
+                onClick={onCancelEdit}
+                className="p-1 rounded-full transition-colors hover:bg-amber-100 text-amber-500 dark:hover:bg-amber-500/20 dark:text-amber-400"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Reply Preview */}
       <AnimatePresence>
-        {replyTo && (
+        {replyTo && !editingMessage && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -160,75 +220,77 @@ export default function MessageInput({
 
       {/* Input Area */}
       <div className="flex items-end gap-2 p-4">
-        {/* Attachment Actions */}
-        <div className="flex items-center gap-1">
-          {/* File Upload */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
-            title="Attach file"
-          >
-            <FiPaperclip className="w-5 h-5" />
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-          />
+        {/* Attachment Actions - Hidden when editing */}
+        {!editingMessage && (
+          <div className="flex items-center gap-1">
+            {/* File Upload */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
+              title="Attach file"
+            >
+              <FiPaperclip className="w-5 h-5" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
 
-          {/* Image Upload */}
-          <button
-            onClick={() => imageInputRef.current?.click()}
-            className="p-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
-            title="Share image"
-          >
-            <FiImage className="w-5 h-5" />
-          </button>
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-          />
+            {/* Image Upload */}
+            <button
+              onClick={() => imageInputRef.current?.click()}
+              className="p-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
+              title="Share image"
+            >
+              <FiImage className="w-5 h-5" />
+            </button>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
 
-          {/* Voice Message */}
-          <button
-            onClick={toggleRecording}
-            className={`p-2 rounded-lg transition-colors ${
-              isRecording
-                ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
-                : "hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
-            }`}
-            title={isRecording ? "Stop recording" : "Voice message"}
-          >
-            {isRecording ? (
-              <FiSquare className="w-5 h-5" />
-            ) : (
-              <FiMic className="w-5 h-5" />
-            )}
-          </button>
+            {/* Voice Message */}
+            <button
+              onClick={toggleRecording}
+              className={`p-2 rounded-lg transition-colors ${
+                isRecording
+                  ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
+                  : "hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
+              }`}
+              title={isRecording ? "Stop recording" : "Voice message"}
+            >
+              {isRecording ? (
+                <FiSquare className="w-5 h-5" />
+              ) : (
+                <FiMic className="w-5 h-5" />
+              )}
+            </button>
 
-          {/* Recording Timer */}
-          <AnimatePresence>
-            {isRecording && (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                className="flex items-center gap-2"
-              >
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                <span className="text-sm font-medium text-gray-600 dark:text-white/70">
-                  {formatRecordingTime(recordingTime)}
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+            {/* Recording Timer */}
+            <AnimatePresence>
+              {isRecording && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="flex items-center gap-2"
+                >
+                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <span className="text-sm font-medium text-gray-600 dark:text-white/70">
+                    {formatRecordingTime(recordingTime)}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
 
         {/* Text Input */}
         <div className="flex-1 flex items-end rounded-xl border transition-colors bg-gray-50 border-gray-200 focus-within:border-gray-300 dark:bg-white/5 dark:border-white/10 dark:focus-within:border-white/20">
@@ -237,22 +299,32 @@ export default function MessageInput({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type message here..."
+            placeholder={
+              editingMessage ? "Edit your message..." : "Type message here..."
+            }
             disabled={disabled || isRecording}
             rows={1}
             className="flex-1 resize-none px-4 py-3 bg-transparent outline-none text-sm text-gray-900 placeholder-gray-500 dark:text-white dark:placeholder-white/40"
           />
         </div>
 
-        {/* Send Button */}
+        {/* Send/Save Button */}
         <button
           onClick={handleSend}
-          disabled={disabled || (!message.trim() && attachments.length === 0)}
+          disabled={
+            disabled ||
+            !message.trim() ||
+            (editingMessage && message.trim() === editingMessage.content)
+          }
           className={`p-3 rounded-xl transition-all duration-200 ${
-            message.trim() || attachments.length > 0
-              ? "bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25"
+            message.trim() &&
+            (!editingMessage || message.trim() !== editingMessage.content)
+              ? editingMessage
+                ? "bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/25"
+                : "bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25"
               : "bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-white/30"
           }`}
+          title={editingMessage ? "Save changes" : "Send message"}
         >
           <FiSend className="w-5 h-5" />
         </button>

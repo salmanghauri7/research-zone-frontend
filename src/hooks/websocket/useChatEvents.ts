@@ -61,12 +61,18 @@ export const useChatEvents = ({
   useEffect(() => {
     if (!socket) return;
 
-    const handleMessageDeleted = (data: { messageId: string; workspaceId: string }) => {
+    const handleMessageDeleted = (data: {
+      messageId: string;
+      workspaceId: string;
+    }) => {
       console.log("🗑️ Message deleted event received:", data);
       onMessageDeleted?.(data);
     };
 
-    const handleMessageDeletionCompleted = (data: { messageId: string; workspaceId: string }) => {
+    const handleMessageDeletionCompleted = (data: {
+      messageId: string;
+      workspaceId: string;
+    }) => {
       console.log("✅ Message deletion completed:", data);
       onMessageDeleted?.(data);
     };
@@ -158,6 +164,28 @@ export const useChatEvents = ({
     [socket, workspaceId, showError],
   );
 
+  const editMessage = useCallback(
+    (messageId: string, content: string) => {
+      if (!socket) {
+        showError("Not connected to chat");
+        return;
+      }
+
+      if (!content.trim()) {
+        showError("Message cannot be empty");
+        return;
+      }
+
+      console.log("✏️ Editing message:", { messageId, content });
+      socket.emit("edit-message", {
+        workspaceId,
+        messageId,
+        content: content.trim(),
+      });
+    },
+    [socket, workspaceId, showError],
+  );
+
   // Send typing indicator
   const startTyping = useCallback(() => {
     if (!socket) return;
@@ -174,5 +202,6 @@ export const useChatEvents = ({
     startTyping,
     stopTyping,
     deleteMessage,
+    editMessage,
   };
 };
