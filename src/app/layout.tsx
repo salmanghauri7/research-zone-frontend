@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Provider from "./providers";
 import NextProgress from "@/components/NextProgress";
@@ -20,8 +21,8 @@ export const metadata: Metadata = {
     description: "A collaboration platform for researchers",
     url: "https://research-zone-frontend.vercel.app",
     siteName: "ResearchZone",
-    type: "website"
-  }
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -33,6 +34,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
         <NextProgress />
+        <Analytics />
         <Provider>
           {children}
           <CreateWorkspaceModal />
