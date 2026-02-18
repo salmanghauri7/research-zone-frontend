@@ -134,10 +134,7 @@ export default function ThreadPanel({
             </div>
 
             {/* Reply Input */}
-            <MessageInput
-              onSend={onSendReply}
-              placeholder="Reply in thread..."
-            />
+            <MessageInput onSend={onSendReply} />
           </motion.div>
         </>
       )}

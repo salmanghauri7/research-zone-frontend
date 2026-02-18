@@ -16,6 +16,7 @@ interface ThemeContextType {
   theme: ThemeOption;
   setTheme: (theme: ThemeOption) => void;
   isDark: boolean;
+  mounted: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -31,12 +32,20 @@ function getInitialTheme(): ThemeOption {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeOption>(getInitialTheme);
+  const [theme, setThemeState] = useState<ThemeOption>("light");
   const [isDark, setIsDark] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Memoize setTheme callback
   const setTheme = useCallback((newTheme: ThemeOption) => {
     setThemeState(newTheme);
+  }, []);
+
+  // Initialize theme on mount
+  useEffect(() => {
+    setMounted(true);
+    const initialTheme = getInitialTheme();
+    setThemeState(initialTheme);
   }, []);
 
   // Apply theme changes
@@ -76,8 +85,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme]);
 
   const value = useMemo(
-    () => ({ theme, setTheme, isDark }),
-    [theme, setTheme, isDark],
+    () => ({ theme, setTheme, isDark, mounted }),
+    [theme, setTheme, isDark, mounted],
   );
 
   return <ThemeContext value={value}>{children}</ThemeContext>;
