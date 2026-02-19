@@ -7,6 +7,7 @@ import MessageInput from "./MessageInput";
 import ThreadPanel from "./ThreadPanel";
 import { getTypingText } from "./typingHelper";
 import { useSocket } from "@/contexts/SocketContext";
+import { useChatEvents } from "@/hooks/websocket/useChatEvents";
 // import EditMessageModal from "./EditMessageModal"; // No longer needed - using inline editing
 
 interface ChatContainerProps {
@@ -50,28 +51,19 @@ export default function ChatContainer({
   // Get socket connection
   const { socket } = useSocket();
 
-  // Listen for typing events from other users
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleUserTyping = (data: { username: string }) => {
+  // Handle typing events through useChatEvents hook
+  const { handleTyping, stopTyping } = useChatEvents({
+    socket,
+    workspaceId: workspaceId || "",
+    onTyping: (username) => {
       setTypingUsers((prev) =>
-        prev.includes(data.username) ? prev : [...prev, data.username]
+        prev.includes(username) ? prev : [...prev, username],
       );
-    };
-
-    const handleUserStopTyping = (data: { username: string }) => {
-      setTypingUsers((prev) => prev.filter((name) => name !== data.username));
-    };
-
-    socket.on("user_typing", handleUserTyping);
-    socket.on("user_stop_typing", handleUserStopTyping);
-
-    return () => {
-      socket.off("user_typing", handleUserTyping);
-      socket.off("user_stop_typing", handleUserStopTyping);
-    };
-  }, [socket]);
+    },
+    onStopTyping: (username) => {
+      setTypingUsers((prev) => prev.filter((name) => name !== username));
+    },
+  });
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -143,8 +135,9 @@ export default function ChatContainer({
     <div className="flex h-full min-h-0">
       {/* Main Chat Area */}
       <div
-        className={`flex-1 flex flex-col min-w-0 min-h-0 ${activeThread ? "hidden lg:flex" : "flex"
-          }`}
+        className={`flex-1 flex flex-col min-w-0 min-h-0 ${
+          activeThread ? "hidden lg:flex" : "flex"
+        }`}
       >
         {/* Chat Header */}
         <div className="shrink-0 flex items-center justify-between px-6 py-1 border-b border-gray-200 dark:border-white/10">
@@ -233,9 +226,8 @@ export default function ChatContainer({
           onCancelReply={handleCancelReply}
           onCancelEdit={handleCancelEdit}
           typingStatusText={getTypingText(typingUsers)}
-          socket={socket}
-          currentUser={currentUser.name}
-          workspaceId={workspaceId}
+          onTyping={handleTyping}
+          onStopTyping={stopTyping}
         />
       </div>
 

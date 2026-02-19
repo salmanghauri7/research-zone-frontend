@@ -23,9 +23,8 @@ interface MessageInputProps {
   onCancelEdit?: () => void;
   disabled?: boolean;
   typingStatusText?: string;
-  socket?: any;
-  currentUser?: string;
-  workspaceId?: string;
+  onTyping?: () => void;
+  onStopTyping?: () => void;
 }
 
 export default function MessageInput({
@@ -37,9 +36,8 @@ export default function MessageInput({
   onCancelEdit,
   disabled = false,
   typingStatusText,
-  socket,
-  currentUser,
-  workspaceId,
+  onTyping,
+  onStopTyping,
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -49,8 +47,6 @@ export default function MessageInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isTypingRef = useRef<boolean>(false);
 
   // Pre-populate textarea when editing
   useEffect(() => {
@@ -80,15 +76,8 @@ export default function MessageInput({
   }, [replyTo, editingMessage]);
 
   const handleSend = () => {
-    // IMMEDIATELY clear typing timeout and emit stop_typing
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = null;
-    }
-    if (socket && currentUser && workspaceId && isTypingRef.current) {
-      socket.emit("stop_typing", { username: currentUser, workspaceId });
-      isTypingRef.current = false;
-    }
+    // Stop typing indicator when message is sent
+    onStopTyping?.();
 
     // If editing, call edit handler
     if (editingMessage && onEditMessage) {
@@ -152,20 +141,7 @@ export default function MessageInput({
   };
 
   const handleTyping = () => {
-    if (!socket || !currentUser || !workspaceId) return;
-
-    // Only emit 'typing' if we haven't already told the server we are typing
-    if (!isTypingRef.current) {
-      isTypingRef.current = true;
-      socket.emit("typing", { username: currentUser, workspaceId });
-    }
-
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-
-    typingTimeoutRef.current = setTimeout(() => {
-      socket.emit("stop_typing", { username: currentUser, workspaceId });
-      isTypingRef.current = false; // Reset here
-    }, 2000);
+    onTyping?.();
   };
 
   return (
@@ -296,10 +272,11 @@ export default function MessageInput({
             {/* Voice Message */}
             <button
               onClick={toggleRecording}
-              className={`p-2 rounded-lg transition-colors ${isRecording
-                ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
-                : "hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
-                }`}
+              className={`p-2 rounded-lg transition-colors ${
+                isRecording
+                  ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
+                  : "hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
+              }`}
               title={isRecording ? "Stop recording" : "Voice message"}
             >
               {isRecording ? (
@@ -357,7 +334,9 @@ export default function MessageInput({
                   transition={{ duration: 0.2 }}
                   className="flex items-center gap-1.5"
                 >
-                  <span className="italic leading-none">{typingStatusText}</span>
+                  <span className="italic leading-none">
+                    {typingStatusText}
+                  </span>
                   <TypingIndicator />
                 </motion.div>
               )}
@@ -373,13 +352,14 @@ export default function MessageInput({
             !message.trim() ||
             Boolean(editingMessage && message.trim() === editingMessage.content)
           }
-          className={`p-3 rounded-xl transition-all duration-200 ${message.trim() &&
+          className={`p-3 rounded-xl transition-all duration-200 ${
+            message.trim() &&
             (!editingMessage || message.trim() !== editingMessage.content)
-            ? editingMessage
-              ? "bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/25"
-              : "bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25"
-            : "bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-white/30"
-            }`}
+              ? editingMessage
+                ? "bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/25"
+                : "bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25"
+              : "bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-white/30"
+          }`}
           title={editingMessage ? "Save changes" : "Send message"}
         >
           <FiSend className="w-5 h-5" />
