@@ -446,10 +446,7 @@ export default function ChatPage() {
   );
 
   // Initialize workspace events hook and join workspace room
-  const { joinWorkspace } = useWorkspaceEvents({
-    socket,
-    workspaceId: currentWorkspaceId || "",
-  });
+ 
 
   // Join workspace room when socket connects or workspace changes
 
@@ -808,6 +805,7 @@ export default function ChatPage() {
           onDeleteMessage={handleDeleteMessage}
           onSendThreadReply={handleSendThreadReply}
           threadReplies={threadReplies}
+          workspaceId={currentWorkspaceId || undefined}
         />
       </Suspense>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { Socket } from "socket.io-client";
 import { useNotification } from "@/contexts/NotificationContext";
 import { SendMessagePayload, MessageData, AttachmentPayload } from "./types";
@@ -11,8 +11,8 @@ interface UseChatEventsProps {
   onMessageReceived?: (message: MessageData) => void;
   onMessageSent?: (message: MessageData) => void;
   onMessageDeleted?: (data: { messageId: string; workspaceId: string }) => void;
-  onTyping?: (userId: string) => void;
-  onStopTyping?: (userId: string) => void;
+  onTyping?: (username: string) => void;
+  onStopTyping?: (username: string) => void;
 }
 
 export const useChatEvents = ({
@@ -25,6 +25,8 @@ export const useChatEvents = ({
   onStopTyping,
 }: UseChatEventsProps) => {
   const { showError } = useNotification();
+  const isTypingRef = useRef(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Handle new message
   useEffect(() => {
@@ -90,20 +92,20 @@ export const useChatEvents = ({
   useEffect(() => {
     if (!socket) return;
 
-    const handleTyping = (userId: string) => {
-      onTyping?.(userId);
+    const handleTyping = (data: { username: string }) => {
+      onTyping?.(data.username);
     };
 
-    const handleStopTyping = (userId: string) => {
-      onStopTyping?.(userId);
+    const handleStopTyping = (data: { username: string }) => {
+      onStopTyping?.(data.username);
     };
 
-    socket.on("user-typing", handleTyping);
-    socket.on("user-stop-typing", handleStopTyping);
+    socket.on("user_typing", handleTyping);
+    socket.on("user_stop_typing", handleStopTyping);
 
     return () => {
-      socket.off("user-typing", handleTyping);
-      socket.off("user-stop-typing", handleStopTyping);
+      socket.off("user_typing", handleTyping);
+      socket.off("user_stop_typing", handleStopTyping);
     };
   }, [socket, onTyping, onStopTyping]);
 
@@ -186,19 +188,59 @@ export const useChatEvents = ({
     [socket, workspaceId, showError],
   );
 
-  // Send typing indicator
+  // Debounced typing handler
+  const handleTyping = useCallback(() => {
+    if (!socket) return;
+
+    // Only emit 'typing' if we haven't already told the server we are typing
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      socket.emit("typing", { workspaceId });
+    }
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      if (socket) {
+        socket.emit("stop_typing", { workspaceId });
+        isTypingRef.current = false;
+      }
+    }, 2000);
+  }, [socket, workspaceId]);
+
+  // Manual typing control (for advanced use cases)
   const startTyping = useCallback(() => {
     if (!socket) return;
-    socket.emit("start-typing", { workspaceId });
+    socket.emit("typing", { workspaceId });
+    isTypingRef.current = true;
   }, [socket, workspaceId]);
 
   const stopTyping = useCallback(() => {
     if (!socket) return;
-    socket.emit("stop-typing", { workspaceId });
+    socket.emit("stop_typing", { workspaceId });
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    isTypingRef.current = false;
   }, [socket, workspaceId]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     sendMessage,
+    handleTyping,
     startTyping,
     stopTyping,
     deleteMessage,
