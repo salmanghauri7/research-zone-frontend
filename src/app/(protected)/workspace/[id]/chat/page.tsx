@@ -808,6 +808,7 @@ export default function ChatPage() {
           onDeleteMessage={handleDeleteMessage}
           onSendThreadReply={handleSendThreadReply}
           threadReplies={threadReplies}
+          workspaceId={currentWorkspaceId || undefined}
         />
       </Suspense>
 

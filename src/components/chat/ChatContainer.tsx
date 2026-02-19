@@ -5,6 +5,8 @@ import { Message, User } from "./types";
 import ChatMessage from "./ChatMessage";
 import MessageInput from "./MessageInput";
 import ThreadPanel from "./ThreadPanel";
+import { getTypingText } from "./typingHelper";
+import { useSocket } from "@/contexts/SocketContext";
 // import EditMessageModal from "./EditMessageModal"; // No longer needed - using inline editing
 
 interface ChatContainerProps {
@@ -24,6 +26,7 @@ interface ChatContainerProps {
     attachments?: File[],
   ) => void;
   threadReplies?: Record<string, Message[]>;
+  workspaceId?: string;
 }
 
 export default function ChatContainer({
@@ -35,16 +38,62 @@ export default function ChatContainer({
   onDeleteMessage,
   onSendThreadReply,
   threadReplies = {},
+  workspaceId,
 }: ChatContainerProps) {
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [activeThread, setActiveThread] = useState<Message | null>(null);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Get socket connection
+  const { socket } = useSocket();
+
+  // Listen for typing events from other users
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUserTyping = (data: { username: string }) => {
+      setTypingUsers((prev) =>
+        prev.includes(data.username) ? prev : [...prev, data.username]
+      );
+    };
+
+    const handleUserStopTyping = (data: { username: string }) => {
+      setTypingUsers((prev) => prev.filter((name) => name !== data.username));
+    };
+
+    socket.on("user_typing", handleUserTyping);
+    socket.on("user_stop_typing", handleUserStopTyping);
+
+    return () => {
+      socket.off("user_typing", handleUserTyping);
+      socket.off("user_stop_typing", handleUserStopTyping);
+    };
+  }, [socket]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // THE KILL SWITCH: Remove sender from typingUsers when new message arrives
+  // This ensures instant hiding of typing indicator when message is sent
+  useEffect(() => {
+    if (messages.length === 0) return;
+
+    // Get the most recent message
+    const latestMessage = messages[messages.length - 1];
+    const senderName = latestMessage.sender.name;
+
+    // If this sender was typing, remove them immediately
+    setTypingUsers((prev) => {
+      if (prev.includes(senderName)) {
+        return prev.filter((name) => name !== senderName);
+      }
+      return prev;
+    });
   }, [messages]);
 
   const handleSendMessage = (content: string, attachments?: File[]) => {
@@ -94,9 +143,8 @@ export default function ChatContainer({
     <div className="flex h-full min-h-0">
       {/* Main Chat Area */}
       <div
-        className={`flex-1 flex flex-col min-w-0 min-h-0 ${
-          activeThread ? "hidden lg:flex" : "flex"
-        }`}
+        className={`flex-1 flex flex-col min-w-0 min-h-0 ${activeThread ? "hidden lg:flex" : "flex"
+          }`}
       >
         {/* Chat Header */}
         <div className="shrink-0 flex items-center justify-between px-6 py-1 border-b border-gray-200 dark:border-white/10">
@@ -184,6 +232,10 @@ export default function ChatContainer({
           editingMessage={editingMessage}
           onCancelReply={handleCancelReply}
           onCancelEdit={handleCancelEdit}
+          typingStatusText={getTypingText(typingUsers)}
+          socket={socket}
+          currentUser={currentUser.name}
+          workspaceId={workspaceId}
         />
       </div>
 

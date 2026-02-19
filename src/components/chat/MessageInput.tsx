@@ -22,6 +22,10 @@ interface MessageInputProps {
   onCancelReply?: () => void;
   onCancelEdit?: () => void;
   disabled?: boolean;
+  typingStatusText?: string;
+  socket?: any;
+  currentUser?: string;
+  workspaceId?: string;
 }
 
 export default function MessageInput({
@@ -32,6 +36,10 @@ export default function MessageInput({
   onCancelReply,
   onCancelEdit,
   disabled = false,
+  typingStatusText,
+  socket,
+  currentUser,
+  workspaceId,
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -41,6 +49,8 @@ export default function MessageInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef<boolean>(false);
 
   // Pre-populate textarea when editing
   useEffect(() => {
@@ -70,6 +80,16 @@ export default function MessageInput({
   }, [replyTo, editingMessage]);
 
   const handleSend = () => {
+    // IMMEDIATELY clear typing timeout and emit stop_typing
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    if (socket && currentUser && workspaceId && isTypingRef.current) {
+      socket.emit("stop_typing", { username: currentUser, workspaceId });
+      isTypingRef.current = false;
+    }
+
     // If editing, call edit handler
     if (editingMessage && onEditMessage) {
       if (message.trim() && message.trim() !== editingMessage.content) {
@@ -129,6 +149,23 @@ export default function MessageInput({
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${String(secs).padStart(2, "0")}`;
+  };
+
+  const handleTyping = () => {
+    if (!socket || !currentUser || !workspaceId) return;
+
+    // Only emit 'typing' if we haven't already told the server we are typing
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      socket.emit("typing", { username: currentUser, workspaceId });
+    }
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stop_typing", { username: currentUser, workspaceId });
+      isTypingRef.current = false; // Reset here
+    }, 2000);
   };
 
   return (
@@ -259,11 +296,10 @@ export default function MessageInput({
             {/* Voice Message */}
             <button
               onClick={toggleRecording}
-              className={`p-2 rounded-lg transition-colors ${
-                isRecording
-                  ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
-                  : "hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
-              }`}
+              className={`p-2 rounded-lg transition-colors ${isRecording
+                ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
+                : "hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
+                }`}
               title={isRecording ? "Stop recording" : "Voice message"}
             >
               {isRecording ? (
@@ -292,20 +328,41 @@ export default function MessageInput({
           </div>
         )}
 
-        {/* Text Input */}
-        <div className="flex-1 flex items-end rounded-xl border transition-colors bg-gray-50 border-gray-200 focus-within:border-gray-300 dark:bg-white/5 dark:border-white/10 dark:focus-within:border-white/20">
-          <textarea
-            ref={textareaRef}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              editingMessage ? "Edit your message..." : "Type message here..."
-            }
-            disabled={disabled || isRecording}
-            rows={1}
-            className="flex-1 resize-none px-4 py-3 bg-transparent outline-none text-sm text-gray-900 placeholder-gray-500 dark:text-white dark:placeholder-white/40"
-          />
+        <div className="flex flex-col flex-1 gap-1  -mb-3">
+          {/* Text Input */}
+          <div className="flex-1 flex items-end rounded-xl border transition-colors bg-gray-50 border-gray-200 focus-within:border-gray-300 dark:bg-white/5 dark:border-white/10 dark:focus-within:border-white/20">
+            <textarea
+              ref={textareaRef}
+              value={message}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                handleTyping();
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                editingMessage ? "Edit your message..." : "Type message here..."
+              }
+              disabled={disabled || isRecording}
+              rows={1}
+              className="flex-1 resize-none px-4 py-3 bg-transparent outline-none text-sm text-gray-900 placeholder-gray-500 dark:text-white dark:placeholder-white/40"
+            />
+          </div>
+          <h6 className="text-[10px] ml-2 h-4 min-w-[100px] text-gray-500 dark:text-white/50 flex items-center gap-2">
+            <AnimatePresence>
+              {typingStatusText && (
+                <motion.div
+                  initial={{ opacity: 0, x: -5 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex items-center gap-1.5"
+                >
+                  <span className="italic leading-none">{typingStatusText}</span>
+                  <TypingIndicator />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </h6>
         </div>
 
         {/* Send/Save Button */}
@@ -314,21 +371,61 @@ export default function MessageInput({
           disabled={
             disabled ||
             !message.trim() ||
-            (!!editingMessage && message.trim() === editingMessage.content)
+            Boolean(editingMessage && message.trim() === editingMessage.content)
           }
-          className={`p-3 rounded-xl transition-all duration-200 ${
-            message.trim() &&
+          className={`p-3 rounded-xl transition-all duration-200 ${message.trim() &&
             (!editingMessage || message.trim() !== editingMessage.content)
-              ? editingMessage
-                ? "bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/25"
-                : "bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25"
-              : "bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-white/30"
-          }`}
+            ? editingMessage
+              ? "bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/25"
+              : "bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25"
+            : "bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-white/30"
+            }`}
           title={editingMessage ? "Save changes" : "Send message"}
         >
           <FiSend className="w-5 h-5" />
         </button>
       </div>
+    </div>
+  );
+}
+
+// Typing Indicator Component - Classic bouncing dots
+function TypingIndicator() {
+  const dotVariants = {
+    initial: { y: 0, opacity: 0.4 },
+    animate: { y: -4, opacity: 1 },
+  };
+
+  const dotTransition = (delay: number) => ({
+    duration: 0.5,
+    repeat: Infinity,
+    repeatType: "reverse" as const,
+    delay: delay,
+  });
+
+  return (
+    <div className="flex items-center gap-1 h-full">
+      <motion.span
+        variants={dotVariants}
+        initial="initial"
+        animate="animate"
+        transition={dotTransition(0)}
+        className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full"
+      />
+      <motion.span
+        variants={dotVariants}
+        initial="initial"
+        animate="animate"
+        transition={dotTransition(0.15)}
+        className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full"
+      />
+      <motion.span
+        variants={dotVariants}
+        initial="initial"
+        animate="animate"
+        transition={dotTransition(0.3)}
+        className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full"
+      />
     </div>
   );
 }
