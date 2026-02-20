@@ -6,6 +6,7 @@ import { Message, User } from "@/components/chat";
 import { useUserStore } from "@/store/userStore";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import { useSocket } from "@/contexts/SocketContext";
+import { useNotification } from "@/contexts/NotificationContext";
 import { useChatEvents } from "@/hooks/websocket/useChatEvents";
 import { useWorkspaceEvents } from "@/hooks/websocket/useWorkspaceEvents";
 import { AttachmentPayload } from "@/hooks/websocket/types";
@@ -63,9 +64,9 @@ const transformBackendMessage = (
   if (backendMsg.attachments && backendMsg.attachments.length > 0) {
     message.attachments = backendMsg.attachments.map((att, index) => ({
       id: `${backendMsg._id}-att-${index}`,
-      type: backendMsg.messageType === "image" ? "image" : "file",
+      type: att.mimeType?.startsWith("image/") ? "image" : "file",
       url: att.url,
-      name: att.url.split("/").pop() || "attachment",
+      name: att.fileName || att.url.split("/").pop() || "attachment",
     }));
   }
 
@@ -81,6 +82,9 @@ export default function ChatPage() {
 
   // Get socket connection
   const { socket, isConnected } = useSocket();
+
+  // Get notification context
+  const { showError } = useNotification();
 
   // Create currentUser object from store data with fallback
   const currentUser: User = useMemo(
@@ -110,6 +114,9 @@ export default function ChatPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Upload state
+  const [isUploadingAttachments, setIsUploadingAttachments] = useState(false);
 
   // Fetch initial messages
   useEffect(() => {
@@ -412,9 +419,9 @@ export default function ChatPage() {
         attachments: messageData.attachments?.map(
           (att: any, index: number) => ({
             id: `${messageData._id || messageData.id}-att-${index}`,
-            type: messageData.messageType === "image" ? "image" : "file",
+            type: att.mimeType?.startsWith("image/") ? "image" : "file",
             url: att.url,
-            name: att.url.split("/").pop() || "attachment",
+            name: att.fileName || att.url.split("/").pop() || "attachment",
           }),
         ),
       };
@@ -446,7 +453,6 @@ export default function ChatPage() {
   );
 
   // Initialize workspace events hook and join workspace room
- 
 
   // Join workspace room when socket connects or workspace changes
 
@@ -468,9 +474,9 @@ export default function ChatPage() {
       threadCount: messageData.replyCount || 0,
       attachments: messageData.attachments?.map((att: any, index: number) => ({
         id: `${messageData._id || messageData.id}-att-${index}`,
-        type: messageData.messageType === "image" ? "image" : "file",
+        type: att.mimeType?.startsWith("image/") ? "image" : "file",
         url: att.url,
-        name: att.url.split("/").pop() || "attachment",
+        name: att.fileName || att.url.split("/").pop() || "attachment",
       })),
     };
 
@@ -568,52 +574,83 @@ export default function ChatPage() {
   });
 
   const handleSendMessage = useCallback(
-    (content: string, attachments?: File[], replyTo?: Message) => {
-      // Determine message type based on attachments
-      let messageType: "text" | "file" | "image" = "text";
-      let attachmentPayload: AttachmentPayload[] | undefined;
+    async (content: string, attachments?: File[], replyTo?: Message) => {
+      try {
+        // Determine message type based on attachments
+        let messageType: "text" | "file" | "image" = "text";
+        let attachmentPayload: AttachmentPayload[] | undefined;
 
-      if (attachments && attachments.length > 0) {
-        // Check if all attachments are images
-        const allImages = attachments.every((file) =>
-          file.type.startsWith("image/"),
-        );
-        messageType = allImages ? "image" : "file";
+        // Upload attachments first if they exist
+        if (attachments && attachments.length > 0 && currentWorkspaceId) {
+          setIsUploadingAttachments(true);
 
-        // Convert File objects to AttachmentPayload
-        // Note: In production, you'd upload these files first and get URLs
-        attachmentPayload = attachments.map((file) => ({
-          url: URL.createObjectURL(file), // Temporary URL for now
-        }));
-      }
+          try {
+            // Upload files to S3 and get URLs back
+            const uploadedAttachments = await chatApi.uploadAttachments(
+              currentWorkspaceId,
+              attachments,
+            );
 
-      // Send via WebSocket
-      if (isConnected && user?.id && currentWorkspaceId) {
-        sendMessageViaSocket({
+            // Check if upload was successful and returned data
+            if (!uploadedAttachments || uploadedAttachments.length === 0) {
+              throw new Error("No attachments were uploaded");
+            }
+
+            // Convert uploaded attachments to AttachmentPayload format
+            attachmentPayload = uploadedAttachments.map((att) => ({
+              url: att.url,
+              fileName: att.fileName,
+              fileKey: att.fileKey,
+              fileSize: att.fileSize,
+              mimeType: att.mimeType,
+            }));
+
+            // Determine message type based on uploaded attachments
+            const allImages = uploadedAttachments.every((att) =>
+              att.mimeType.startsWith("image/"),
+            );
+            messageType = allImages ? "image" : "file";
+          } catch (error) {
+            console.error("Failed to upload attachments:", error);
+            showError("Failed to upload files. Please try again.");
+            // Show error but don't send message
+            setIsUploadingAttachments(false);
+            return;
+          } finally {
+            setIsUploadingAttachments(false);
+          }
+        }
+
+        // Send via WebSocket
+        if (isConnected && user?.id && currentWorkspaceId) {
+          sendMessageViaSocket({
+            content,
+            messageType,
+            attachments: attachmentPayload,
+            quotedMessageId: replyTo?.id, // Use replyTo as quotedMessage for quote replies
+          });
+        }
+
+        // Optimistic UI update - add message to local state immediately
+        const newMessage: Message = {
+          id: `msg-${Date.now()}`,
           content,
-          messageType,
-          attachments: attachmentPayload,
-          quotedMessageId: replyTo?.id, // Use replyTo as quotedMessage for quote replies
-        });
+          sender: currentUser,
+          timestamp: new Date(),
+          replyTo: replyTo,
+          attachments: attachmentPayload?.map((att, index) => ({
+            id: `att-${Date.now()}-${index}`,
+            type: messageType === "image" ? "image" : "file",
+            url: att.url,
+            name: att.fileName,
+            size: att.fileSize,
+          })),
+        };
+
+        setMessages((prev) => [...prev, newMessage]);
+      } catch (error) {
+        console.error("Error sending message:", error);
       }
-
-      // Optimistic UI update - add message to local state immediately
-      const newMessage: Message = {
-        id: `msg-${Date.now()}`,
-        content,
-        sender: currentUser,
-        timestamp: new Date(),
-        replyTo: replyTo,
-        attachments: attachments?.map((file, index) => ({
-          id: `att-${Date.now()}-${index}`,
-          type: file.type.startsWith("image/") ? "image" : "file",
-          url: URL.createObjectURL(file),
-          name: file.name,
-          size: file.size,
-        })),
-      };
-
-      setMessages((prev) => [...prev, newMessage]);
     },
     [
       currentUser,
@@ -621,6 +658,7 @@ export default function ChatPage() {
       currentWorkspaceId,
       isConnected,
       sendMessageViaSocket,
+      showError,
     ],
   );
 
@@ -701,62 +739,94 @@ export default function ChatPage() {
   }, []);
 
   const handleSendThreadReply = useCallback(
-    (parentId: string, content: string, attachments?: File[]) => {
-      // Determine message type based on attachments
-      let messageType: "text" | "file" | "image" = "text";
-      let attachmentPayload: AttachmentPayload[] | undefined;
+    async (parentId: string, content: string, attachments?: File[]) => {
+      try {
+        // Determine message type based on attachments
+        let messageType: "text" | "file" | "image" = "text";
+        let attachmentPayload: AttachmentPayload[] | undefined;
 
-      if (attachments && attachments.length > 0) {
-        // Check if all attachments are images
-        const allImages = attachments.every((file) =>
-          file.type.startsWith("image/"),
-        );
-        messageType = allImages ? "image" : "file";
+        // Upload attachments first if they exist
+        if (attachments && attachments.length > 0 && currentWorkspaceId) {
+          setIsUploadingAttachments(true);
 
-        // Convert File objects to AttachmentPayload
-        attachmentPayload = attachments.map((file) => ({
-          url: URL.createObjectURL(file),
-        }));
-      }
+          try {
+            // Upload files to S3 and get URLs back
+            const uploadedAttachments = await chatApi.uploadAttachments(
+              currentWorkspaceId,
+              attachments,
+            );
 
-      // Send via WebSocket with parentMessageId for thread replies
-      if (isConnected && user?.id && currentWorkspaceId) {
-        sendMessageViaSocket({
+            // Check if upload was successful and returned data
+            if (!uploadedAttachments || uploadedAttachments.length === 0) {
+              throw new Error("No attachments were uploaded");
+            }
+
+            // Convert uploaded attachments to AttachmentPayload format
+            attachmentPayload = uploadedAttachments.map((att) => ({
+              url: att.url,
+              fileName: att.fileName,
+              fileKey: att.fileKey,
+              fileSize: att.fileSize,
+              mimeType: att.mimeType,
+            }));
+
+            // Determine message type based on uploaded attachments
+            const allImages = uploadedAttachments.every((att) =>
+              att.mimeType.startsWith("image/"),
+            );
+            messageType = allImages ? "image" : "file";
+          } catch (error) {
+            console.error("Failed to upload attachments:", error);
+            showError("Failed to upload files. Please try again.");
+            // Show error but don't send message
+            setIsUploadingAttachments(false);
+            return;
+          } finally {
+            setIsUploadingAttachments(false);
+          }
+        }
+
+        // Send via WebSocket with parentMessageId for thread replies
+        if (isConnected && user?.id && currentWorkspaceId) {
+          sendMessageViaSocket({
+            content,
+            messageType,
+            attachments: attachmentPayload,
+            parentMessageId: parentId, // This makes it a thread reply
+          });
+        }
+
+        // Optimistic UI update
+        const newReply: Message = {
+          id: `reply-${Date.now()}`,
           content,
-          messageType,
-          attachments: attachmentPayload,
-          parentMessageId: parentId, // This makes it a thread reply
-        });
+          sender: currentUser,
+          timestamp: new Date(),
+          attachments: attachmentPayload?.map((att, index) => ({
+            id: `att-${Date.now()}-${index}`,
+            type: messageType === "image" ? "image" : "file",
+            url: att.url,
+            name: att.fileName,
+            size: att.fileSize,
+          })),
+        };
+
+        setThreadReplies((prev) => ({
+          ...prev,
+          [parentId]: [...(prev[parentId] || []), newReply],
+        }));
+
+        // Update thread count on parent message
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === parentId
+              ? { ...msg, threadCount: (msg.threadCount || 0) + 1 }
+              : msg,
+          ),
+        );
+      } catch (error) {
+        console.error("Error sending thread reply:", error);
       }
-
-      // Optimistic UI update
-      const newReply: Message = {
-        id: `reply-${Date.now()}`,
-        content,
-        sender: currentUser,
-        timestamp: new Date(),
-        attachments: attachments?.map((file, index) => ({
-          id: `att-${Date.now()}-${index}`,
-          type: file.type.startsWith("image/") ? "image" : "file",
-          url: URL.createObjectURL(file),
-          name: file.name,
-          size: file.size,
-        })),
-      };
-
-      setThreadReplies((prev) => ({
-        ...prev,
-        [parentId]: [...(prev[parentId] || []), newReply],
-      }));
-
-      // Update thread count on parent message
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === parentId
-            ? { ...msg, threadCount: (msg.threadCount || 0) + 1 }
-            : msg,
-        ),
-      );
     },
     [
       currentUser,
@@ -764,6 +834,7 @@ export default function ChatPage() {
       currentWorkspaceId,
       isConnected,
       sendMessageViaSocket,
+      showError,
     ],
   );
 
@@ -806,6 +877,7 @@ export default function ChatPage() {
           onSendThreadReply={handleSendThreadReply}
           threadReplies={threadReplies}
           workspaceId={currentWorkspaceId || undefined}
+          isUploadingAttachments={isUploadingAttachments}
         />
       </Suspense>
 
