@@ -350,7 +350,7 @@ export default function MessageInput({
           disabled={
             disabled ||
             !message.trim() ||
-            Boolean(editingMessage && message.trim() === editingMessage.content)
+            (!!editingMessage && message.trim() === editingMessage.content)
           }
           className={`p-3 rounded-xl transition-all duration-200 ${
             message.trim() &&
