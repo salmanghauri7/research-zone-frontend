@@ -27,6 +27,11 @@ export interface BackendMessage {
   voiceDuration?: number;
   attachments?: Array<{
     url: string;
+    fileName?: string;
+    fileKey?: string;
+    fileSize?: number;
+    mimeType?: string;
+    _id?: string;
   }>;
   createdAt: string;
   updatedAt: string;
@@ -36,6 +41,15 @@ export interface FetchMessagesResponse {
   messages: BackendMessage[];
   cursor: string | null;
   hasMore: boolean;
+}
+
+export interface UploadAttachmentResponse {
+  url: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  fileKey: string;
+  bucket?: string;
 }
 
 /**
@@ -65,8 +79,54 @@ class ChatApi {
       statusCode: number;
       data: FetchMessagesResponse;
     }>(`/chat/workspace/${workspaceId}/messages?${params.toString()}`);
+    console.log(response, "response from message api");
 
-    return response.data.data;
+    // Ensure we always return a valid structure even if backend response is incomplete
+    const data = response.data.data;
+    return {
+      messages: data?.messages || [],
+      cursor: data?.cursor || null,
+      hasMore: data?.hasMore || false,
+    };
+  }
+
+  /**
+   * Upload attachments to S3 and get URLs back
+   */
+  async uploadAttachments(
+    workspaceId: string,
+    files: File[],
+  ): Promise<UploadAttachmentResponse[]> {
+    const formData = new FormData();
+
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    const response = await api.post<{
+      success: boolean;
+      message: string;
+      statusCode: number;
+      data: {
+        attachments: UploadAttachmentResponse[];
+        totalFiles: number;
+      };
+      timestamp: string;
+    }>(`/chat/workspace/${workspaceId}/upload`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    console.log("Upload response:", response.data);
+
+    // Validate response structure
+    if (!response.data?.data?.attachments) {
+      console.error("Invalid upload response structure:", response.data);
+      throw new Error("Invalid response from upload API");
+    }
+
+    return response.data.data.attachments;
   }
 }
 

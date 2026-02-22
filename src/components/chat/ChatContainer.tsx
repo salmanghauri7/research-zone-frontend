@@ -28,6 +28,7 @@ interface ChatContainerProps {
   ) => void;
   threadReplies?: Record<string, Message[]>;
   workspaceId?: string;
+  isUploadingAttachments?: boolean;
 }
 
 export default function ChatContainer({
@@ -40,6 +41,7 @@ export default function ChatContainer({
   onSendThreadReply,
   threadReplies = {},
   workspaceId,
+  isUploadingAttachments = false,
 }: ChatContainerProps) {
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
@@ -228,6 +230,7 @@ export default function ChatContainer({
           typingStatusText={getTypingText(typingUsers)}
           onTyping={handleTyping}
           onStopTyping={stopTyping}
+          disabled={isUploadingAttachments}
         />
       </div>
 

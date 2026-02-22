@@ -23,6 +23,10 @@ export interface JoinWorkspaceErrorData {
 // Chat/Message events
 export interface AttachmentPayload {
   url: string;
+  fileName: string;
+  fileKey: string;
+  fileSize: number;
+  mimeType: string;
 }
 
 export interface SendMessagePayload {

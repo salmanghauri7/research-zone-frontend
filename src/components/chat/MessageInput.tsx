@@ -12,7 +12,11 @@ import {
   FiCornerUpLeft,
   FiSquare,
   FiEdit3,
+  FiAlertCircle,
 } from "react-icons/fi";
+
+// Constants
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 
 interface MessageInputProps {
   onSend: (content: string, attachments?: File[]) => void;
@@ -43,6 +47,7 @@ export default function MessageInput({
   const [attachments, setAttachments] = useState<File[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [fileError, setFileError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -111,6 +116,23 @@ export default function MessageInput({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    
+    // Clear previous error
+    setFileError(null);
+    
+    // Validate file sizes
+    const invalidFiles = files.filter(file => file.size > MAX_FILE_SIZE);
+    
+    if (invalidFiles.length > 0) {
+      const fileNames = invalidFiles.map(f => f.name).join(", ");
+      setFileError(`File(s) too large: ${fileNames}. Maximum size is 10MB per file.`);
+      e.target.value = "";
+      
+      // Auto-hide error after 5 seconds
+      setTimeout(() => setFileError(null), 5000);
+      return;
+    }
+    
     setAttachments((prev) => [...prev, ...files]);
     e.target.value = "";
   };
@@ -144,8 +166,37 @@ export default function MessageInput({
     onTyping?.();
   };
 
+
   return (
     <div className="shrink-0 border-t border-gray-200 bg-white dark:border-white/10 dark:bg-black">
+      {/* File Error Message */}
+      <AnimatePresence>
+        {fileError && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="flex items-center gap-3 px-4 py-2 border-b bg-red-50 border-red-100 dark:bg-red-500/10 dark:border-red-500/20">
+              <FiAlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  {fileError}
+                </p>
+              </div>
+              <button
+                onClick={() => setFileError(null)}
+                className="p-1 rounded-full transition-colors hover:bg-red-100 text-red-500 dark:hover:bg-red-500/20 dark:text-red-400"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Edit Preview */}
       <AnimatePresence>
         {editingMessage && (
@@ -317,7 +368,11 @@ export default function MessageInput({
               }}
               onKeyDown={handleKeyDown}
               placeholder={
-                editingMessage ? "Edit your message..." : "Type message here..."
+                disabled && !isRecording
+                  ? "Uploading files..."
+                  : editingMessage
+                    ? "Edit your message..."
+                    : "Type message here..."
               }
               disabled={disabled || isRecording}
               rows={1}
@@ -421,6 +476,12 @@ function AttachmentPreview({
   const isImage = file.type.startsWith("image/");
   const preview = isImage ? URL.createObjectURL(file) : null;
 
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  };
+
   useEffect(() => {
     return () => {
       if (preview) {
@@ -438,6 +499,9 @@ function AttachmentPreview({
           alt={file.name}
           className="h-16 w-16 object-cover rounded-lg"
         />
+        <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-1 py-0.5 rounded-b-lg">
+          {formatFileSize(file.size)}
+        </div>
         <button
           onClick={onRemove}
           className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -449,17 +513,22 @@ function AttachmentPreview({
   }
 
   return (
-    <div className="relative group flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-white/5">
-      <FiPaperclip className="w-4 h-4 text-gray-500 dark:text-white/50" />
-      <span className="text-sm truncate max-w-[120px] text-gray-700 dark:text-white/80">
-        {file.name}
+    <div className="relative group flex flex-col gap-1 px-3 py-2 rounded-lg bg-gray-100 dark:bg-white/5">
+      <div className="flex items-center gap-2">
+        <FiPaperclip className="w-4 h-4 text-gray-500 dark:text-white/50" />
+        <span className="text-sm truncate max-w-[120px] text-gray-700 dark:text-white/80">
+          {file.name}
+        </span>
+        <button
+          onClick={onRemove}
+          className="p-0.5 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-white/10"
+        >
+          <FiX className="w-3 h-3 text-gray-500 dark:text-white/50" />
+        </button>
+      </div>
+      <span className="text-[10px] text-gray-500 dark:text-white/40">
+        {formatFileSize(file.size)}
       </span>
-      <button
-        onClick={onRemove}
-        className="p-0.5 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-white/10"
-      >
-        <FiX className="w-3 h-3 text-gray-500 dark:text-white/50" />
-      </button>
     </div>
   );
 }
