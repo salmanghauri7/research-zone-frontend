@@ -81,7 +81,13 @@ class ChatApi {
     }>(`/chat/workspace/${workspaceId}/messages?${params.toString()}`);
     console.log(response, "response from message api");
 
-    return response.data.data;
+    // Ensure we always return a valid structure even if backend response is incomplete
+    const data = response.data.data;
+    return {
+      messages: data?.messages || [],
+      cursor: data?.cursor || null,
+      hasMore: data?.hasMore || false,
+    };
   }
 
   /**
