@@ -53,7 +53,6 @@ export const useWorkspaceEvents = ({
 
     const handleJoinedWorkspace = (data: JoinedWorkspaceData) => {
       console.log("✅ Successfully joined workspace:", data);
-      showSuccess(`Joined ${data?.workspace.title}`);
       onWorkspaceJoined?.(data);
     };
 
@@ -80,7 +79,6 @@ export const useWorkspaceEvents = ({
 
     const handleUserJoined = (data: UserJoinedWorkspaceData) => {
       console.log("👤 User joined workspace:", data);
-      showInfo(`${data.email} joined the workspace`);
       onUserJoined?.(data);
     };
 

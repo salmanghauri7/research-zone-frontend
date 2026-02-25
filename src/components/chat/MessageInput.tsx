@@ -116,23 +116,25 @@ export default function MessageInput({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+
     // Clear previous error
     setFileError(null);
-    
+
     // Validate file sizes
-    const invalidFiles = files.filter(file => file.size > MAX_FILE_SIZE);
-    
+    const invalidFiles = files.filter((file) => file.size > MAX_FILE_SIZE);
+
     if (invalidFiles.length > 0) {
-      const fileNames = invalidFiles.map(f => f.name).join(", ");
-      setFileError(`File(s) too large: ${fileNames}. Maximum size is 10MB per file.`);
+      const fileNames = invalidFiles.map((f) => f.name).join(", ");
+      setFileError(
+        `File(s) too large: ${fileNames}. Maximum size is 10MB per file.`,
+      );
       e.target.value = "";
-      
+
       // Auto-hide error after 5 seconds
       setTimeout(() => setFileError(null), 5000);
       return;
     }
-    
+
     setAttachments((prev) => [...prev, ...files]);
     e.target.value = "";
   };
@@ -165,7 +167,6 @@ export default function MessageInput({
   const handleTyping = () => {
     onTyping?.();
   };
-
 
   return (
     <div className="shrink-0 border-t border-gray-200 bg-white dark:border-white/10 dark:bg-black">
@@ -320,23 +321,6 @@ export default function MessageInput({
               className="hidden"
             />
 
-            {/* Voice Message */}
-            <button
-              onClick={toggleRecording}
-              className={`p-2 rounded-lg transition-colors ${
-                isRecording
-                  ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
-                  : "hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
-              }`}
-              title={isRecording ? "Stop recording" : "Voice message"}
-            >
-              {isRecording ? (
-                <FiSquare className="w-5 h-5" />
-              ) : (
-                <FiMic className="w-5 h-5" />
-              )}
-            </button>
-
             {/* Recording Timer */}
             <AnimatePresence>
               {isRecording && (
@@ -404,11 +388,12 @@ export default function MessageInput({
           onClick={handleSend}
           disabled={
             disabled ||
-            !message.trim() ||
-            (!!editingMessage && message.trim() === editingMessage.content)
+            (editingMessage
+              ? !message.trim() || message.trim() === editingMessage.content
+              : !message.trim() && attachments.length === 0)
           }
           className={`p-3 rounded-xl transition-all duration-200 ${
-            message.trim() &&
+            (message.trim() || attachments.length > 0) &&
             (!editingMessage || message.trim() !== editingMessage.content)
               ? editingMessage
                 ? "bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/25"

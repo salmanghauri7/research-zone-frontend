@@ -2,6 +2,7 @@ import { useUserStore } from "@/store/userStore";
 
 export async function logout() {
   try {
+    localStorage.removeItem("accessToken");
     const response = await fetch("/api/logout", {
       method: "POST",
       credentials: "include",

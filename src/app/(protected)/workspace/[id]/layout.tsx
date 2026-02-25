@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import {
   clearInvitationData,
@@ -21,6 +21,7 @@ export default function WorkspaceIdLayout({
   const { setWorkspace, clearWorkspace, currentWorkspaceId } =
     useWorkspaceStore();
   const { socket, isConnected } = useSocket();
+  const hasJoinedRef = useRef(false);
   const { joinWorkspace } = useWorkspaceEvents({
     socket,
     workspaceId: workspaceId,
@@ -62,11 +63,17 @@ export default function WorkspaceIdLayout({
   }, [workspaceId]);
 
   useEffect(() => {
-    if (socket && isConnected) {
-      console.log("🚀 Joining workspace room for chat:", workspaceId);
+    debugger;
+    if (socket && isConnected && !hasJoinedRef.current) {
+      console.log("🚀 Joining workspace room:", workspaceId);
       joinWorkspace();
+      hasJoinedRef.current = true;
     }
-    // joinWorkspace is memoized and includes duplicate prevention
+
+    // Reset ref when workspace changes
+    return () => {
+      hasJoinedRef.current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, isConnected, workspaceId]);
 
