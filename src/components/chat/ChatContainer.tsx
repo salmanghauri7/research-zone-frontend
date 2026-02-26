@@ -29,20 +29,17 @@ interface ChatContainerProps {
   ) => void;
   threadReplies?: Record<string, Message[]>;
   workspaceId?: string;
-  isUploadingAttachments?: boolean;
 }
 
 export default function ChatContainer({
   messages,
   currentUser,
-  channelName = "General",
   onSendMessage,
   onEditMessage,
   onDeleteMessage,
   onSendThreadReply,
   threadReplies = {},
   workspaceId,
-  isUploadingAttachments = false,
 }: ChatContainerProps) {
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
@@ -208,7 +205,7 @@ export default function ChatContainer({
                   {/* Messages */}
                   {msgs.map((message) => (
                     <ChatMessage
-                      key={message.id}
+                      key={message.clientMessageId || message.id}
                       message={message}
                       isOwn={message.sender.id === currentUser.id}
                       onReply={handleReply}
@@ -235,7 +232,6 @@ export default function ChatContainer({
           typingStatusText={getTypingText(typingUsers)}
           onTyping={handleTyping}
           onStopTyping={stopTyping}
-          disabled={isUploadingAttachments}
         />
       </div>
 

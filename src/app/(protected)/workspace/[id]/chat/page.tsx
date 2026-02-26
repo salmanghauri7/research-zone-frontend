@@ -2,13 +2,12 @@
 
 import { useState, useCallback, useMemo, Suspense, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Message, User } from "@/components/chat";
+import { Message, User, Attachment } from "@/components/chat";
 import { useUserStore } from "@/store/userStore";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import { useSocket } from "@/contexts/SocketContext";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useChatEvents } from "@/hooks/websocket/useChatEvents";
-import { useWorkspaceEvents } from "@/hooks/websocket/useWorkspaceEvents";
 import { AttachmentPayload } from "@/hooks/websocket/types";
 import { chatApi, BackendMessage } from "@/api/chatApi";
 import DeleteConfirmModal from "@/components/chat/DeleteConfirmModal";
@@ -114,9 +113,6 @@ export default function ChatPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // Upload state
-  const [isUploadingAttachments, setIsUploadingAttachments] = useState(false);
 
   // Fetch initial messages
   useEffect(() => {
@@ -525,6 +521,12 @@ export default function ChatPage() {
               msg.content === realMessage.content &&
               msg.sender.id === realMessage.sender.id
             ) {
+              // Revoke blob URLs before replacing
+              if (msg.blobUrls) {
+                Object.values(msg.blobUrls).forEach((blobUrl) =>
+                  URL.revokeObjectURL(blobUrl),
+                );
+              }
               return realMessage;
             }
             return msg;
@@ -542,7 +544,14 @@ export default function ChatPage() {
               msg.content === realMessage.content &&
               msg.sender.id === realMessage.sender.id
             ) {
-              return realMessage;
+              // Revoke blob URLs before replacing
+              if (msg.blobUrls) {
+                Object.values(msg.blobUrls).forEach((blobUrl) =>
+                  URL.revokeObjectURL(blobUrl),
+                );
+              }
+              // Preserve clientMessageId to prevent React remounting
+              return { ...realMessage, clientMessageId: msg.clientMessageId };
             }
             return msg;
           });
@@ -592,14 +601,72 @@ export default function ChatPage() {
   const handleSendMessage = useCallback(
     async (content: string, attachments?: File[], replyTo?: Message) => {
       try {
+        const messageId = `msg-${Date.now()}`;
+        const timestamp = new Date();
+
         // Determine message type based on attachments
         let messageType: "text" | "file" | "image" = "text";
-        let attachmentPayload: AttachmentPayload[] | undefined;
 
-        // Upload attachments first if they exist
-        if (attachments && attachments.length > 0 && currentWorkspaceId) {
-          setIsUploadingAttachments(true);
+        // Prepare optimistic attachments with blob URLs for instant preview
+        let optimisticAttachments: Attachment[] | undefined;
+        const blobUrlsMap: Record<string, string> = {};
+        const uploadProgressMap: Record<string, number> = {};
 
+        if (attachments && attachments.length > 0) {
+          // Determine message type
+          const allImages = attachments.every((file) =>
+            file.type.startsWith("image/"),
+          );
+          messageType = allImages ? "image" : "file";
+
+          // Create blob URLs for instant preview
+          optimisticAttachments = attachments.map((file, index) => {
+            const attachmentId = `att-${messageId}-${index}`;
+            const blobUrl = URL.createObjectURL(file);
+            blobUrlsMap[attachmentId] = blobUrl;
+            uploadProgressMap[attachmentId] = 0;
+
+            return {
+              id: attachmentId,
+              type: file.type.startsWith("image/") ? "image" : "file",
+              url: blobUrl, // Use blob URL for instant display
+              name: file.name,
+              size: file.size,
+            };
+          });
+        }
+
+        // Create optimistic message and add to UI immediately
+        const optimisticMessage: Message = {
+          id: messageId,
+          content,
+          sender: currentUser,
+          timestamp,
+          replyTo: replyTo,
+          attachments: optimisticAttachments,
+          isUploading: !!(attachments && attachments.length > 0),
+          uploadProgress: uploadProgressMap,
+          blobUrls:
+            Object.keys(blobUrlsMap).length > 0 ? blobUrlsMap : undefined,
+          clientMessageId: messageId, // Stable ID for React key to prevent remounting
+        };
+
+        setMessages((prev) => [...prev, optimisticMessage]);
+
+        // If no attachments, send message immediately via WebSocket
+        if (!attachments || attachments.length === 0) {
+          if (isConnected && user?.id && currentWorkspaceId) {
+            sendMessageViaSocket({
+              content,
+              messageType: "text",
+              quotedMessageId: replyTo?.id,
+            });
+          }
+          return;
+        }
+
+        // Upload attachments in background (non-blocking)
+        if (currentWorkspaceId) {
           try {
             // Upload files to S3 and get URLs back
             const uploadedAttachments = await chatApi.uploadAttachments(
@@ -607,63 +674,87 @@ export default function ChatPage() {
               attachments,
             );
 
-            // Check if upload was successful and returned data
+            // Check if upload was successful
             if (!uploadedAttachments || uploadedAttachments.length === 0) {
               throw new Error("No attachments were uploaded");
             }
 
             // Convert uploaded attachments to AttachmentPayload format
-            attachmentPayload = uploadedAttachments.map((att) => ({
-              url: att.url,
-              fileName: att.fileName,
-              fileKey: att.fileKey,
-              fileSize: att.fileSize,
-              mimeType: att.mimeType,
-            }));
+            const attachmentPayload: AttachmentPayload[] =
+              uploadedAttachments.map((att) => ({
+                url: att.url,
+                fileName: att.fileName,
+                fileKey: att.fileKey,
+                fileSize: att.fileSize,
+                mimeType: att.mimeType,
+              }));
 
-            // Determine message type based on uploaded attachments
-            const allImages = uploadedAttachments.every((att) =>
-              att.mimeType.startsWith("image/"),
+            // Send message via WebSocket with uploaded attachments
+            if (isConnected && user?.id && currentWorkspaceId) {
+              sendMessageViaSocket({
+                content,
+                messageType,
+                attachments: attachmentPayload,
+                quotedMessageId: replyTo?.id,
+              });
+            }
+
+            // Update message with real URLs and remove uploading state
+            setMessages((prev) =>
+              prev.map((msg) => {
+                if (msg.id === messageId) {
+                  // Revoke blob URLs
+                  if (msg.blobUrls) {
+                    Object.values(msg.blobUrls).forEach((blobUrl) =>
+                      URL.revokeObjectURL(blobUrl),
+                    );
+                  }
+
+                  return {
+                    ...msg,
+                    attachments: uploadedAttachments.map((att, index) => ({
+                      id: `att-${messageId}-${index}`,
+                      type: att.mimeType.startsWith("image/")
+                        ? "image"
+                        : "file",
+                      url: att.url, // Real CloudFront URL
+                      name: att.fileName,
+                      size: att.fileSize,
+                    })),
+                    isUploading: false,
+                    uploadProgress: undefined,
+                    blobUrls: undefined,
+                  };
+                }
+                return msg;
+              }),
             );
-            messageType = allImages ? "image" : "file";
           } catch (error) {
             console.error("Failed to upload attachments:", error);
             showError("Failed to upload files. Please try again.");
-            // Show error but don't send message
-            setIsUploadingAttachments(false);
-            return;
-          } finally {
-            setIsUploadingAttachments(false);
+
+            // Mark message with upload error
+            setMessages((prev) =>
+              prev.map((msg) => {
+                if (msg.id === messageId) {
+                  const uploadErrors: Record<string, string> = {};
+                  if (msg.attachments) {
+                    msg.attachments.forEach((att) => {
+                      uploadErrors[att.id] = "Upload failed";
+                    });
+                  }
+
+                  return {
+                    ...msg,
+                    isUploading: false,
+                    uploadError: uploadErrors,
+                  };
+                }
+                return msg;
+              }),
+            );
           }
         }
-
-        // Send via WebSocket
-        if (isConnected && user?.id && currentWorkspaceId) {
-          sendMessageViaSocket({
-            content,
-            messageType,
-            attachments: attachmentPayload,
-            quotedMessageId: replyTo?.id, // Use replyTo as quotedMessage for quote replies
-          });
-        }
-
-        // Optimistic UI update - add message to local state immediately
-        const newMessage: Message = {
-          id: `msg-${Date.now()}`,
-          content,
-          sender: currentUser,
-          timestamp: new Date(),
-          replyTo: replyTo,
-          attachments: attachmentPayload?.map((att, index) => ({
-            id: `att-${Date.now()}-${index}`,
-            type: messageType === "image" ? "image" : "file",
-            url: att.url,
-            name: att.fileName,
-            size: att.fileSize,
-          })),
-        };
-
-        setMessages((prev) => [...prev, newMessage]);
       } catch (error) {
         console.error("Error sending message:", error);
       }
@@ -762,81 +853,59 @@ export default function ChatPage() {
       replyTo?: Message,
     ) => {
       try {
+        const messageId = `reply-${Date.now()}`;
+        const timestamp = new Date();
+
         // Determine message type based on attachments
         let messageType: "text" | "file" | "image" = "text";
-        let attachmentPayload: AttachmentPayload[] | undefined;
 
-        // Upload attachments first if they exist
-        if (attachments && attachments.length > 0 && currentWorkspaceId) {
-          setIsUploadingAttachments(true);
+        // Prepare optimistic attachments with blob URLs for instant preview
+        let optimisticAttachments: Attachment[] | undefined;
+        const blobUrlsMap: Record<string, string> = {};
+        const uploadProgressMap: Record<string, number> = {};
 
-          try {
-            // Upload files to S3 and get URLs back
-            const uploadedAttachments = await chatApi.uploadAttachments(
-              currentWorkspaceId,
-              attachments,
-            );
+        if (attachments && attachments.length > 0) {
+          // Determine message type
+          const allImages = attachments.every((file) =>
+            file.type.startsWith("image/"),
+          );
+          messageType = allImages ? "image" : "file";
 
-            // Check if upload was successful and returned data
-            if (!uploadedAttachments || uploadedAttachments.length === 0) {
-              throw new Error("No attachments were uploaded");
-            }
+          // Create blob URLs for instant preview
+          optimisticAttachments = attachments.map((file, index) => {
+            const attachmentId = `att-${messageId}-${index}`;
+            const blobUrl = URL.createObjectURL(file);
+            blobUrlsMap[attachmentId] = blobUrl;
+            uploadProgressMap[attachmentId] = 0;
 
-            // Convert uploaded attachments to AttachmentPayload format
-            attachmentPayload = uploadedAttachments.map((att) => ({
-              url: att.url,
-              fileName: att.fileName,
-              fileKey: att.fileKey,
-              fileSize: att.fileSize,
-              mimeType: att.mimeType,
-            }));
-
-            // Determine message type based on uploaded attachments
-            const allImages = uploadedAttachments.every((att) =>
-              att.mimeType.startsWith("image/"),
-            );
-            messageType = allImages ? "image" : "file";
-          } catch (error) {
-            console.error("Failed to upload attachments:", error);
-            showError("Failed to upload files. Please try again.");
-            // Show error but don't send message
-            setIsUploadingAttachments(false);
-            return;
-          } finally {
-            setIsUploadingAttachments(false);
-          }
-        }
-
-        // Send via WebSocket with parentMessageId for thread replies
-        if (isConnected && user?.id && currentWorkspaceId) {
-          sendMessageViaSocket({
-            content,
-            messageType,
-            attachments: attachmentPayload,
-            parentMessageId: parentId, // This makes it a thread reply
-            quotedMessageId: replyTo?.id, // Include quoted message if replying to a specific message
+            return {
+              id: attachmentId,
+              type: file.type.startsWith("image/") ? "image" : "file",
+              url: blobUrl, // Use blob URL for instant display
+              name: file.name,
+              size: file.size,
+            };
           });
         }
 
-        // Optimistic UI update
-        const newReply: Message = {
-          id: `reply-${Date.now()}`,
+        // Create optimistic reply and add to UI immediately
+        const optimisticReply: Message = {
+          id: messageId,
           content,
           sender: currentUser,
-          timestamp: new Date(),
-          replyTo: replyTo, // Include replyTo in optimistic message
-          attachments: attachmentPayload?.map((att, index) => ({
-            id: `att-${Date.now()}-${index}`,
-            type: messageType === "image" ? "image" : "file",
-            url: att.url,
-            name: att.fileName,
-            size: att.fileSize,
-          })),
+          timestamp,
+          replyTo: replyTo,
+          attachments: optimisticAttachments,
+          isUploading: !!(attachments && attachments.length > 0),
+          uploadProgress: uploadProgressMap,
+          blobUrls:
+            Object.keys(blobUrlsMap).length > 0 ? blobUrlsMap : undefined,
+          clientMessageId: messageId, // Stable ID for React key to prevent remounting
         };
 
         setThreadReplies((prev) => ({
           ...prev,
-          [parentId]: [...(prev[parentId] || []), newReply],
+          [parentId]: [...(prev[parentId] || []), optimisticReply],
         }));
 
         // Update thread count on parent message
@@ -847,6 +916,113 @@ export default function ChatPage() {
               : msg,
           ),
         );
+
+        // If no attachments, send message immediately via WebSocket
+        if (!attachments || attachments.length === 0) {
+          if (isConnected && user?.id && currentWorkspaceId) {
+            sendMessageViaSocket({
+              content,
+              messageType: "text",
+              parentMessageId: parentId,
+              quotedMessageId: replyTo?.id,
+            });
+          }
+          return;
+        }
+
+        // Upload attachments in background (non-blocking)
+        if (currentWorkspaceId) {
+          try {
+            // Upload files to S3 and get URLs back
+            const uploadedAttachments = await chatApi.uploadAttachments(
+              currentWorkspaceId,
+              attachments,
+            );
+
+            // Check if upload was successful
+            if (!uploadedAttachments || uploadedAttachments.length === 0) {
+              throw new Error("No attachments were uploaded");
+            }
+
+            // Convert uploaded attachments to AttachmentPayload format
+            const attachmentPayload: AttachmentPayload[] =
+              uploadedAttachments.map((att) => ({
+                url: att.url,
+                fileName: att.fileName,
+                fileKey: att.fileKey,
+                fileSize: att.fileSize,
+                mimeType: att.mimeType,
+              }));
+
+            // Send message via WebSocket with uploaded attachments
+            if (isConnected && user?.id && currentWorkspaceId) {
+              sendMessageViaSocket({
+                content,
+                messageType,
+                attachments: attachmentPayload,
+                parentMessageId: parentId,
+                quotedMessageId: replyTo?.id,
+              });
+            }
+
+            // Update reply with real URLs and remove uploading state
+            setThreadReplies((prev) => ({
+              ...prev,
+              [parentId]: prev[parentId].map((msg) => {
+                if (msg.id === messageId) {
+                  // Revoke blob URLs
+                  if (msg.blobUrls) {
+                    Object.values(msg.blobUrls).forEach((blobUrl) =>
+                      URL.revokeObjectURL(blobUrl),
+                    );
+                  }
+
+                  return {
+                    ...msg,
+                    attachments: uploadedAttachments.map((att, index) => ({
+                      id: `att-${messageId}-${index}`,
+                      type: att.mimeType.startsWith("image/")
+                        ? "image"
+                        : "file",
+                      url: att.url, // Real CloudFront URL
+                      name: att.fileName,
+                      size: att.fileSize,
+                    })),
+                    isUploading: false,
+                    uploadProgress: undefined,
+                    blobUrls: undefined,
+                  };
+                }
+                return msg;
+              }),
+            }));
+          } catch (error) {
+            console.error("Failed to upload attachments:", error);
+            showError("Failed to upload files. Please try again.");
+
+            // Mark reply with upload error
+            setThreadReplies((prev) => ({
+              ...prev,
+              [parentId]: prev[parentId].map((msg) => {
+                if (msg.id === messageId) {
+                  const uploadErrors: Record<string, string> = {};
+                  if (msg.attachments) {
+                    msg.attachments.forEach((att) => {
+                      uploadErrors[att.id] = "Upload failed";
+                    });
+                  }
+
+                  return {
+                    ...msg,
+                    isUploading: false,
+                    uploadError: uploadErrors,
+                  };
+                }
+                return msg;
+              }),
+            }));
+          }
+        }
       } catch (error) {
         console.error("Error sending thread reply:", error);
       }
@@ -900,7 +1076,6 @@ export default function ChatPage() {
           onSendThreadReply={handleSendThreadReply}
           threadReplies={threadReplies}
           workspaceId={currentWorkspaceId || undefined}
-          isUploadingAttachments={isUploadingAttachments}
         />
       </Suspense>
 

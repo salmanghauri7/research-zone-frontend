@@ -121,10 +121,15 @@ export default function ChatMessage({
                   <AttachmentPreview
                     key={attachment.id}
                     attachment={attachment}
+                    isUploading={message.isUploading}
+                    progress={message.uploadProgress?.[attachment.id]}
+                    error={message.uploadError?.[attachment.id]}
                   />
                 ))}
               </div>
             )}
+
+            {/* Upload Status - Show when message is uploading */}
 
             {/* Thread Count */}
             {message.threadCount && message.threadCount > 0 ? (
@@ -159,7 +164,17 @@ export default function ChatMessage({
 }
 
 // Attachment Preview Component
-function AttachmentPreview({ attachment }: { attachment: Attachment }) {
+function AttachmentPreview({
+  attachment,
+  isUploading,
+  progress,
+  error,
+}: {
+  attachment: Attachment;
+  isUploading?: boolean;
+  progress?: number;
+  error?: string;
+}) {
   if (attachment.type === "image") {
     return (
       <div className="relative group/img max-w-xs max-h-48 rounded-lg overflow-hidden">
@@ -167,8 +182,31 @@ function AttachmentPreview({ attachment }: { attachment: Attachment }) {
         <img
           src={attachment.url}
           alt={attachment.name}
-          className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+          className={`w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity ${
+            isUploading ? "blur-sm opacity-75" : ""
+          } ${error ? "border-2 border-red-500" : ""}`}
         />
+        {/* Upload Progress Overlay */}
+        {isUploading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin" />
+              {progress !== undefined && progress > 0 && (
+                <span className="text-xs text-white font-medium">
+                  {progress}%
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+        {/* Error Overlay */}
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-red-500/20">
+            <div className="text-xs text-red-600 dark:text-red-400 font-medium">
+              Upload failed
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -199,37 +237,60 @@ function AttachmentPreview({ attachment }: { attachment: Attachment }) {
 
   // File attachment
   return (
-    <a
-      href={attachment.url}
-      download={attachment.name}
-      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10"
+    <div
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+        isUploading || error
+          ? "bg-gray-100 dark:bg-white/5"
+          : "bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 cursor-pointer"
+      } ${error ? "border-2 border-red-500" : ""}`}
+      onClick={() => {
+        if (!isUploading && !error) {
+          window.open(attachment.url, "_blank");
+        }
+      }}
     >
-      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-200 dark:bg-white/10">
-        <svg
-          className="w-5 h-5 text-gray-500 dark:text-white/60"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
+      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-200 dark:bg-white/10 relative">
+        {isUploading ? (
+          <div className="w-5 h-5 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <svg
+            className="w-5 h-5 text-gray-500 dark:text-white/60"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate text-gray-900 dark:text-white">
           {attachment.name}
         </p>
-        {attachment.size && (
-          <p className="text-xs text-gray-500 dark:text-white/40">
-            {formatFileSize(attachment.size)}
-          </p>
-        )}
+        <div className="flex items-center gap-2">
+          {attachment.size && (
+            <p className="text-xs text-gray-500 dark:text-white/40">
+              {formatFileSize(attachment.size)}
+            </p>
+          )}
+          {isUploading && progress !== undefined && progress > 0 && (
+            <p className="text-xs text-blue-600 dark:text-blue-400">
+              {progress}%
+            </p>
+          )}
+          {error && (
+            <p className="text-xs text-red-600 dark:text-red-400">
+              Upload failed
+            </p>
+          )}
+        </div>
       </div>
-    </a>
+    </div>
   );
 }
 

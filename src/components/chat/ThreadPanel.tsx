@@ -150,7 +150,7 @@ export default function ThreadPanel({
                 <div className="divide-y divide-transparent">
                   {replies.map((reply) => (
                     <ChatMessage
-                      key={reply.id}
+                      key={reply.clientMessageId || reply.id}
                       message={reply}
                       isOwn={reply.sender.id === currentUserId}
                       onReply={handleReply}
