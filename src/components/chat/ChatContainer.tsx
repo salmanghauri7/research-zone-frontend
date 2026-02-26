@@ -25,6 +25,7 @@ interface ChatContainerProps {
     parentId: string,
     content: string,
     attachments?: File[],
+    replyTo?: Message,
   ) => void;
   threadReplies?: Record<string, Message[]>;
   workspaceId?: string;
@@ -124,9 +125,13 @@ export default function ChatContainer({
     setActiveThread(null);
   };
 
-  const handleSendThreadReply = (content: string, attachments?: File[]) => {
+  const handleSendThreadReply = (
+    content: string,
+    attachments?: File[],
+    replyTo?: Message,
+  ) => {
     if (activeThread) {
-      onSendThreadReply(activeThread.id, content, attachments);
+      onSendThreadReply(activeThread.id, content, attachments, replyTo);
     }
   };
 

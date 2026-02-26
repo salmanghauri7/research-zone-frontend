@@ -457,84 +457,100 @@ export default function ChatPage() {
   // Join workspace room when socket connects or workspace changes
 
   // Handle message sent confirmation - replace optimistic message with real one
-  const handleMessageSent = useCallback((messageData: any) => {
-    console.log("✅ Message sent confirmation:", messageData);
+  const handleMessageSent = useCallback(
+    (messageData: any) => {
+      console.log("✅ Message sent confirmation:", messageData);
 
-    // Transform received message to frontend format
-    const realMessage: Message = {
-      id: messageData._id || messageData.id,
-      content: messageData.content,
-      sender: {
-        id: messageData.sender._id || messageData.sender.id,
-        name: `${messageData.sender.firstName}${messageData.sender.username ? ` (${messageData.sender.username})` : ""}`,
-        avatar: messageData.sender.avatar,
-      },
-      timestamp: new Date(messageData.createdAt),
-      isEdited: messageData.isEdited,
-      threadCount: messageData.replyCount || 0,
-      attachments: messageData.attachments?.map((att: any, index: number) => ({
-        id: `${messageData._id || messageData.id}-att-${index}`,
-        type: att.mimeType?.startsWith("image/") ? "image" : "file",
-        url: att.url,
-        name: att.fileName || att.url.split("/").pop() || "attachment",
-      })),
-    };
-
-    // Handle quoted message (replyTo) if it exists
-    if (messageData.quotedMessage) {
-      realMessage.replyTo = {
-        id: messageData.quotedMessage._id || messageData.quotedMessage.id,
-        content: messageData.quotedMessage.content,
+      // Transform received message to frontend format
+      const realMessage: Message = {
+        id: messageData._id || messageData.id,
+        content: messageData.content,
         sender: {
-          id:
-            messageData.quotedMessage.sender._id ||
-            messageData.quotedMessage.sender.id,
-          name: `${messageData.quotedMessage.sender.firstName}${messageData.quotedMessage.sender.username ? ` (${messageData.quotedMessage.sender.username})` : ""}`,
-          avatar: messageData.quotedMessage.sender.avatar,
+          id: messageData.sender._id || messageData.sender.id,
+          name: `${messageData.sender.firstName}${messageData.sender.username ? ` (${messageData.sender.username})` : ""}`,
+          avatar: messageData.sender.avatar,
         },
-        timestamp: new Date(messageData.quotedMessage.createdAt),
+        timestamp: new Date(messageData.createdAt),
+        isEdited: messageData.isEdited,
+        threadCount: messageData.replyCount || 0,
+        attachments: messageData.attachments?.map(
+          (att: any, index: number) => ({
+            id: `${messageData._id || messageData.id}-att-${index}`,
+            type: att.mimeType?.startsWith("image/") ? "image" : "file",
+            url: att.url,
+            name: att.fileName || att.url.split("/").pop() || "attachment",
+          }),
+        ),
       };
-    }
 
-    // Check if this is a thread reply (has parentMessageId)
-    if (messageData.parentMessageId) {
-      // Replace optimistic thread reply with real one
-      setThreadReplies((prev) => {
-        const parentId = messageData.parentMessageId;
-        const currentReplies = prev[parentId] || [];
+      // Handle quoted message (replyTo) if it exists - look it up from existing messages or thread replies
+      if (messageData.quotedMessageId) {
+        // First, try to find it in main messages
+        let quotedMessage = messages.find(
+          (msg) => msg.id === messageData.quotedMessageId,
+        );
 
-        // Find and replace the optimistic message
-        const updatedReplies = currentReplies.map((msg) => {
-          // Match by temporary ID pattern and content
-          if (
-            msg.id.startsWith("reply-") &&
-            msg.content === realMessage.content &&
-            msg.sender.id === realMessage.sender.id
-          ) {
-            return realMessage;
+        // If not found in main messages, search in thread replies
+        if (!quotedMessage) {
+          for (const threadId in threadReplies) {
+            quotedMessage = threadReplies[threadId].find(
+              (msg) => msg.id === messageData.quotedMessageId,
+            );
+            if (quotedMessage) break;
           }
-          return msg;
-        });
+        }
 
-        return { ...prev, [parentId]: updatedReplies };
-      });
-    } else {
-      // Replace optimistic main message with real one
-      setMessages((prev) => {
-        return prev.map((msg) => {
-          // Match by temporary ID pattern and content
-          if (
-            msg.id.startsWith("msg-") &&
-            msg.content === realMessage.content &&
-            msg.sender.id === realMessage.sender.id
-          ) {
-            return realMessage;
-          }
-          return msg;
+        if (quotedMessage) {
+          realMessage.replyTo = {
+            id: quotedMessage.id,
+            content: quotedMessage.content,
+            sender: quotedMessage.sender,
+            timestamp: quotedMessage.timestamp,
+          };
+        }
+      }
+
+      // Check if this is a thread reply (has parentMessageId)
+      if (messageData.parentMessageId) {
+        // Replace optimistic thread reply with real one
+        setThreadReplies((prev) => {
+          const parentId = messageData.parentMessageId;
+          const currentReplies = prev[parentId] || [];
+
+          // Find and replace the optimistic message
+          const updatedReplies = currentReplies.map((msg) => {
+            // Match by temporary ID pattern and content
+            if (
+              msg.id.startsWith("reply-") &&
+              msg.content === realMessage.content &&
+              msg.sender.id === realMessage.sender.id
+            ) {
+              return realMessage;
+            }
+            return msg;
+          });
+
+          return { ...prev, [parentId]: updatedReplies };
         });
-      });
-    }
-  }, []);
+      } else {
+        // Replace optimistic main message with real one
+        setMessages((prev) => {
+          return prev.map((msg) => {
+            // Match by temporary ID pattern and content
+            if (
+              msg.id.startsWith("msg-") &&
+              msg.content === realMessage.content &&
+              msg.sender.id === realMessage.sender.id
+            ) {
+              return realMessage;
+            }
+            return msg;
+          });
+        });
+      }
+    },
+    [messages, threadReplies],
+  );
 
   // Handle message deleted from useChatEvents hook
   const handleMessageDeleted = useCallback(
@@ -739,7 +755,12 @@ export default function ChatPage() {
   }, []);
 
   const handleSendThreadReply = useCallback(
-    async (parentId: string, content: string, attachments?: File[]) => {
+    async (
+      parentId: string,
+      content: string,
+      attachments?: File[],
+      replyTo?: Message,
+    ) => {
       try {
         // Determine message type based on attachments
         let messageType: "text" | "file" | "image" = "text";
@@ -793,6 +814,7 @@ export default function ChatPage() {
             messageType,
             attachments: attachmentPayload,
             parentMessageId: parentId, // This makes it a thread reply
+            quotedMessageId: replyTo?.id, // Include quoted message if replying to a specific message
           });
         }
 
@@ -802,6 +824,7 @@ export default function ChatPage() {
           content,
           sender: currentUser,
           timestamp: new Date(),
+          replyTo: replyTo, // Include replyTo in optimistic message
           attachments: attachmentPayload?.map((att, index) => ({
             id: `att-${Date.now()}-${index}`,
             type: messageType === "image" ? "image" : "file",

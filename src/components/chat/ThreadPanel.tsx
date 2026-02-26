@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Message } from "./types";
 import ChatMessage from "./ChatMessage";
@@ -12,7 +12,11 @@ interface ThreadPanelProps {
   replies: Message[];
   isOpen: boolean;
   onClose: () => void;
-  onSendReply: (content: string, attachments?: File[]) => void;
+  onSendReply: (
+    content: string,
+    attachments?: File[],
+    replyTo?: Message,
+  ) => void;
   onEditMessage?: (message: Message) => void;
   onDeleteMessage?: (messageId: string) => void;
   currentUserId?: string;
@@ -29,6 +33,7 @@ export default function ThreadPanel({
   currentUserId,
 }: ThreadPanelProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -36,6 +41,29 @@ export default function ThreadPanel({
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [replies, isOpen]);
+
+  // Clear replyTo when panel closes
+  useEffect(() => {
+    if (!isOpen) {
+      setReplyTo(null);
+    }
+  }, [isOpen]);
+
+  const handleReply = useCallback((message: Message) => {
+    setReplyTo(message);
+  }, []);
+
+  const handleCancelReply = useCallback(() => {
+    setReplyTo(null);
+  }, []);
+
+  const handleSendReply = useCallback(
+    (content: string, attachments?: File[]) => {
+      onSendReply(content, attachments, replyTo || undefined);
+      setReplyTo(null); // Clear reply after sending
+    },
+    [onSendReply, replyTo],
+  );
 
   return (
     <AnimatePresence>
@@ -81,6 +109,7 @@ export default function ThreadPanel({
               <ChatMessage
                 message={parentMessage}
                 isOwn={parentMessage.sender.id === currentUserId}
+                onReply={handleReply}
                 onEdit={onEditMessage}
                 onDelete={onDeleteMessage}
               />
@@ -124,6 +153,7 @@ export default function ThreadPanel({
                       key={reply.id}
                       message={reply}
                       isOwn={reply.sender.id === currentUserId}
+                      onReply={handleReply}
                       onEdit={onEditMessage}
                       onDelete={onDeleteMessage}
                     />
@@ -134,7 +164,11 @@ export default function ThreadPanel({
             </div>
 
             {/* Reply Input */}
-            <MessageInput onSend={onSendReply} />
+            <MessageInput
+              onSend={handleSendReply}
+              replyTo={replyTo}
+              onCancelReply={handleCancelReply}
+            />
           </motion.div>
         </>
       )}

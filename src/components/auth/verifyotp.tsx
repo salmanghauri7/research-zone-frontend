@@ -133,7 +133,6 @@ export default function VerifyOTPPage() {
       if (!canResend) return;
       setMessage("Sending new OTP... ");
       setCanResend(false);
-      debugger;
       const token = sessionStorage.getItem("resendToken");
       await userApi.resendOtp(token!);
 

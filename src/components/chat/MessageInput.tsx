@@ -342,7 +342,7 @@ export default function MessageInput({
 
         <div className="flex flex-col flex-1 gap-1  -mb-3">
           {/* Text Input */}
-          <div className="flex-1 flex items-end rounded-xl border transition-colors bg-gray-50 border-gray-200 focus-within:border-gray-300 dark:bg-white/5 dark:border-white/10 dark:focus-within:border-white/20">
+          <div className="flex-1 flex items-end rounded-xl border transition-colors bg-gray-50 border-gray-200 0 dark:bg-white/5 dark:border-white/10 ">
             <textarea
               ref={textareaRef}
               value={message}
