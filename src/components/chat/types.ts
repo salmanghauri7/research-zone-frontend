@@ -12,6 +12,9 @@ export interface Attachment {
   name: string;
   size?: number;
   duration?: number; // for voice messages
+  isUploading?: boolean; // true while file is being uploaded to S3
+  localBlobUrl?: string; // local blob URL for immediate preview while uploading
+  uploadProgress?: number; // 0-100 upload progress percentage
 }
 
 export interface Message {

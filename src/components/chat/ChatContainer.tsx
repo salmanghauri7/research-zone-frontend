@@ -8,7 +8,6 @@ import ThreadPanel from "./ThreadPanel";
 import { getTypingText } from "./typingHelper";
 import { useSocket } from "@/contexts/SocketContext";
 import { useChatEvents } from "@/hooks/websocket/useChatEvents";
-// import EditMessageModal from "./EditMessageModal"; // No longer needed - using inline editing
 
 interface ChatContainerProps {
   messages: Message[];

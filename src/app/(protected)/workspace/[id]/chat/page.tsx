@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useCallback, useMemo, Suspense, useEffect } from "react";
+import {
+  useState,
+  useCallback,
+  useMemo,
+  Suspense,
+  useEffect,
+  useRef,
+} from "react";
 import dynamic from "next/dynamic";
 import { Message, User } from "@/components/chat";
 import { useUserStore } from "@/store/userStore";
@@ -117,6 +124,25 @@ export default function ChatPage() {
 
   // Upload state
   const [isUploadingAttachments, setIsUploadingAttachments] = useState(false);
+
+  // Refs to track blob URLs for cleanup
+  const blobUrlsRef = useRef<Set<string>>(new Set());
+
+  // Helper to track new blob URLs
+  const trackBlobUrl = useCallback((url: string) => {
+    blobUrlsRef.current.add(url);
+  }, []);
+
+  // Cleanup blob URLs when component unmounts to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Clean up all tracked blob URLs
+      blobUrlsRef.current.forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+      blobUrlsRef.current.clear();
+    };
+  }, []);
 
   // Fetch initial messages
   useEffect(() => {
@@ -461,58 +487,9 @@ export default function ChatPage() {
     (messageData: any) => {
       console.log("✅ Message sent confirmation:", messageData);
 
-      // Transform received message to frontend format
-      const realMessage: Message = {
-        id: messageData._id || messageData.id,
-        content: messageData.content,
-        sender: {
-          id: messageData.sender._id || messageData.sender.id,
-          name: `${messageData.sender.firstName}${messageData.sender.username ? ` (${messageData.sender.username})` : ""}`,
-          avatar: messageData.sender.avatar,
-        },
-        timestamp: new Date(messageData.createdAt),
-        isEdited: messageData.isEdited,
-        threadCount: messageData.replyCount || 0,
-        attachments: messageData.attachments?.map(
-          (att: any, index: number) => ({
-            id: `${messageData._id || messageData.id}-att-${index}`,
-            type: att.mimeType?.startsWith("image/") ? "image" : "file",
-            url: att.url,
-            name: att.fileName || att.url.split("/").pop() || "attachment",
-          }),
-        ),
-      };
-
-      // Handle quoted message (replyTo) if it exists - look it up from existing messages or thread replies
-      if (messageData.quotedMessageId) {
-        // First, try to find it in main messages
-        let quotedMessage = messages.find(
-          (msg) => msg.id === messageData.quotedMessageId,
-        );
-
-        // If not found in main messages, search in thread replies
-        if (!quotedMessage) {
-          for (const threadId in threadReplies) {
-            quotedMessage = threadReplies[threadId].find(
-              (msg) => msg.id === messageData.quotedMessageId,
-            );
-            if (quotedMessage) break;
-          }
-        }
-
-        if (quotedMessage) {
-          realMessage.replyTo = {
-            id: quotedMessage.id,
-            content: quotedMessage.content,
-            sender: quotedMessage.sender,
-            timestamp: quotedMessage.timestamp,
-          };
-        }
-      }
-
       // Check if this is a thread reply (has parentMessageId)
       if (messageData.parentMessageId) {
-        // Replace optimistic thread reply with real one
+        // Replace optimistic thread reply with real one, preserving localBlobUrl
         setThreadReplies((prev) => {
           const parentId = messageData.parentMessageId;
           const currentReplies = prev[parentId] || [];
@@ -522,9 +499,61 @@ export default function ChatPage() {
             // Match by temporary ID pattern and content
             if (
               msg.id.startsWith("reply-") &&
-              msg.content === realMessage.content &&
-              msg.sender.id === realMessage.sender.id
+              msg.content === messageData.content &&
+              msg.sender.id ===
+                (messageData.sender._id || messageData.sender.id)
             ) {
+              // Build real message, preserving localBlobUrls from optimistic message
+              const realMessage: Message = {
+                id: messageData._id || messageData.id,
+                content: messageData.content,
+                sender: {
+                  id: messageData.sender._id || messageData.sender.id,
+                  name: `${messageData.sender.firstName}${messageData.sender.username ? ` (${messageData.sender.username})` : ""}`,
+                  avatar: messageData.sender.avatar,
+                },
+                timestamp: new Date(messageData.createdAt),
+                isEdited: messageData.isEdited,
+                threadCount: messageData.replyCount || 0,
+                attachments: messageData.attachments?.map(
+                  (att: any, index: number) => ({
+                    id: `${messageData._id || messageData.id}-att-${index}`,
+                    type: att.mimeType?.startsWith("image/")
+                      ? ("image" as const)
+                      : ("file" as const),
+                    url: att.url,
+                    name:
+                      att.fileName || att.url.split("/").pop() || "attachment",
+                    // Preserve localBlobUrl from optimistic attachment to prevent re-download
+                    localBlobUrl: msg.attachments?.[index]?.localBlobUrl,
+                    isUploading: false,
+                  }),
+                ),
+              };
+
+              // Handle quoted message lookup
+              if (messageData.quotedMessageId) {
+                let quotedMessage = messages.find(
+                  (m) => m.id === messageData.quotedMessageId,
+                );
+                if (!quotedMessage) {
+                  for (const threadId in prev) {
+                    quotedMessage = prev[threadId].find(
+                      (m) => m.id === messageData.quotedMessageId,
+                    );
+                    if (quotedMessage) break;
+                  }
+                }
+                if (quotedMessage) {
+                  realMessage.replyTo = {
+                    id: quotedMessage.id,
+                    content: quotedMessage.content,
+                    sender: quotedMessage.sender,
+                    timestamp: quotedMessage.timestamp,
+                  };
+                }
+              }
+
               return realMessage;
             }
             return msg;
@@ -533,15 +562,67 @@ export default function ChatPage() {
           return { ...prev, [parentId]: updatedReplies };
         });
       } else {
-        // Replace optimistic main message with real one
+        // Replace optimistic main message with real one, preserving localBlobUrl
         setMessages((prev) => {
           return prev.map((msg) => {
             // Match by temporary ID pattern and content
             if (
               msg.id.startsWith("msg-") &&
-              msg.content === realMessage.content &&
-              msg.sender.id === realMessage.sender.id
+              msg.content === messageData.content &&
+              msg.sender.id ===
+                (messageData.sender._id || messageData.sender.id)
             ) {
+              // Build real message, preserving localBlobUrls from optimistic message
+              const realMessage: Message = {
+                id: messageData._id || messageData.id,
+                content: messageData.content,
+                sender: {
+                  id: messageData.sender._id || messageData.sender.id,
+                  name: `${messageData.sender.firstName}${messageData.sender.username ? ` (${messageData.sender.username})` : ""}`,
+                  avatar: messageData.sender.avatar,
+                },
+                timestamp: new Date(messageData.createdAt),
+                isEdited: messageData.isEdited,
+                threadCount: messageData.replyCount || 0,
+                attachments: messageData.attachments?.map(
+                  (att: any, index: number) => ({
+                    id: `${messageData._id || messageData.id}-att-${index}`,
+                    type: att.mimeType?.startsWith("image/")
+                      ? ("image" as const)
+                      : ("file" as const),
+                    url: att.url,
+                    name:
+                      att.fileName || att.url.split("/").pop() || "attachment",
+                    // Preserve localBlobUrl from optimistic attachment to prevent re-download
+                    localBlobUrl: msg.attachments?.[index]?.localBlobUrl,
+                    isUploading: false,
+                  }),
+                ),
+              };
+
+              // Handle quoted message lookup
+              if (messageData.quotedMessageId) {
+                let quotedMessage = prev.find(
+                  (m) => m.id === messageData.quotedMessageId,
+                );
+                if (!quotedMessage) {
+                  for (const threadId in threadReplies) {
+                    quotedMessage = threadReplies[threadId].find(
+                      (m) => m.id === messageData.quotedMessageId,
+                    );
+                    if (quotedMessage) break;
+                  }
+                }
+                if (quotedMessage) {
+                  realMessage.replyTo = {
+                    id: quotedMessage.id,
+                    content: quotedMessage.content,
+                    sender: quotedMessage.sender,
+                    timestamp: quotedMessage.timestamp,
+                  };
+                }
+              }
+
               return realMessage;
             }
             return msg;
@@ -592,11 +673,51 @@ export default function ChatPage() {
   const handleSendMessage = useCallback(
     async (content: string, attachments?: File[], replyTo?: Message) => {
       try {
+        // Generate a unique message ID for optimistic update
+        const optimisticId = `msg-${Date.now()}`;
+
         // Determine message type based on attachments
         let messageType: "text" | "file" | "image" = "text";
-        let attachmentPayload: AttachmentPayload[] | undefined;
 
-        // Upload attachments first if they exist
+        // Create optimistic attachments with blob URLs for immediate preview
+        let optimisticAttachments: Message["attachments"];
+        if (attachments && attachments.length > 0) {
+          const allImages = attachments.every((file) =>
+            file.type.startsWith("image/"),
+          );
+          messageType = allImages ? "image" : "file";
+
+          optimisticAttachments = attachments.map((file, index) => {
+            const blobUrl = URL.createObjectURL(file);
+            trackBlobUrl(blobUrl); // Track for cleanup on unmount
+            return {
+              id: `att-${optimisticId}-${index}`,
+              type: file.type.startsWith("image/")
+                ? ("image" as const)
+                : ("file" as const),
+              url: "", // Will be filled after upload
+              localBlobUrl: blobUrl,
+              name: file.name,
+              size: file.size,
+              isUploading: true, // Mark as uploading
+            };
+          });
+        }
+
+        // Optimistic UI update - add message to local state IMMEDIATELY
+        const newMessage: Message = {
+          id: optimisticId,
+          content,
+          sender: currentUser,
+          timestamp: new Date(),
+          replyTo: replyTo,
+          attachments: optimisticAttachments,
+        };
+
+        setMessages((prev) => [...prev, newMessage]);
+
+        // Now upload attachments in the background if they exist
+        let attachmentPayload: AttachmentPayload[] | undefined;
         if (attachments && attachments.length > 0 && currentWorkspaceId) {
           setIsUploadingAttachments(true);
 
@@ -621,15 +742,36 @@ export default function ChatPage() {
               mimeType: att.mimeType,
             }));
 
-            // Determine message type based on uploaded attachments
-            const allImages = uploadedAttachments.every((att) =>
-              att.mimeType.startsWith("image/"),
+            // Update optimistic message with real URLs (keep blob URLs for display)
+            setMessages((prev) =>
+              prev.map((msg) => {
+                if (msg.id === optimisticId && msg.attachments) {
+                  return {
+                    ...msg,
+                    attachments: msg.attachments.map((att, index) => ({
+                      ...att,
+                      url: uploadedAttachments[index]?.url || att.url,
+                      isUploading: false, // Mark upload as complete
+                      // Keep localBlobUrl for display until server confirms
+                    })),
+                  };
+                }
+                return msg;
+              }),
             );
-            messageType = allImages ? "image" : "file";
           } catch (error) {
             console.error("Failed to upload attachments:", error);
             showError("Failed to upload files. Please try again.");
-            // Show error but don't send message
+            // Remove the optimistic message on failure
+            setMessages((prev) =>
+              prev.filter((msg) => msg.id !== optimisticId),
+            );
+            // Clean up blob URLs
+            optimisticAttachments?.forEach((att) => {
+              if (att.localBlobUrl) {
+                URL.revokeObjectURL(att.localBlobUrl);
+              }
+            });
             setIsUploadingAttachments(false);
             return;
           } finally {
@@ -646,24 +788,6 @@ export default function ChatPage() {
             quotedMessageId: replyTo?.id, // Use replyTo as quotedMessage for quote replies
           });
         }
-
-        // Optimistic UI update - add message to local state immediately
-        const newMessage: Message = {
-          id: `msg-${Date.now()}`,
-          content,
-          sender: currentUser,
-          timestamp: new Date(),
-          replyTo: replyTo,
-          attachments: attachmentPayload?.map((att, index) => ({
-            id: `att-${Date.now()}-${index}`,
-            type: messageType === "image" ? "image" : "file",
-            url: att.url,
-            name: att.fileName,
-            size: att.fileSize,
-          })),
-        };
-
-        setMessages((prev) => [...prev, newMessage]);
       } catch (error) {
         console.error("Error sending message:", error);
       }
@@ -675,6 +799,7 @@ export default function ChatPage() {
       isConnected,
       sendMessageViaSocket,
       showError,
+      trackBlobUrl,
     ],
   );
 
@@ -762,11 +887,63 @@ export default function ChatPage() {
       replyTo?: Message,
     ) => {
       try {
+        // Generate a unique reply ID for optimistic update
+        const optimisticId = `reply-${Date.now()}`;
+
         // Determine message type based on attachments
         let messageType: "text" | "file" | "image" = "text";
-        let attachmentPayload: AttachmentPayload[] | undefined;
 
-        // Upload attachments first if they exist
+        // Create optimistic attachments with blob URLs for immediate preview
+        let optimisticAttachments: Message["attachments"];
+        if (attachments && attachments.length > 0) {
+          const allImages = attachments.every((file) =>
+            file.type.startsWith("image/"),
+          );
+          messageType = allImages ? "image" : "file";
+
+          optimisticAttachments = attachments.map((file, index) => {
+            const blobUrl = URL.createObjectURL(file);
+            trackBlobUrl(blobUrl); // Track for cleanup on unmount
+            return {
+              id: `att-${optimisticId}-${index}`,
+              type: file.type.startsWith("image/")
+                ? ("image" as const)
+                : ("file" as const),
+              url: "", // Will be filled after upload
+              localBlobUrl: blobUrl,
+              name: file.name,
+              size: file.size,
+              isUploading: true, // Mark as uploading
+            };
+          });
+        }
+
+        // Optimistic UI update IMMEDIATELY
+        const newReply: Message = {
+          id: optimisticId,
+          content,
+          sender: currentUser,
+          timestamp: new Date(),
+          replyTo: replyTo, // Include replyTo in optimistic message
+          attachments: optimisticAttachments,
+        };
+
+        setThreadReplies((prev) => ({
+          ...prev,
+          [parentId]: [...(prev[parentId] || []), newReply],
+        }));
+
+        // Update thread count on parent message
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === parentId
+              ? { ...msg, threadCount: (msg.threadCount || 0) + 1 }
+              : msg,
+          ),
+        );
+
+        // Now upload attachments in the background if they exist
+        let attachmentPayload: AttachmentPayload[] | undefined;
         if (attachments && attachments.length > 0 && currentWorkspaceId) {
           setIsUploadingAttachments(true);
 
@@ -791,15 +968,55 @@ export default function ChatPage() {
               mimeType: att.mimeType,
             }));
 
-            // Determine message type based on uploaded attachments
-            const allImages = uploadedAttachments.every((att) =>
-              att.mimeType.startsWith("image/"),
-            );
-            messageType = allImages ? "image" : "file";
+            // Update optimistic reply with real URLs
+            setThreadReplies((prev) => {
+              const updatedReplies = { ...prev };
+              if (updatedReplies[parentId]) {
+                updatedReplies[parentId] = updatedReplies[parentId].map(
+                  (msg) => {
+                    if (msg.id === optimisticId && msg.attachments) {
+                      return {
+                        ...msg,
+                        attachments: msg.attachments.map((att, index) => ({
+                          ...att,
+                          url: uploadedAttachments[index]?.url || att.url,
+                          isUploading: false, // Mark upload as complete
+                        })),
+                      };
+                    }
+                    return msg;
+                  },
+                );
+              }
+              return updatedReplies;
+            });
           } catch (error) {
             console.error("Failed to upload attachments:", error);
             showError("Failed to upload files. Please try again.");
-            // Show error but don't send message
+            // Remove the optimistic reply on failure
+            setThreadReplies((prev) => ({
+              ...prev,
+              [parentId]: (prev[parentId] || []).filter(
+                (msg) => msg.id !== optimisticId,
+              ),
+            }));
+            // Decrement thread count
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === parentId
+                  ? {
+                      ...msg,
+                      threadCount: Math.max((msg.threadCount || 1) - 1, 0),
+                    }
+                  : msg,
+              ),
+            );
+            // Clean up blob URLs
+            optimisticAttachments?.forEach((att) => {
+              if (att.localBlobUrl) {
+                URL.revokeObjectURL(att.localBlobUrl);
+              }
+            });
             setIsUploadingAttachments(false);
             return;
           } finally {
@@ -817,36 +1034,6 @@ export default function ChatPage() {
             quotedMessageId: replyTo?.id, // Include quoted message if replying to a specific message
           });
         }
-
-        // Optimistic UI update
-        const newReply: Message = {
-          id: `reply-${Date.now()}`,
-          content,
-          sender: currentUser,
-          timestamp: new Date(),
-          replyTo: replyTo, // Include replyTo in optimistic message
-          attachments: attachmentPayload?.map((att, index) => ({
-            id: `att-${Date.now()}-${index}`,
-            type: messageType === "image" ? "image" : "file",
-            url: att.url,
-            name: att.fileName,
-            size: att.fileSize,
-          })),
-        };
-
-        setThreadReplies((prev) => ({
-          ...prev,
-          [parentId]: [...(prev[parentId] || []), newReply],
-        }));
-
-        // Update thread count on parent message
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === parentId
-              ? { ...msg, threadCount: (msg.threadCount || 0) + 1 }
-              : msg,
-          ),
-        );
       } catch (error) {
         console.error("Error sending thread reply:", error);
       }
@@ -858,6 +1045,7 @@ export default function ChatPage() {
       isConnected,
       sendMessageViaSocket,
       showError,
+      trackBlobUrl,
     ],
   );
 

@@ -160,15 +160,61 @@ export default function ChatMessage({
 
 // Attachment Preview Component
 function AttachmentPreview({ attachment }: { attachment: Attachment }) {
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  // Use localBlobUrl for preview while uploading, then fall back to actual url
+  const displayUrl = attachment.localBlobUrl || attachment.url;
+
+  // Don't show skeleton for local blob URLs (they load instantly)
+  const showSkeleton =
+    attachment.type === "image" && !attachment.localBlobUrl && !isImageLoaded;
+
   if (attachment.type === "image") {
     return (
       <div className="relative group/img max-w-xs max-h-48 rounded-lg overflow-hidden">
+        {/* Skeleton placeholder while image is loading */}
+        {showSkeleton && (
+          <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-8 h-8 text-gray-400 dark:text-gray-500">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+            </div>
+            {/* Shimmer effect */}
+            <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          </div>
+        )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={attachment.url}
+          src={displayUrl}
           alt={attachment.name}
-          className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+          onLoad={() => setIsImageLoaded(true)}
+          className={`w-full h-full object-cover cursor-pointer transition-all ${
+            attachment.isUploading ? "blur-sm opacity-70" : "hover:opacity-90"
+          } ${showSkeleton ? "opacity-0" : "opacity-100"}`}
+          style={{
+            minWidth: showSkeleton ? "200px" : undefined,
+            minHeight: showSkeleton ? "150px" : undefined,
+          }}
         />
+        {/* Upload overlay */}
+        {attachment.isUploading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="text-xs font-medium text-white drop-shadow-lg">
+                Uploading...
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -199,37 +245,78 @@ function AttachmentPreview({ attachment }: { attachment: Attachment }) {
 
   // File attachment
   return (
-    <a
-      href={attachment.url}
-      download={attachment.name}
-      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10"
+    <div
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+        attachment.isUploading
+          ? "bg-gray-100 dark:bg-white/5"
+          : "bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10"
+      }`}
     >
-      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-200 dark:bg-white/10">
-        <svg
-          className="w-5 h-5 text-gray-500 dark:text-white/60"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      {attachment.isUploading ? (
+        // Show upload spinner instead of file icon when uploading
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-200 dark:bg-white/10">
+          <div className="w-5 h-5 border-2 border-gray-400 border-t-blue-500 rounded-full animate-spin" />
+        </div>
+      ) : (
+        <a
+          href={displayUrl}
+          download={attachment.name}
+          className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-200 dark:bg-white/10"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      </div>
+          <svg
+            className="w-5 h-5 text-gray-500 dark:text-white/60"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        </a>
+      )}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate text-gray-900 dark:text-white">
           {attachment.name}
         </p>
-        {attachment.size && (
-          <p className="text-xs text-gray-500 dark:text-white/40">
-            {formatFileSize(attachment.size)}
-          </p>
-        )}
+        <div className="flex items-center gap-2">
+          {attachment.size && (
+            <p className="text-xs text-gray-500 dark:text-white/40">
+              {formatFileSize(attachment.size)}
+            </p>
+          )}
+          {attachment.isUploading && (
+            <p className="text-xs text-blue-500 dark:text-blue-400">
+              Uploading...
+            </p>
+          )}
+        </div>
       </div>
-    </a>
+      {!attachment.isUploading && (
+        <a
+          href={displayUrl}
+          download={attachment.name}
+          className="p-2 rounded-lg hover:bg-gray-300 dark:hover:bg-white/10 transition-colors"
+        >
+          <svg
+            className="w-4 h-4 text-gray-500 dark:text-white/60"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+            />
+          </svg>
+        </a>
+      )}
+    </div>
   );
 }
 
