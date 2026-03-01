@@ -19,6 +19,8 @@ import { useWorkspaceEvents } from "@/hooks/websocket/useWorkspaceEvents";
 import { AttachmentPayload } from "@/hooks/websocket/types";
 import { chatApi, BackendMessage } from "@/api/chatApi";
 import DeleteConfirmModal from "@/components/chat/DeleteConfirmModal";
+import SearchChat from "@/components/chat/SearchChat";
+import SearchResultsPanel from "@/components/chat/SearchResultsPanel";
 
 // Lazy load the heavy ChatContainer component
 const ChatContainer = dynamic(() => import("@/components/chat/ChatContainer"), {
@@ -47,6 +49,7 @@ const transformBackendMessage = (
     isEdited: backendMsg.isEdited,
     isDeleted: backendMsg.isDeleted || false,
     threadCount: backendMsg.replyCount || 0,
+    parentMessageId: backendMsg.parentMessageId || null,
   };
 
   // Handle quoted message (reply in main chat)
@@ -86,6 +89,9 @@ export default function ChatPage() {
   const currentWorkspaceId = useWorkspaceStore(
     (state) => state.currentWorkspaceId,
   );
+  const workspaceTitle = useWorkspaceStore((state) => state.workspaceTitle);
+  const isSearching = useWorkspaceStore((state) => state.isSearching);
+  const setIsSearching = useWorkspaceStore((state) => state.setIsSearching);
 
   // Get socket connection
   const { socket, isConnected } = useSocket();
@@ -125,6 +131,15 @@ export default function ChatPage() {
   // Upload state
   const [isUploadingAttachments, setIsUploadingAttachments] = useState(false);
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Message[]>([]);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<
+    string | null
+  >(null);
+
   // Refs to track blob URLs for cleanup
   const blobUrlsRef = useRef<Set<string>>(new Set());
 
@@ -143,6 +158,92 @@ export default function ChatPage() {
       blobUrlsRef.current.clear();
     };
   }, []);
+
+  // Handle Ctrl+F / Cmd+F keyboard shortcut to open search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check for Ctrl+F (Windows/Linux) or Cmd+F (Mac)
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+        e.preventDefault(); // Prevent browser's default find
+        setIsSearching(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [setIsSearching]);
+
+  // Handle search - call the backend API
+  const handleSearch = useCallback(
+    async (query: string) => {
+      if (!currentWorkspaceId) return;
+
+      setSearchQuery(query);
+      setIsSearchLoading(true);
+      setShowSearchResults(true);
+
+      try {
+        const response = await chatApi.searchMessages({
+          workspaceId: currentWorkspaceId,
+          query,
+          limit: 10,
+          cursor: null,
+        });
+
+        // Create a map for quoted message lookups
+        const messagesMap = new Map(
+          response.results.map((msg) => [msg._id, msg]),
+        );
+
+        // Transform backend messages to frontend format
+        const transformedResults = response.results.map((msg) =>
+          transformBackendMessage(msg, messagesMap),
+        );
+
+        setSearchResults(transformedResults);
+      } catch (error) {
+        console.error("Failed to search messages:", error);
+        showError("Failed to search messages. Please try again.");
+        setSearchResults([]);
+      } finally {
+        setIsSearchLoading(false);
+      }
+    },
+    [currentWorkspaceId, showError],
+  );
+
+  // Close search results panel
+  const handleCloseSearchResults = useCallback(() => {
+    setShowSearchResults(false);
+    setSearchResults([]);
+    setSearchQuery("");
+  }, []);
+
+  // Handle clicking on a search result - scroll to message (keep panel open)
+  const handleMessageClick = useCallback(
+    (messageId: string) => {
+      // Find the message element and scroll to it
+      const messageElement = document.getElementById(`message-${messageId}`);
+      if (messageElement) {
+        messageElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+
+        // Highlight the message temporarily
+        setHighlightedMessageId(messageId);
+        setTimeout(() => {
+          setHighlightedMessageId(null);
+        }, 2000); // Remove highlight after 2 seconds
+      } else {
+        // Message not loaded in current view
+        showError(
+          "This message is not currently loaded. Try loading more messages.",
+        );
+      }
+    },
+    [showError],
+  );
 
   // Fetch initial messages
   useEffect(() => {
@@ -1058,46 +1159,68 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-stone-950">
-      <Suspense
-        fallback={
-          <div className="flex-1 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-stone-200 border-t-teal-500 dark:border-stone-700 dark:border-t-teal-400 rounded-full animate-spin" />
-          </div>
-        }
-      >
-        {/* Load More Button */}
-        {hasMore && (
-          <div className="p-3 text-center border-b border-stone-200 dark:border-white/6">
-            <button
-              onClick={handleLoadMore}
-              disabled={isLoadingMore}
-              className="px-4 py-1.5 text-sm text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoadingMore ? "Loading..." : "Load older messages"}
-            </button>
-          </div>
+    <div className="h-full flex bg-white dark:bg-stone-950">
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Search Chat Component */}
+        {isSearching && (
+          <SearchChat
+            workspaceTitle={workspaceTitle || undefined}
+            onSearch={handleSearch}
+          />
         )}
-        <ChatContainer
-          messages={messages}
-          currentUser={currentUser}
-          channelName="Research Discussion"
-          onSendMessage={handleSendMessage}
-          onEditMessage={handleEditMessage}
-          onDeleteMessage={handleDeleteMessage}
-          onSendThreadReply={handleSendThreadReply}
-          threadReplies={threadReplies}
-          workspaceId={currentWorkspaceId || undefined}
-          isUploadingAttachments={isUploadingAttachments}
-        />
-      </Suspense>
 
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmModal
-        isOpen={showDeleteModal}
-        onClose={cancelDeleteMessage}
-        onConfirm={confirmDeleteMessage}
-        isDeleting={isDeleting}
+        <Suspense
+          fallback={
+            <div className="flex-1 flex items-center justify-center">
+              <div className="w-8 h-8 border-4 border-stone-200 border-t-teal-500 dark:border-stone-700 dark:border-t-teal-400 rounded-full animate-spin" />
+            </div>
+          }
+        >
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="p-3 text-center border-b border-stone-200 dark:border-white/6">
+              <button
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+                className="px-4 py-1.5 text-sm text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoadingMore ? "Loading..." : "Load older messages"}
+              </button>
+            </div>
+          )}
+          <ChatContainer
+            messages={messages}
+            currentUser={currentUser}
+            channelName="Research Discussion"
+            onSendMessage={handleSendMessage}
+            onEditMessage={handleEditMessage}
+            onDeleteMessage={handleDeleteMessage}
+            onSendThreadReply={handleSendThreadReply}
+            threadReplies={threadReplies}
+            workspaceId={currentWorkspaceId || undefined}
+            isUploadingAttachments={isUploadingAttachments}
+            highlightedMessageId={highlightedMessageId}
+          />
+        </Suspense>
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmModal
+          isOpen={showDeleteModal}
+          onClose={cancelDeleteMessage}
+          onConfirm={confirmDeleteMessage}
+          isDeleting={isDeleting}
+        />
+      </div>
+
+      {/* Search Results Panel */}
+      <SearchResultsPanel
+        isOpen={showSearchResults}
+        onClose={handleCloseSearchResults}
+        searchQuery={searchQuery}
+        results={searchResults}
+        isLoading={isSearchLoading}
+        workspaceTitle={workspaceTitle || undefined}
+        onMessageClick={handleMessageClick}
       />
     </div>
   );

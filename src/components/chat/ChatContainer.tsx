@@ -29,6 +29,7 @@ interface ChatContainerProps {
   threadReplies?: Record<string, Message[]>;
   workspaceId?: string;
   isUploadingAttachments?: boolean;
+  highlightedMessageId?: string | null;
 }
 
 export default function ChatContainer({
@@ -42,6 +43,7 @@ export default function ChatContainer({
   threadReplies = {},
   workspaceId,
   isUploadingAttachments = false,
+  highlightedMessageId = null,
 }: ChatContainerProps) {
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
@@ -175,6 +177,7 @@ export default function ChatContainer({
                       onEdit={handleEdit}
                       onDelete={onDeleteMessage}
                       onThreadOpen={handleOpenThread}
+                      isHighlighted={highlightedMessageId === message.id}
                     />
                   ))}
                 </div>

@@ -14,6 +14,8 @@ interface ChatMessageProps {
   onEdit?: (message: Message) => void;
   onDelete?: (messageId: string) => void;
   onThreadOpen?: (message: Message) => void;
+  isHighlighted?: boolean;
+  disableActions?: boolean;
 }
 
 export default function ChatMessage({
@@ -23,6 +25,8 @@ export default function ChatMessage({
   onEdit,
   onDelete,
   onThreadOpen,
+  isHighlighted = false,
+  disableActions = false,
 }: ChatMessageProps) {
   const [isHovered, setIsHovered] = useState(false);
   const formatTime = (date: Date) => {
@@ -44,10 +48,16 @@ export default function ChatMessage({
 
   return (
     <motion.div
+      id={`message-${message.id}`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={`group relative flex gap-3 px-6 py-2 transition-colors ${
-        isHovered ? "bg-stone-50/50 dark:bg-white/2" : "bg-transparent"
+        isHighlighted
+          ? "bg-teal-50 dark:bg-teal-500/10"
+          : isHovered
+            ? "bg-stone-50/50 dark:bg-white/2"
+            : "bg-transparent"
+      }
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -139,9 +149,9 @@ export default function ChatMessage({
         )}
       </div>
 
-      {/* Message Actions - Shown on hover, but not for deleted messages */}
+      {/* Message Actions - Shown on hover, but not for deleted messages or when disabled */}
       <AnimatePresence>
-        {isHovered && !message.isDeleted && (
+        {!disableActions && isHovered && !message.isDeleted && (
           <MessageActions
             message={message}
             isOwn={isOwn}

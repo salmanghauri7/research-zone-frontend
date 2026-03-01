@@ -52,6 +52,19 @@ export interface UploadAttachmentResponse {
   bucket?: string;
 }
 
+export interface SearchMessagesParams {
+  workspaceId: string;
+  query: string;
+  limit?: number;
+  cursor?: string | null;
+}
+
+export interface SearchMessagesResponse {
+  results: BackendMessage[];
+  cursor: string | null;
+  hasMore: boolean;
+}
+
 /**
  * Chat API Module
  * Centralized API calls for all chat-related endpoints
@@ -127,6 +140,38 @@ class ChatApi {
     }
 
     return response.data.data.attachments;
+  }
+
+  /**
+   * Search messages in a workspace
+   */
+  async searchMessages({
+    workspaceId,
+    query,
+    limit = 10,
+    cursor = null,
+  }: SearchMessagesParams): Promise<SearchMessagesResponse> {
+    const response = await api.post<{
+      success: boolean;
+      message: string;
+      statusCode: number;
+      data: SearchMessagesResponse;
+      timestamp: string;
+    }>(`/chat/workspace/${workspaceId}/search`, {
+      query,
+      limit,
+      ...(cursor && { cursor }),
+    });
+
+    console.log("Search response:", response.data);
+
+    // Ensure we always return a valid structure
+    const data = response.data.data;
+    return {
+      results: data?.results || [],
+      cursor: data?.cursor || null,
+      hasMore: data?.hasMore || false,
+    };
   }
 }
 

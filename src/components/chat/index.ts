@@ -4,5 +4,7 @@ export { default as MessageInput } from "./MessageInput";
 export { default as MessageActions } from "./MessageActions";
 export { default as ThreadPanel } from "./ThreadPanel";
 export { default as EditMessageModal } from "./EditMessageModal";
+export { default as SearchChat } from "./SearchChat";
+export { default as SearchResultsPanel } from "./SearchResultsPanel";
 export * from "./types";
 export { getTypingText } from "./typingHelper";

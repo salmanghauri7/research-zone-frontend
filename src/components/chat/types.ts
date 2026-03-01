@@ -27,6 +27,7 @@ export interface Message {
   attachments?: Attachment[];
   replyTo?: Message;
   threadCount?: number;
+  parentMessageId?: string | null; // ID of parent message if this is a thread reply
 }
 
 export interface Thread {
