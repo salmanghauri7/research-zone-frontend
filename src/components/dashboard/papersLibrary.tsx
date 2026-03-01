@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { searchPapers } from "@/api/papersApi";
+import { paper } from "./workspace/types";
 
 const PaperLibrary = memo(function PaperLibrary() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -139,10 +140,10 @@ const PaperLibrary = memo(function PaperLibrary() {
         {hasSearched && !isLoading && results.length > 0 && (
           <>
             <div className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 mb-1 flex items-center gap-2">
-              <Sparkles className="w-3 h-3" /> Results for "{searchQuery}"
+              <Sparkles className="w-3 h-3" /> Results for {searchQuery}
             </div>
             <div className="flex flex-col gap-3">
-              {results.map((paper) => (
+              {results.map((paper: paper) => (
                 <div
                   key={paper.id}
                   className="p-4 bg-white dark:bg-[#1a1a1a] border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-teal-500/40 transition-colors flex flex-col gap-3"
