@@ -1,7 +1,16 @@
 "use client";
 
 import { memo, useState } from "react";
-import { Search, FileText, Calendar, Users, ExternalLink, Download, Library, Sparkles } from "lucide-react";
+import {
+  Search,
+  FileText,
+  Calendar,
+  Users,
+  ExternalLink,
+  Download,
+  Library,
+  Sparkles,
+} from "lucide-react";
 import { searchPapers } from "@/api/papersApi";
 
 const PaperLibrary = memo(function PaperLibrary() {
@@ -10,9 +19,12 @@ const PaperLibrary = memo(function PaperLibrary() {
   const [results, setResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [cache, setCache] = useState({});
+  const [cache, setCache] = useState<Record<string, typeof results>>({});
 
-  const handleSearch = async (e, page = 1) => {
+  const handleSearch = async (
+    e: React.FormEvent<HTMLFormElement> | null,
+    page: number = 1,
+  ): Promise<void> => {
     if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
 
@@ -24,7 +36,7 @@ const PaperLibrary = memo(function PaperLibrary() {
     if (cache[cacheKey]) {
       setResults(cache[cacheKey]);
       // Scroll to top for cached results
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
@@ -32,7 +44,7 @@ const PaperLibrary = memo(function PaperLibrary() {
     setIsLoading(true);
 
     // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     try {
       const data = await searchPapers(searchQuery, page);
@@ -40,7 +52,10 @@ const PaperLibrary = memo(function PaperLibrary() {
       if (data.results) {
         setResults(data.results);
         // Store in cache
-        setCache(prev => ({ ...prev, [cacheKey]: data.results }));
+        setCache((prev: Record<string, typeof data.results>) => ({
+          ...prev,
+          [cacheKey]: data.results,
+        }));
       } else {
         setResults([]);
       }
@@ -54,7 +69,6 @@ const PaperLibrary = memo(function PaperLibrary() {
 
   return (
     <div className="p-4 md:p-6 w-full max-w-4xl mx-auto text-black dark:text-white min-h-screen flex flex-col gap-5">
-
       {/* Header */}
       {/* <div className="flex flex-col">
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -85,7 +99,6 @@ const PaperLibrary = memo(function PaperLibrary() {
 
       {/* Content Area */}
       <div className="flex flex-col gap-3 flex-1">
-
         {/* 1. INITIAL STATE (Before searching) */}
         {!hasSearched && (
           // border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/30 dark:bg-zinc-900/10
@@ -95,10 +108,11 @@ const PaperLibrary = memo(function PaperLibrary() {
             </div>
             <h3 className="text-sm font-semibold mb-1">Ready to explore?</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-[240px] leading-relaxed">
-              Enter keywords above to find research on AI, Physics, Math, or Computer Science.
+              Enter keywords above to find research on AI, Physics, Math, or
+              Computer Science.
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {['Quantum Computing', 'LLMs', 'Neural Networks'].map((tag) => (
+              {["Quantum Computing", "LLMs", "Neural Networks"].map((tag) => (
                 <button
                   key={tag}
                   onClick={() => setSearchQuery(tag)}
@@ -115,7 +129,9 @@ const PaperLibrary = memo(function PaperLibrary() {
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <div className="w-5 h-5 border-2 border-teal-600/20 border-t-teal-600 rounded-full animate-spin" />
-            <p className="text-[11px] text-zinc-500 font-medium">Fetching papers...</p>
+            <p className="text-[11px] text-zinc-500 font-medium">
+              Fetching papers...
+            </p>
           </div>
         )}
 
@@ -127,22 +143,46 @@ const PaperLibrary = memo(function PaperLibrary() {
             </div>
             <div className="flex flex-col gap-3">
               {results.map((paper) => (
-                <div key={paper.id} className="p-4 bg-white dark:bg-[#1a1a1a] border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-teal-500/40 transition-colors flex flex-col gap-3">
+                <div
+                  key={paper.id}
+                  className="p-4 bg-white dark:bg-[#1a1a1a] border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-teal-500/40 transition-colors flex flex-col gap-3"
+                >
                   <div className="flex items-start justify-between gap-3">
-                    <h2 className="text-base font-semibold leading-tight hover:text-teal-600 transition-colors cursor-pointer">{paper.title}</h2>
+                    <h2 className="text-base font-semibold leading-tight hover:text-teal-600 transition-colors cursor-pointer">
+                      {paper.title}
+                    </h2>
                     <div className="flex gap-1 shrink-0">
-                      <a href={paper.link} target="_blank" rel="noreferrer" className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-teal-500">
+                      <a
+                        href={paper.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-teal-500"
+                      >
                         <ExternalLink className="w-4 h-4" />
                       </a>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-zinc-500">
-                    <div className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> <span className="truncate max-w-[200px]">{paper.authors}</span></div>
-                    <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> <span>{paper.published}</span></div>
+                    <div className="flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5" />{" "}
+                      <span className="truncate max-w-[200px]">
+                        {paper.authors}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />{" "}
+                      <span>{paper.published}</span>
+                    </div>
                   </div>
-                  <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-normal line-clamp-2">{paper.summary}</p>
+                  <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-normal line-clamp-2">
+                    {paper.summary}
+                  </p>
                   <div className="flex items-center gap-2">
-                    <a href={`${paper.link}.pdf`} target="_blank" className="flex items-center gap-1.5 text-[12px] font-medium text-teal-700 dark:text-teal-400 hover:underline">
+                    <a
+                      href={`${paper.link}.pdf`}
+                      target="_blank"
+                      className="flex items-center gap-1.5 text-[12px] font-medium text-teal-700 dark:text-teal-400 hover:underline"
+                    >
                       <Download className="w-3.5 h-3.5" /> PDF
                     </a>
                   </div>
@@ -156,8 +196,12 @@ const PaperLibrary = memo(function PaperLibrary() {
         {hasSearched && !isLoading && results.length === 0 && (
           <div className="text-center py-12 px-4 bg-zinc-50/50 dark:bg-zinc-900/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
             <FileText className="w-8 h-8 mx-auto mb-2 text-zinc-300" />
-            <p className="text-sm text-zinc-500 font-medium">No results found.</p>
-            <p className="text-xs text-zinc-400 mt-1">Try different keywords or check for typos.</p>
+            <p className="text-sm text-zinc-500 font-medium">
+              No results found.
+            </p>
+            <p className="text-xs text-zinc-400 mt-1">
+              Try different keywords or check for typos.
+            </p>
           </div>
         )}
 
@@ -188,10 +232,11 @@ const PaperLibrary = memo(function PaperLibrary() {
                   <button
                     key={pageNum}
                     onClick={() => handleSearch(null, pageNum)}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === pageNum
+                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      currentPage === pageNum
                         ? "bg-teal-600 text-white"
                         : "border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-teal-500"
-                      }`}
+                    }`}
                   >
                     {pageNum}
                   </button>
