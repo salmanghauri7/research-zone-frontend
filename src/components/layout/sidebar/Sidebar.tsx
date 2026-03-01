@@ -134,8 +134,8 @@ const Sidebar = memo(function Sidebar() {
           // Special handling for workspace main page - only Dashboard should be active
           if (
             item.label === "Dashboard" &&
-            pathname.startsWith("/workspace/") &&
-            !pathname.includes("/settings")
+            currentWorkspaceId &&
+            pathname === `/workspace/${currentWorkspaceId}`
           ) {
             isActive = true;
           }
