@@ -63,7 +63,6 @@ export default function WorkspaceIdLayout({
   }, [workspaceId]);
 
   useEffect(() => {
-    debugger;
     if (socket && isConnected && !hasJoinedRef.current) {
       console.log("🚀 Joining workspace room:", workspaceId);
       joinWorkspace();

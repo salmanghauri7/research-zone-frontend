@@ -28,9 +28,10 @@ export const sidebarItems: SidebarItem[] = [
     icon: <FolderKanban size={20} />,
   },
   {
-    label: "Papers",
-    href: "/papers",
+    label: "Search Papers",
+    href: "/workspace/search-papers",
     icon: <FileText size={20} />,
+    isDynamic: true,
   },
   {
     label: "Team Chat",
