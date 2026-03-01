@@ -42,11 +42,11 @@ function Tooltip({ children, label }: TooltipProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap z-50 bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap z-50 bg-stone-800 text-white dark:bg-stone-100 dark:text-stone-900"
           >
             {label}
             {/* Arrow */}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-white" />
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-800 dark:border-t-stone-100" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -82,13 +82,13 @@ export default function MessageActions({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.1 }}
-      className="absolute -top-3 right-4 flex items-center gap-0.5 px-1 py-0.5 rounded-lg border shadow-lg bg-white border-gray-200 dark:bg-[#1a1d24] dark:border-white/10"
+      className="absolute -top-3 right-6 flex items-center gap-0.5 px-1 py-0.5 rounded-lg border shadow-md bg-white border-stone-200 dark:bg-stone-900 dark:border-white/10"
     >
       {/* Reply Button */}
       <Tooltip label="Reply">
         <button
           onClick={() => onReply?.(message)}
-          className="p-1.5 rounded-md transition-colors hover:bg-gray-100 text-gray-500 hover:text-gray-700 dark:hover:bg-white/10 dark:text-white/60 dark:hover:text-white"
+          className="p-1.5 rounded-md transition-colors hover:bg-stone-100 text-stone-500 hover:text-stone-700 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white"
         >
           <FiCornerUpLeft className="w-4 h-4" />
         </button>
@@ -98,49 +98,47 @@ export default function MessageActions({
       <Tooltip label="Reply in thread">
         <button
           onClick={() => onThreadOpen?.(message)}
-          className="p-1.5 rounded-md transition-colors hover:bg-gray-100 text-gray-500 hover:text-gray-700 dark:hover:bg-white/10 dark:text-white/60 dark:hover:text-white"
+          className="p-1.5 rounded-md transition-colors hover:bg-stone-100 text-stone-500 hover:text-stone-700 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white"
         >
           <FiMessageSquare className="w-4 h-4" />
         </button>
       </Tooltip>
 
-      {/* More Options */}
-      <div className="relative" ref={menuRef}>
-        <Tooltip label="More actions">
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className="p-1.5 rounded-md transition-colors hover:bg-gray-100 text-gray-500 hover:text-gray-700 dark:hover:bg-white/10 dark:text-white/60 dark:hover:text-white"
-          >
-            <FiMoreHorizontal className="w-4 h-4" />
-          </button>
-        </Tooltip>
-
-        {/* Dropdown Menu */}
-        <AnimatePresence>
-          {showMenu && (
-            <motion.div
-              initial={{ opacity: 0, y: -4, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4, scale: 0.95 }}
-              transition={{ duration: 0.15 }}
-              className="absolute top-full right-0 mt-1 min-w-40 rounded-lg border shadow-xl z-50 overflow-hidden bg-white border-gray-200 dark:bg-[#1a1d24] dark:border-white/10"
+      {/* More Options - Only show for own messages */}
+      {isOwn && (
+        <div className="relative" ref={menuRef}>
+          <Tooltip label="More actions">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-1.5 rounded-md transition-colors hover:bg-stone-100 text-stone-500 hover:text-stone-700 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white"
             >
-              {/* Edit Message - Only show for own messages */}
-              {isOwn && (
+              <FiMoreHorizontal className="w-4 h-4" />
+            </button>
+          </Tooltip>
+
+          {/* Dropdown Menu */}
+          <AnimatePresence>
+            {showMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: -4, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute top-full right-0 mt-1 min-w-40 rounded-lg border shadow-lg z-50 overflow-hidden bg-white border-stone-200 dark:bg-stone-900 dark:border-white/10"
+              >
+                {/* Edit Message */}
                 <button
                   onClick={() => {
                     onEdit?.(message);
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-white/80 dark:hover:bg-white/5 dark:hover:text-white"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors text-stone-700 hover:bg-stone-50 hover:text-stone-900 dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white"
                 >
                   <FiEdit2 className="w-4 h-4" />
                   <span>Edit message</span>
                 </button>
-              )}
 
-              {/* Delete Message - Only show for own messages */}
-              {isOwn && (
+                {/* Delete Message */}
                 <button
                   onClick={() => {
                     onDelete?.(message.id);
@@ -151,13 +149,11 @@ export default function MessageActions({
                   <FiTrash2 className="w-4 h-4" />
                   <span>Delete message</span>
                 </button>
-              )}
-
-             
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
     </motion.div>
   );
 }

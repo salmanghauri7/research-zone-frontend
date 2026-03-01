@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Message } from "./types";
 import {
@@ -13,6 +13,7 @@ import {
   FiSquare,
   FiEdit3,
   FiAlertCircle,
+  FiPlus,
 } from "react-icons/fi";
 
 // Constants
@@ -48,10 +49,34 @@ export default function MessageInput({
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const attachMenuRef = useRef<HTMLDivElement>(null);
+
+  // Detect platform for search shortcut hint
+  const searchShortcut = useMemo(() => {
+    if (typeof window === "undefined") return "Ctrl + F";
+    const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+    return isMac ? "⌘ + F" : "Ctrl + F";
+  }, []);
+
+  // Close attach menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        attachMenuRef.current &&
+        !attachMenuRef.current.contains(event.target as Node)
+      ) {
+        setShowAttachMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Pre-populate textarea when editing
   useEffect(() => {
@@ -169,7 +194,7 @@ export default function MessageInput({
   };
 
   return (
-    <div className="shrink-0 border-t border-gray-200 bg-white dark:border-white/10 dark:bg-black">
+    <div className="shrink-0 px-4 pb-3 pt-2">
       {/* File Error Message */}
       <AnimatePresence>
         {fileError && (
@@ -178,20 +203,18 @@ export default function MessageInput({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden"
+            className="overflow-hidden mb-2"
           >
-            <div className="flex items-center gap-3 px-4 py-2 border-b bg-red-50 border-red-100 dark:bg-red-500/10 dark:border-red-500/20">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-500/10">
               <FiAlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-red-600 dark:text-red-400">
-                  {fileError}
-                </p>
-              </div>
+              <p className="flex-1 text-xs text-red-600 dark:text-red-400">
+                {fileError}
+              </p>
               <button
                 onClick={() => setFileError(null)}
                 className="p-1 rounded-full transition-colors hover:bg-red-100 text-red-500 dark:hover:bg-red-500/20 dark:text-red-400"
               >
-                <FiX className="w-4 h-4" />
+                <FiX className="w-3.5 h-3.5" />
               </button>
             </div>
           </motion.div>
@@ -206,15 +229,15 @@ export default function MessageInput({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden"
+            className="overflow-hidden mb-2"
           >
-            <div className="flex items-center gap-3 px-4 py-2 border-b bg-amber-50 border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20">
-              <FiEdit3 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-amber-50/80 dark:bg-amber-500/10">
+              <FiEdit3 className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
-                  Edit message
+                  Editing message
                 </span>
-                <p className="text-xs truncate text-amber-600 dark:text-amber-500/80">
+                <p className="text-xs truncate text-amber-600/70 dark:text-amber-500/60">
                   {editingMessage.content}
                 </p>
               </div>
@@ -222,7 +245,7 @@ export default function MessageInput({
                 onClick={onCancelEdit}
                 className="p-1 rounded-full transition-colors hover:bg-amber-100 text-amber-500 dark:hover:bg-amber-500/20 dark:text-amber-400"
               >
-                <FiX className="w-4 h-4" />
+                <FiX className="w-3.5 h-3.5" />
               </button>
             </div>
           </motion.div>
@@ -237,23 +260,24 @@ export default function MessageInput({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden"
+            className="overflow-hidden mb-2"
           >
-            <div className="flex items-center gap-3 px-4 py-2 border-b bg-gray-50 border-gray-100 dark:bg-white/[0.02] dark:border-white/10">
-              <FiCornerUpLeft className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-stone-100/80 dark:bg-white/3">
+              <div className="w-0.5 h-8 rounded-full bg-teal-500 dark:bg-teal-400" />
+              <FiCornerUpLeft className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
               <div className="flex-1 min-w-0">
-                <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                <span className="text-xs font-medium text-teal-700 dark:text-teal-400">
                   Replying to {replyTo.sender.name}
                 </span>
-                <p className="text-xs truncate text-gray-500 dark:text-white/50">
+                <p className="text-xs truncate text-stone-500 dark:text-white/40">
                   {replyTo.content}
                 </p>
               </div>
               <button
                 onClick={onCancelReply}
-                className="p-1 rounded-full transition-colors hover:bg-gray-200 text-gray-400 dark:hover:bg-white/10 dark:text-white/50"
+                className="p-1 rounded-full transition-colors hover:bg-stone-200 text-stone-400 dark:hover:bg-white/10 dark:text-white/40"
               >
-                <FiX className="w-4 h-4" />
+                <FiX className="w-3.5 h-3.5" />
               </button>
             </div>
           </motion.div>
@@ -268,9 +292,9 @@ export default function MessageInput({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden"
+            className="overflow-hidden mb-2"
           >
-            <div className="flex flex-wrap gap-2 px-4 py-3">
+            <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-stone-50 dark:bg-white/2">
               {attachments.map((file, index) => (
                 <AttachmentPreview
                   key={index}
@@ -283,43 +307,97 @@ export default function MessageInput({
         )}
       </AnimatePresence>
 
-      {/* Input Area */}
-      <div className="flex items-end gap-2 p-4">
-        {/* Attachment Actions - Hidden when editing */}
-        {!editingMessage && (
-          <div className="flex items-center gap-1">
-            {/* File Upload */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
-              title="Attach file"
-            >
-              <FiPaperclip className="w-5 h-5" />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-            />
+      {/* Unified Input Container */}
+      <div className="relative rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/2 transition-colors">
+        {/* Text Input */}
+        <textarea
+          ref={textareaRef}
+          value={message}
+          onChange={(e) => {
+            setMessage(e.target.value);
+            handleTyping();
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder={
+            disabled && !isRecording
+              ? "Uploading files..."
+              : editingMessage
+                ? "Edit your message..."
+                : "Write a message..."
+          }
+          disabled={disabled || isRecording}
+          rows={1}
+          className="w-full border-none outline-none resize-none px-4 pt-3 pb-2 bg-transparent text-sm text-stone-800 placeholder-stone-400 dark:text-white dark:placeholder-white/30 focus:ring-0 focus:shadow-none"
+          style={{ boxShadow: "none" }}
+        />
 
-            {/* Image Upload */}
-            <button
-              onClick={() => imageInputRef.current?.click()}
-              className="p-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-400 hover:text-gray-600 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white/80"
-              title="Share image"
-            >
-              <FiImage className="w-5 h-5" />
-            </button>
-            <input
-              ref={imageInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-            />
+        {/* Actions Bar */}
+        <div className="flex items-center justify-between px-2 pb-2">
+          {/* Left Side - Attachment Actions */}
+          <div className="flex items-center">
+            {!editingMessage && (
+              <div className="relative" ref={attachMenuRef}>
+                <button
+                  onClick={() => setShowAttachMenu(!showAttachMenu)}
+                  className="p-2 rounded-lg transition-all text-stone-400 hover:text-stone-600 hover:bg-stone-100 dark:text-white/40 dark:hover:text-white/70 dark:hover:bg-white/5"
+                  title="Add attachment"
+                >
+                  <FiPlus
+                    className={`w-5 h-5 transition-transform duration-200 ${showAttachMenu ? "rotate-45" : ""}`}
+                  />
+                </button>
+
+                {/* Attachment Menu Dropdown */}
+                <AnimatePresence>
+                  {showAttachMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute bottom-full left-0 mb-2 py-1.5 px-4 rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-stone-900 shadow-lg shadow-stone-900/5 dark:shadow-black/20 min-w-[180px]"
+                    >
+                      <button
+                        onClick={() => {
+                          fileInputRef.current?.click();
+                          setShowAttachMenu(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-stone-600 dark:text-white/70 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <FiPaperclip className="w-4 h-4" />
+                        <span>Attach file</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          imageInputRef.current?.click();
+                          setShowAttachMenu(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-stone-600 dark:text-white/70 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <FiImage className="w-4 h-4" />
+                        <span>Upload image</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
+            )}
 
             {/* Recording Timer */}
             <AnimatePresence>
@@ -328,82 +406,71 @@ export default function MessageInput({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 ml-2"
                 >
                   <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-white/70">
+                  <span className="text-sm font-medium text-stone-600 dark:text-white/70">
                     {formatRecordingTime(recordingTime)}
                   </span>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
-        )}
 
-        <div className="flex flex-col flex-1 gap-1  -mb-3">
-          {/* Text Input */}
-          <div className="flex-1 flex items-end rounded-xl border transition-colors bg-gray-50 border-gray-200 0 dark:bg-white/5 dark:border-white/10 ">
-            <textarea
-              ref={textareaRef}
-              value={message}
-              onChange={(e) => {
-                setMessage(e.target.value);
-                handleTyping();
-              }}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                disabled && !isRecording
-                  ? "Uploading files..."
-                  : editingMessage
-                    ? "Edit your message..."
-                    : "Type message here..."
-              }
-              disabled={disabled || isRecording}
-              rows={1}
-              className="flex-1 resize-none px-4 py-3 bg-transparent outline-none text-sm text-gray-900 placeholder-gray-500 dark:text-white dark:placeholder-white/40"
-            />
-          </div>
-          <h6 className="text-[10px] ml-2 h-4 min-w-[100px] text-gray-500 dark:text-white/50 flex items-center gap-2">
+          {/* Right Side - Send Button */}
+          <div className="flex items-center gap-1">
+            {/* Typing Indicator */}
             <AnimatePresence>
               {typingStatusText && (
                 <motion.div
-                  initial={{ opacity: 0, x: -5 }}
+                  initial={{ opacity: 0, x: 5 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="flex items-center gap-1.5"
+                  className="flex items-center gap-1.5 mr-2"
                 >
-                  <span className="italic leading-none">
+                  <span className="text-xs italic text-stone-400 dark:text-white/40">
                     {typingStatusText}
                   </span>
                   <TypingIndicator />
                 </motion.div>
               )}
             </AnimatePresence>
-          </h6>
-        </div>
 
-        {/* Send/Save Button */}
-        <button
-          onClick={handleSend}
-          disabled={
-            disabled ||
-            (editingMessage
-              ? !message.trim() || message.trim() === editingMessage.content
-              : !message.trim() && attachments.length === 0)
-          }
-          className={`p-3 rounded-xl transition-all duration-200 ${
-            (message.trim() || attachments.length > 0) &&
-            (!editingMessage || message.trim() !== editingMessage.content)
-              ? editingMessage
-                ? "bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/25"
-                : "bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25"
-              : "bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-white/30"
-          }`}
-          title={editingMessage ? "Save changes" : "Send message"}
-        >
-          <FiSend className="w-5 h-5" />
-        </button>
+            {/* Send Button */}
+            <button
+              onClick={handleSend}
+              disabled={
+                disabled ||
+                (editingMessage
+                  ? !message.trim() || message.trim() === editingMessage.content
+                  : !message.trim() && attachments.length === 0)
+              }
+              className={`p-2.5 rounded-lg transition-all duration-200 ${
+                (message.trim() || attachments.length > 0) &&
+                (!editingMessage || message.trim() !== editingMessage.content)
+                  ? editingMessage
+                    ? "bg-amber-500 text-white hover:bg-amber-600"
+                    : "bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+                  : "text-stone-300 dark:text-white/20 cursor-not-allowed"
+              }`}
+              title={editingMessage ? "Save changes" : "Send message"}
+            >
+              <FiSend className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Search Hint */}
+      <div className="flex justify-center mt-2">
+        <span className="text-[10px] text-stone-400 dark:text-white/30">
+          Press{" "}
+          <kbd className="px-1.5 py-0.5 mx-0.5 rounded bg-stone-100 dark:bg-white/5 text-stone-500 dark:text-white/40 font-mono text-[9px]">
+            {searchShortcut}
+          </kbd>{" "}
+          to search
+        </span>
       </div>
     </div>
   );
@@ -430,21 +497,21 @@ function TypingIndicator() {
         initial="initial"
         animate="animate"
         transition={dotTransition(0)}
-        className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full"
+        className="w-1 h-1 bg-stone-400 dark:bg-stone-500 rounded-full"
       />
       <motion.span
         variants={dotVariants}
         initial="initial"
         animate="animate"
         transition={dotTransition(0.15)}
-        className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full"
+        className="w-1 h-1 bg-stone-400 dark:bg-stone-500 rounded-full"
       />
       <motion.span
         variants={dotVariants}
         initial="initial"
         animate="animate"
         transition={dotTransition(0.3)}
-        className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full"
+        className="w-1 h-1 bg-stone-400 dark:bg-stone-500 rounded-full"
       />
     </div>
   );
@@ -498,20 +565,20 @@ function AttachmentPreview({
   }
 
   return (
-    <div className="relative group flex flex-col gap-1 px-3 py-2 rounded-lg bg-gray-100 dark:bg-white/5">
+    <div className="relative group flex flex-col gap-1 px-3 py-2 rounded-lg bg-stone-100 dark:bg-white/4">
       <div className="flex items-center gap-2">
-        <FiPaperclip className="w-4 h-4 text-gray-500 dark:text-white/50" />
-        <span className="text-sm truncate max-w-[120px] text-gray-700 dark:text-white/80">
+        <FiPaperclip className="w-4 h-4 text-stone-500 dark:text-white/45" />
+        <span className="text-sm truncate max-w-[120px] text-stone-700 dark:text-white/70">
           {file.name}
         </span>
         <button
           onClick={onRemove}
-          className="p-0.5 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-white/10"
+          className="p-0.5 rounded-full transition-colors hover:bg-stone-200 dark:hover:bg-white/10"
         >
-          <FiX className="w-3 h-3 text-gray-500 dark:text-white/50" />
+          <FiX className="w-3 h-3 text-stone-500 dark:text-white/45" />
         </button>
       </div>
-      <span className="text-[10px] text-gray-500 dark:text-white/40">
+      <span className="text-[10px] text-stone-500 dark:text-white/35">
         {formatFileSize(file.size)}
       </span>
     </div>

@@ -46,8 +46,8 @@ export default function ChatMessage({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`group relative flex gap-3 px-4 py-2 transition-colors ${
-        isHovered ? "bg-gray-50/50 dark:bg-white/2" : "bg-transparent"
+      className={`group relative flex gap-3 px-6 py-2 transition-colors ${
+        isHovered ? "bg-stone-50/50 dark:bg-white/2" : "bg-transparent"
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -60,10 +60,10 @@ export default function ChatMessage({
             alt={message.sender.name}
             width={36}
             height={36}
-            className="w-9 h-9 rounded-full object-cover"
+            className="w-9 h-9 rounded-lg object-cover"
           />
         ) : (
-          <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-medium bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-400">
             {getInitials(message.sender.name)}
           </div>
         )}
@@ -72,15 +72,15 @@ export default function ChatMessage({
       {/* Message Content */}
       <div className="flex-1 min-w-0">
         {/* Header */}
-        <div className="flex items-baseline gap-2 mb-1">
-          <span className="font-semibold text-sm text-gray-900 dark:text-white">
+        <div className="flex items-baseline gap-2 mb-0.5">
+          <span className="font-semibold text-sm text-stone-800 dark:text-white">
             {message.sender.name}
           </span>
-          <span className="text-xs text-gray-400 dark:text-white/40">
+          <span className="text-xs text-stone-400 dark:text-white/35">
             {formatTime(message.timestamp)}
           </span>
           {message.isEdited && !message.isDeleted && (
-            <span className="text-xs text-gray-400 dark:text-white/30">
+            <span className="text-xs text-stone-400 dark:text-white/25">
               (edited)
             </span>
           )}
@@ -89,7 +89,7 @@ export default function ChatMessage({
         {/* Deleted Message Display */}
         {message.isDeleted ? (
           <div className="flex items-center gap-2 py-1">
-            <p className="text-sm italic text-gray-400 dark:text-white/40">
+            <p className="text-sm italic text-stone-400 dark:text-white/35">
               This message was deleted
             </p>
           </div>
@@ -97,12 +97,12 @@ export default function ChatMessage({
           <>
             {/* Reply Reference */}
             {message.replyTo && (
-              <div className="flex items-center gap-2 mb-2 pl-3 py-1.5 border-l-2 rounded-r-md border-blue-400 bg-blue-50/50 dark:border-blue-500/50 dark:bg-white/3">
-                <FiCornerUpLeft className="w-3 h-3 text-gray-400 dark:text-white/40" />
-                <span className="text-xs font-medium text-gray-600 dark:text-white/60">
+              <div className="flex items-center gap-2 mb-2 pl-3 py-1.5 border-l-2 rounded-r-md border-teal-400 bg-teal-50/50 dark:border-teal-500/40 dark:bg-teal-500/5">
+                <FiCornerUpLeft className="w-3 h-3 text-stone-400 dark:text-white/35" />
+                <span className="text-xs font-medium text-stone-600 dark:text-white/60">
                   {message.replyTo.sender.name}
                 </span>
-                <span className="text-xs truncate text-gray-500 dark:text-white/40">
+                <span className="text-xs truncate text-stone-500 dark:text-white/40">
                   {message.replyTo.content.slice(0, 50)}
                   {message.replyTo.content.length > 50 && "..."}
                 </span>
@@ -110,7 +110,7 @@ export default function ChatMessage({
             )}
 
             {/* Message Text */}
-            <p className="text-sm leading-relaxed break-all text-gray-700 dark:text-white/90">
+            <p className="text-sm leading-relaxed break-words text-stone-700 dark:text-white/85">
               {message.content}
             </p>
 
@@ -130,11 +130,9 @@ export default function ChatMessage({
             {message.threadCount && message.threadCount > 0 ? (
               <button
                 onClick={() => onThreadOpen?.(message)}
-                className="mt-2 flex items-center gap-1.5 text-xs font-medium transition-colors text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                className="mt-2 flex items-center gap-1.5 text-xs font-medium transition-colors text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
               >
                 <span>{message.threadCount} replies</span>
-                <span className="text-gray-400 dark:text-white/30">·</span>
-                <span>View thread</span>
               </button>
             ) : null}
           </>
@@ -174,9 +172,9 @@ function AttachmentPreview({ attachment }: { attachment: Attachment }) {
       <div className="relative group/img max-w-xs max-h-48 rounded-lg overflow-hidden">
         {/* Skeleton placeholder while image is loading */}
         {showSkeleton && (
-          <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse">
+          <div className="absolute inset-0 bg-stone-200 dark:bg-stone-800 animate-pulse">
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 text-gray-400 dark:text-gray-500">
+              <div className="w-8 h-8 text-stone-400 dark:text-stone-600">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -221,18 +219,18 @@ function AttachmentPreview({ attachment }: { attachment: Attachment }) {
 
   if (attachment.type === "voice") {
     return (
-      <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/5">
-        <button className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+      <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-stone-100 dark:bg-white/4">
+        <button className="w-8 h-8 rounded-lg flex items-center justify-center bg-teal-100 text-teal-600 dark:bg-teal-500/15 dark:text-teal-400">
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z" />
           </svg>
         </button>
         <div className="flex-1">
-          <div className="h-1 rounded-full bg-gray-300 dark:bg-white/20">
-            <div className="h-full w-1/3 rounded-full bg-blue-500 dark:bg-blue-400" />
+          <div className="h-1 rounded-full bg-stone-300 dark:bg-white/15">
+            <div className="h-full w-1/3 rounded-full bg-teal-500 dark:bg-teal-400" />
           </div>
         </div>
-        <span className="text-xs text-gray-500 dark:text-white/50">
+        <span className="text-xs text-stone-500 dark:text-white/45">
           {attachment.duration
             ? `${Math.floor(attachment.duration / 60)}:${String(
                 attachment.duration % 60,
@@ -248,23 +246,23 @@ function AttachmentPreview({ attachment }: { attachment: Attachment }) {
     <div
       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
         attachment.isUploading
-          ? "bg-gray-100 dark:bg-white/5"
-          : "bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10"
+          ? "bg-stone-100 dark:bg-white/4"
+          : "bg-stone-100 hover:bg-stone-200 dark:bg-white/4 dark:hover:bg-white/6"
       }`}
     >
       {attachment.isUploading ? (
         // Show upload spinner instead of file icon when uploading
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-200 dark:bg-white/10">
-          <div className="w-5 h-5 border-2 border-gray-400 border-t-blue-500 rounded-full animate-spin" />
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-stone-200 dark:bg-white/6">
+          <div className="w-5 h-5 border-2 border-stone-400 border-t-teal-500 rounded-full animate-spin" />
         </div>
       ) : (
         <a
           href={displayUrl}
           download={attachment.name}
-          className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-200 dark:bg-white/10"
+          className="w-10 h-10 rounded-lg flex items-center justify-center bg-stone-200 dark:bg-white/6"
         >
           <svg
-            className="w-5 h-5 text-gray-500 dark:text-white/60"
+            className="w-5 h-5 text-stone-500 dark:text-white/55"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -279,17 +277,17 @@ function AttachmentPreview({ attachment }: { attachment: Attachment }) {
         </a>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate text-gray-900 dark:text-white">
+        <p className="text-sm font-medium truncate text-stone-800 dark:text-white">
           {attachment.name}
         </p>
         <div className="flex items-center gap-2">
           {attachment.size && (
-            <p className="text-xs text-gray-500 dark:text-white/40">
+            <p className="text-xs text-stone-500 dark:text-white/40">
               {formatFileSize(attachment.size)}
             </p>
           )}
           {attachment.isUploading && (
-            <p className="text-xs text-blue-500 dark:text-blue-400">
+            <p className="text-xs text-teal-600 dark:text-teal-400">
               Uploading...
             </p>
           )}
@@ -299,10 +297,10 @@ function AttachmentPreview({ attachment }: { attachment: Attachment }) {
         <a
           href={displayUrl}
           download={attachment.name}
-          className="p-2 rounded-lg hover:bg-gray-300 dark:hover:bg-white/10 transition-colors"
+          className="p-2 rounded-lg hover:bg-stone-300 dark:hover:bg-white/6 transition-colors"
         >
           <svg
-            className="w-4 h-4 text-gray-500 dark:text-white/60"
+            className="w-4 h-4 text-stone-500 dark:text-white/55"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

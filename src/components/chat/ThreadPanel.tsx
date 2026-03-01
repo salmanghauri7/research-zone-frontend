@@ -74,7 +74,7 @@ export default function ThreadPanel({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/40 z-40 lg:hidden"
             onClick={onClose}
           />
 
@@ -84,28 +84,28 @@ export default function ThreadPanel({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 h-full w-full sm:w-96 lg:w-[420px] z-50 lg:z-auto lg:relative lg:h-auto flex flex-col border-l bg-white border-gray-200 dark:bg-[#0a0a0a] dark:border-white/10"
+            className="fixed right-0 top-0 h-full w-full sm:w-96 lg:w-[400px] z-50 lg:z-auto lg:relative lg:h-auto flex flex-col border-l bg-white border-stone-200 dark:bg-stone-950 dark:border-white/6"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-white/10">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200 dark:border-white/6">
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">
+                <h3 className="font-semibold text-stone-800 dark:text-white">
                   Thread
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-white/50">
+                <p className="text-xs text-stone-500 dark:text-white/40">
                   {replies.length} {replies.length === 1 ? "reply" : "replies"}
                 </p>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-500 hover:text-gray-700 dark:hover:bg-white/10 dark:text-white/60 dark:hover:text-white"
+                className="p-2 rounded-lg transition-colors hover:bg-stone-100 text-stone-500 hover:text-stone-700 dark:hover:bg-white/5 dark:text-white/50 dark:hover:text-white"
               >
                 <FiX className="w-5 h-5" />
               </button>
             </div>
 
             {/* Parent Message */}
-            <div className="border-b border-gray-200 dark:border-white/10">
+            <div className="border-b border-stone-200 dark:border-white/6">
               <ChatMessage
                 message={parentMessage}
                 isOwn={parentMessage.sender.id === currentUserId}
@@ -117,7 +117,7 @@ export default function ThreadPanel({
 
             {/* Replies */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-              <div className="px-4 py-3 text-gray-400 dark:text-white/40">
+              <div className="px-4 py-3 text-stone-400 dark:text-white/35">
                 <span className="text-xs font-medium uppercase tracking-wider">
                   {replies.length} {replies.length === 1 ? "Reply" : "Replies"}
                 </span>
@@ -125,9 +125,9 @@ export default function ThreadPanel({
 
               {replies.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 px-4">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-gray-100 dark:bg-white/5">
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 bg-stone-100 dark:bg-white/4">
                     <svg
-                      className="w-8 h-8 text-gray-400 dark:text-white/30"
+                      className="w-7 h-7 text-stone-400 dark:text-white/25"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -140,7 +140,7 @@ export default function ThreadPanel({
                       />
                     </svg>
                   </div>
-                  <p className="text-sm text-center text-gray-500 dark:text-white/50">
+                  <p className="text-sm text-center text-stone-500 dark:text-white/40">
                     No replies yet.
                     <br />
                     Be the first to reply!

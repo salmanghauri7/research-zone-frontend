@@ -25,7 +25,7 @@ const ChatContainer = dynamic(() => import("@/components/chat/ChatContainer"), {
   ssr: false,
   loading: () => (
     <div className="flex-1 flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-stone-200 border-t-teal-500 dark:border-stone-700 dark:border-t-teal-400 rounded-full animate-spin" />
     </div>
   ),
 });
@@ -1052,27 +1052,27 @@ export default function ChatPage() {
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-stone-200 border-t-teal-500 dark:border-stone-700 dark:border-t-teal-400 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-white dark:bg-stone-950">
       <Suspense
         fallback={
           <div className="flex-1 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-stone-200 border-t-teal-500 dark:border-stone-700 dark:border-t-teal-400 rounded-full animate-spin" />
           </div>
         }
       >
         {/* Load More Button */}
         {hasMore && (
-          <div className="p-4 text-center border-b border-gray-200 dark:border-gray-700">
+          <div className="p-3 text-center border-b border-stone-200 dark:border-white/6">
             <button
               onClick={handleLoadMore}
               disabled={isLoadingMore}
-              className="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-1.5 text-sm text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoadingMore ? "Loading..." : "Load older messages"}
             </button>

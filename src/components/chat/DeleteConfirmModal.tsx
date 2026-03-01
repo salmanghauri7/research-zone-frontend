@@ -26,7 +26,7 @@ export default function DeleteConfirmModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
           />
 
           {/* Modal */}
@@ -35,12 +35,12 @@ export default function DeleteConfirmModal({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-white dark:bg-[#1a1d24] rounded-xl shadow-2xl border border-gray-200 dark:border-white/10"
+              className="relative w-full max-w-sm bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-200 dark:border-white/6"
             >
               {/* Close Button */}
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 p-1 rounded-lg transition-colors text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-white/10"
+                className="absolute top-4 right-4 p-1 rounded-lg transition-colors text-stone-400 hover:text-stone-600 hover:bg-stone-100 dark:hover:text-white dark:hover:bg-white/5"
               >
                 <FiX className="w-5 h-5" />
               </button>
@@ -48,19 +48,19 @@ export default function DeleteConfirmModal({
               {/* Content */}
               <div className="p-6">
                 {/* Icon */}
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 mb-4">
-                  <FiAlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-red-100 dark:bg-red-500/15 mb-4">
+                  <FiAlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
                 </div>
 
                 {/* Title */}
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Delete Message
+                <h2 className="text-lg font-semibold text-stone-800 dark:text-white mb-1.5">
+                  Delete message?
                 </h2>
 
                 {/* Description */}
-                <p className="text-sm text-gray-600 dark:text-white/60 mb-6">
-                  Are you sure you want to delete this message? This action
-                  cannot be undone and the message will be permanently removed.
+                <p className="text-sm text-stone-500 dark:text-white/50 mb-6">
+                  This action cannot be undone. The message will be permanently
+                  removed.
                 </p>
 
                 {/* Actions */}
@@ -68,14 +68,14 @@ export default function DeleteConfirmModal({
                   <button
                     onClick={onClose}
                     disabled={isDeleting}
-                    className="flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition-colors border bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-transparent dark:text-white dark:border-white/20 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors border bg-white text-stone-700 border-stone-200 hover:bg-stone-50 dark:bg-white/3 dark:text-white dark:border-white/10 dark:hover:bg-white/6 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={onConfirm}
                     disabled={isDeleting}
-                    className="flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition-colors bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isDeleting ? "Deleting..." : "Delete"}
                   </button>
