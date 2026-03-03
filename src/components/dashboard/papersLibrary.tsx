@@ -154,7 +154,7 @@ const PaperLibrary = memo(function PaperLibrary() {
                     </h2>
                     <div className="flex gap-1 shrink-0">
                       <a
-                        href={paper.link}
+                        href={paper.link.replace("/abs/", "/pdf/") + ".pdf"}
                         target="_blank"
                         rel="noreferrer"
                         className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-teal-500"
