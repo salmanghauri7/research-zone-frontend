@@ -92,9 +92,7 @@ export default function ThreadPanel({
                 <h3 className="font-semibold text-stone-800 dark:text-white">
                   Thread
                 </h3>
-                <p className="text-xs text-stone-500 dark:text-white/40">
-                  {replies.length} {replies.length === 1 ? "reply" : "replies"}
-                </p>
+               
               </div>
               <button
                 onClick={onClose}

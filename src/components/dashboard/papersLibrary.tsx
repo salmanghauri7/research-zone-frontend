@@ -10,17 +10,35 @@ import {
   Download,
   Library,
   Sparkles,
+  Bookmark,
 } from "lucide-react";
 import { searchPapers } from "@/api/papersApi";
 import { paper } from "./workspace/types";
+import SavePaperModal from "./SavePaperModal";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 
 const PaperLibrary = memo(function PaperLibrary() {
+  const { currentWorkspaceId } = useWorkspaceStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [cache, setCache] = useState<Record<string, typeof results>>({});
+
+  // Save paper modal state
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [selectedPaper, setSelectedPaper] = useState<paper | null>(null);
+
+  const handleSavePaper = (paperItem: paper) => {
+    setSelectedPaper(paperItem);
+    setIsSaveModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsSaveModalOpen(false);
+    setSelectedPaper(null);
+  };
 
   const handleSearch = async (
     e: React.FormEvent<HTMLFormElement> | null,
@@ -178,7 +196,7 @@ const PaperLibrary = memo(function PaperLibrary() {
                   <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-normal line-clamp-2">
                     {paper.summary}
                   </p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <a
                       href={`${paper.link}.pdf`}
                       target="_blank"
@@ -186,6 +204,12 @@ const PaperLibrary = memo(function PaperLibrary() {
                     >
                       <Download className="w-3.5 h-3.5" /> PDF
                     </a>
+                    <button
+                      onClick={() => handleSavePaper(paper)}
+                      className="flex items-center gap-1.5 text-[12px] font-medium text-zinc-600 dark:text-zinc-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                    >
+                      <Bookmark className="w-3.5 h-3.5" /> Save Paper
+                    </button>
                   </div>
                 </div>
               ))}
@@ -255,6 +279,18 @@ const PaperLibrary = memo(function PaperLibrary() {
           </div>
         )}
       </div>
+
+      {/* Save Paper Modal */}
+      <SavePaperModal
+        isOpen={isSaveModalOpen}
+        onClose={handleCloseModal}
+        paper={selectedPaper}
+        workspaceId={currentWorkspaceId}
+        onSuccess={() => {
+          // Optional: Show success toast or notification
+          console.log("Paper saved successfully!");
+        }}
+      />
     </div>
   );
 });

@@ -23,9 +23,10 @@ export const sidebarItems: SidebarItem[] = [
     isDynamic: true,
   },
   {
-    label: "Projects",
-    href: "/projects",
+    label: "Saved Papers",
+    href: "/workspace/saved-papers",
     icon: <FolderKanban size={20} />,
+    isDynamic: true,
   },
   {
     label: "Search Papers",
