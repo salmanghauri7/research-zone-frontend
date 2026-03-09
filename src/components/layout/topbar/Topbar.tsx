@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useRef, useEffect, memo, useCallback, useMemo } from "react";
-import { Sun, Moon, Monitor, LogOut, Search, Bell } from "lucide-react";
+import { Sun, Moon, Monitor, LogOut, Search } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { logout } from "@/utils/logout";
+import Notifications from "./Notifications";
 
 type ThemeOption = "light" | "dark" | "system";
 
 const Topbar = memo(function Topbar() {
   const [themeMenuOpen, setThemeMenuOpen] = useState<boolean>(false);
+
   const themeRef = useRef<HTMLDivElement>(null);
+
   const { theme, setTheme, mounted } = useTheme();
 
   useEffect(() => {
@@ -53,10 +56,10 @@ const Topbar = memo(function Topbar() {
     label: string;
     icon: React.ReactNode;
   }[] = [
-    { value: "light", label: "Light", icon: <Sun size={16} /> },
-    { value: "dark", label: "Dark", icon: <Moon size={16} /> },
-    { value: "system", label: "System", icon: <Monitor size={16} /> },
-  ];
+      { value: "light", label: "Light", icon: <Sun size={16} /> },
+      { value: "dark", label: "Dark", icon: <Moon size={16} /> },
+      { value: "system", label: "System", icon: <Monitor size={16} /> },
+    ];
 
   return (
     <header className="w-full h-14 fixed top-0 left-0 z-10 bg-[var(--bg-secondary)]/80 backdrop-blur-xl px-4 flex items-center justify-between border-b border-[var(--border-primary)]">
@@ -88,13 +91,7 @@ const Topbar = memo(function Topbar() {
       {/* Right: Actions */}
       <div className="flex items-center gap-1">
         {/* Notifications */}
-        <button
-          className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all relative"
-          title="Notifications"
-        >
-          <Bell size={18} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[var(--accent-primary)] rounded-full" />
-        </button>
+        <Notifications />
 
         {/* Theme Dropdown */}
         <div className="relative" ref={themeRef}>

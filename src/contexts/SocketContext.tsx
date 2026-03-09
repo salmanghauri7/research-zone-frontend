@@ -37,6 +37,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     console.log("🔌 SocketProvider: Initializing...");
     console.log("🔑 Token exists:", !!token);
+    console.log("🌐 Server URL:", config.SERVER_URL);
 
     // Only initialize socket if user is authenticated
     if (!token) {
@@ -47,18 +48,25 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     // Initialize the persistent instance in the Ref
     if (!socketRef.current) {
       console.log("✅ Creating socket connection to:", config.SERVER_URL);
-      socketRef.current = io(config.SERVER_URL, {
-        withCredentials: true,
-        autoConnect: true,
-        auth: {
-          token,
-        },
-        path: "/socket.io",
-        transports: ["websocket", "polling"], // Allow fallback to polling
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: 5,
-      });
+
+      try {
+        socketRef.current = io(config.SERVER_URL, {
+          withCredentials: true,
+          autoConnect: true,
+          auth: {
+            token,
+          },
+          path: "/socket.io",
+          transports: ["websocket", "polling"], // Allow fallback to polling
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: 5,
+          timeout: 20000, // Connection timeout
+        });
+      } catch (error) {
+        console.error("❌ Failed to create socket instance:", error);
+        return;
+      }
     }
 
     const socket = socketRef.current;
@@ -68,26 +76,56 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Status Listeners
     const onConnect = () => {
-      console.log("🟢 Socket connected!");
+      console.log("🟢 Socket connected successfully!");
+      console.log("🆔 Socket ID:", socket.id);
       setIsConnected(true);
     };
-    const onDisconnect = () => {
-      console.log("🔴 Socket disconnected!");
+
+    const onDisconnect = (reason: string) => {
+      console.log("🔴 Socket disconnected! Reason:", reason);
       setIsConnected(false);
     };
+
     const onConnectError = (error: Error) => {
       console.error("❌ Socket connection error:", error);
+      console.error("📝 Error details:", {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      });
+
+      // Check if it's a connection timeout or server not available
+      if (error.message.includes("timeout") || error.message.includes("xhr poll error")) {
+        console.error("🚨 Backend server might not be running or is unreachable at:", config.SERVER_URL);
+        console.error("💡 Please check:");
+        console.error("   1. Is your backend server running?");
+        console.error("   2. Is it running on the correct port/URL?");
+        console.error("   3. Are CORS settings configured correctly?");
+      }
+    };
+
+    const onReconnectAttempt = (attemptNumber: number) => {
+      console.log(`🔄 Reconnection attempt ${attemptNumber}...`);
+    };
+
+    const onReconnectFailed = () => {
+      console.error("❌ All reconnection attempts failed!");
+      console.error("🚨 Backend server at", config.SERVER_URL, "is not responding");
     };
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("connect_error", onConnectError);
+    socket.io.on("reconnect_attempt", onReconnectAttempt);
+    socket.io.on("reconnect_failed", onReconnectFailed);
 
     // Cleanup
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("connect_error", onConnectError);
+      socket.io.off("reconnect_attempt", onReconnectAttempt);
+      socket.io.off("reconnect_failed", onReconnectFailed);
     };
   }, []);
 

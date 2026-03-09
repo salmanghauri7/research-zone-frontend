@@ -19,7 +19,7 @@ const WelcomeCard = memo(function WelcomeCard() {
         <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-emerald-300 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 flex items-center justify-between">
+      <div className="relative z-0 flex items-center justify-between">
         <div className="max-w-xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs font-medium mb-4">
             <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
