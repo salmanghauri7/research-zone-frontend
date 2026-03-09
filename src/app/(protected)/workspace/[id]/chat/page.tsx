@@ -602,7 +602,7 @@ export default function ChatPage() {
               msg.id.startsWith("reply-") &&
               msg.content === messageData.content &&
               msg.sender.id ===
-                (messageData.sender._id || messageData.sender.id)
+              (messageData.sender._id || messageData.sender.id)
             ) {
               // Build real message, preserving localBlobUrls from optimistic message
               const realMessage: Message = {
@@ -671,7 +671,7 @@ export default function ChatPage() {
               msg.id.startsWith("msg-") &&
               msg.content === messageData.content &&
               msg.sender.id ===
-                (messageData.sender._id || messageData.sender.id)
+              (messageData.sender._id || messageData.sender.id)
             ) {
               // Build real message, preserving localBlobUrls from optimistic message
               const realMessage: Message = {
@@ -770,6 +770,33 @@ export default function ChatPage() {
     onMessageSent: handleMessageSent,
     onMessageDeleted: handleMessageDeleted,
   });
+
+  // Initialize workspace events hook and join workspace chat room
+  const { joinWorkspace, joinChatRoom, leaveChatRoom } = useWorkspaceEvents({
+    socket,
+    workspaceId: currentWorkspaceId || "",
+  });
+
+  // Join workspace AND chat room when socket connects or workspace changes
+  useEffect(() => {
+    if (!socket || !isConnected || !currentWorkspaceId) {
+      return;
+    }
+
+    console.log("🚪 Joining workspace and chat room:", currentWorkspaceId);
+
+    // Join the workspace (general)
+    joinWorkspace();
+
+    // Join the specific chat room (this marks user as "viewing chat")
+    joinChatRoom();
+
+    // Cleanup: leave chat room when component unmounts or workspace changes
+    return () => {
+      console.log("🚪 Chat page cleanup - leaving chat room for:", currentWorkspaceId);
+      leaveChatRoom();
+    };
+  }, [socket, isConnected, currentWorkspaceId]); // Only depend on these values, not the functions
 
   const handleSendMessage = useCallback(
     async (content: string, attachments?: File[], replyTo?: Message) => {
@@ -1106,9 +1133,9 @@ export default function ChatPage() {
               prev.map((msg) =>
                 msg.id === parentId
                   ? {
-                      ...msg,
-                      threadCount: Math.max((msg.threadCount || 1) - 1, 0),
-                    }
+                    ...msg,
+                    threadCount: Math.max((msg.threadCount || 1) - 1, 0),
+                  }
                   : msg,
               ),
             );
