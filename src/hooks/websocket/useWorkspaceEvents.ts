@@ -97,6 +97,17 @@ export const useWorkspaceEvents = ({
     }
   }, []); // Empty deps - stable reference
 
+  // Leave workspace (when navigating away from workspace entirely) - Stable callback
+  const leaveWorkspace = useCallback(() => {
+    const currentSocket = socketRef.current;
+
+    if (currentSocket && hasJoinedRef.current) {
+      console.log("🚪 Leaving workspace:", hasJoinedRef.current);
+      currentSocket.emit("leave-workspace", { workspaceId: hasJoinedRef.current });
+      hasJoinedRef.current = null;
+    }
+  }, []); // Empty deps - stable reference
+
   // Handle joined-workspace event
   useEffect(() => {
     if (!socket) return;
@@ -139,32 +150,13 @@ export const useWorkspaceEvents = ({
     };
   }, [socket, showInfo, onUserJoined]);
 
-  // Cleanup: leave workspace when component unmounts
-  useEffect(() => {
-    return () => {
-      if (socket && hasJoinedChatRef.current) {
-        console.log(
-          "🚪 Component unmounting, leaving chat room:",
-          hasJoinedChatRef.current,
-        );
-        socket.emit("leave-chat-room", { workspaceId: hasJoinedChatRef.current });
-        hasJoinedChatRef.current = null;
-      }
-
-      if (socket && hasJoinedRef.current) {
-        console.log(
-          "🚪 Component unmounting, leaving workspace:",
-          hasJoinedRef.current,
-        );
-        socket.emit("leave-workspace", { workspaceId: hasJoinedRef.current });
-        hasJoinedRef.current = null;
-      }
-    };
-  }, [socket]);
+  // No automatic cleanup - let components decide when to leave
+  // This prevents child pages from accidentally leaving the workspace
 
   return {
     joinWorkspace,
     joinChatRoom,
     leaveChatRoom,
+    leaveWorkspace,
   };
 };

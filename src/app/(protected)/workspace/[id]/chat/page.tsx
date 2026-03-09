@@ -771,32 +771,39 @@ export default function ChatPage() {
     onMessageDeleted: handleMessageDeleted,
   });
 
-  // Initialize workspace events hook and join workspace chat room
-  const { joinWorkspace, joinChatRoom, leaveChatRoom } = useWorkspaceEvents({
+  // Initialize workspace events hook - ONLY for chat room operations
+  // Note: Workspace joining is handled by the workspace layout, not here!
+  const { joinChatRoom, leaveChatRoom } = useWorkspaceEvents({
     socket,
     workspaceId: currentWorkspaceId || "",
   });
 
-  // Join workspace AND chat room when socket connects or workspace changes
+  // Join ONLY chat room when component mounts (workspace already joined by layout)
   useEffect(() => {
     if (!socket || !isConnected || !currentWorkspaceId) {
+      console.log("⚠️ Chat page: Cannot join chat room - missing socket/workspace");
       return;
     }
 
-    console.log("🚪 Joining workspace and chat room:", currentWorkspaceId);
+    console.log("🎯 Chat page mounted - Joining CHAT ROOM only:", currentWorkspaceId);
+    console.log("📌 Workspace membership is handled by workspace layout");
 
-    // Join the workspace (general)
-    joinWorkspace();
+    // Small delay to ensure workspace is joined first
+    const timer = setTimeout(() => {
+      // Join the specific chat room (this marks user as "viewing chat")
+      joinChatRoom();
+      console.log("✅ Chat room join requested for:", currentWorkspaceId);
+    }, 100);
 
-    // Join the specific chat room (this marks user as "viewing chat")
-    joinChatRoom();
-
-    // Cleanup: leave chat room when component unmounts or workspace changes
+    // Cleanup: leave ONLY chat room when component unmounts
+    // Important: DO NOT leave workspace - user should stay in workspace for notifications!
     return () => {
-      console.log("🚪 Chat page cleanup - leaving chat room for:", currentWorkspaceId);
+      clearTimeout(timer);
+      console.log("🚪 Chat page unmounting - Leaving CHAT ROOM ONLY (staying in workspace):", currentWorkspaceId);
       leaveChatRoom();
+      console.log("✅ Should still be in workspace room for notifications");
     };
-  }, [socket, isConnected, currentWorkspaceId]); // Only depend on these values, not the functions
+  }, [socket, isConnected, currentWorkspaceId, joinChatRoom, leaveChatRoom]);
 
   const handleSendMessage = useCallback(
     async (content: string, attachments?: File[], replyTo?: Message) => {
