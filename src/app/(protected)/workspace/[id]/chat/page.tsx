@@ -9,6 +9,7 @@ import {
   useRef,
 } from "react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { Message, User } from "@/components/chat";
 import { useUserStore } from "@/store/userStore";
 import { useWorkspaceStore } from "@/store/workspaceStore";
@@ -84,6 +85,10 @@ const transformBackendMessage = (
 };
 
 export default function ChatPage() {
+  // Get URL search params to check for messageId
+  const searchParams = useSearchParams();
+  const messageIdFromUrl = searchParams.get("messageId");
+  
   // Get user data from store
   const user = useUserStore((state) => state.user);
   const currentWorkspaceId = useWorkspaceStore(
@@ -319,6 +324,27 @@ export default function ChatPage() {
 
     fetchInitialMessages();
   }, [currentWorkspaceId]);
+
+  // Handle messageId from URL - scroll to and highlight message from notification
+  useEffect(() => {
+    // Only run if we have a messageId from URL, messages are loaded, and not currently loading
+    if (messageIdFromUrl && !isLoading && messages.length > 0) {
+      console.log('📍 Message ID from URL detected:', messageIdFromUrl);
+      
+      // Use a small delay to ensure DOM is fully rendered
+      const timer = setTimeout(() => {
+        handleMessageClick(messageIdFromUrl);
+        
+        // Optional: Clear the messageId from URL after scrolling (clean URL)
+        // This prevents re-scrolling on page refresh
+        const url = new URL(window.location.href);
+        url.searchParams.delete('messageId');
+        window.history.replaceState({}, '', url.toString());
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [messageIdFromUrl, isLoading, messages.length, handleMessageClick]);
 
   // Load more messages (pagination)
   const handleLoadMore = useCallback(async () => {

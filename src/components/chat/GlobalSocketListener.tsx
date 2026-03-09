@@ -5,6 +5,7 @@ import { useNotification } from '@/contexts/NotificationContext';
 
 interface MessageNotification {
     workspaceId: string;
+    messageId?: string;
     senderName: string;
     messagePreview?: string;
     workspaceName?: string;
@@ -16,14 +17,16 @@ interface GlobalSocketListenerProps {
 
 export default function GlobalSocketListener({ socket }: GlobalSocketListenerProps) {
     const pathname = usePathname();
-    const { showInfo } = useNotification();
+    const { showInfo, showNotification } = useNotification();
 
     // Use ref for showInfo to avoid recreating callback
     const showInfoRef = useRef(showInfo);
+    const showNotificationRef = useRef(showNotification);
 
     useEffect(() => {
         showInfoRef.current = showInfo;
-    }, [showInfo]);
+        showNotificationRef.current = showNotification;
+    }, [showInfo, showNotification]);
 
     // Stable callback using useCallback with no dependencies except ref
     const handleNewMessage = useCallback((notification: MessageNotification) => {
@@ -36,6 +39,7 @@ export default function GlobalSocketListener({ socket }: GlobalSocketListenerPro
         console.log('🔔 ========================================');
         console.log('📦 Notification data:', {
             workspaceId: notification.workspaceId,
+            messageId: notification.messageId,
             senderName: notification.senderName,
             messagePreview: notification.messagePreview,
             workspaceName: notification.workspaceName
@@ -66,7 +70,17 @@ export default function GlobalSocketListener({ socket }: GlobalSocketListenerPro
         console.log('📝 Toast message:', `New message${workspaceText} from ${notification.senderName}`);
         console.log('🔔 ========================================\n');
         
-        showInfoRef.current(`New message${workspaceText} from ${notification.senderName}`);
+        // Show notification with workspace context so it appears in the notification panel
+        showNotificationRef.current(
+            messageText,
+            'info',
+            {
+                workspaceId: notification.workspaceId,
+                messageId: notification.messageId,
+                workspace: notification.workspaceName || 'Workspace',
+                user: notification.senderName
+            }
+        );
     }, []); // Empty deps - fully stable reference
 
     useEffect(() => {
