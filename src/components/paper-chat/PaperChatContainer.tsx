@@ -38,7 +38,23 @@ export default function PaperChatContainer({
       setIsGeneratingEmbeddings(true);
 
       try {
-        await paperChatApi.generateEmbeddings(paper._id, paper.link);
+        const result = await paperChatApi.generateEmbeddings(
+          paper._id,
+          paper.link,
+        );
+
+        // Handle existing conversation history if any
+        const historyMessages = result?.data?.messages || result?.messages;
+        if (historyMessages && Array.isArray(historyMessages)) {
+          const formattedHistory = historyMessages.map((msg: any) => ({
+            id: msg._id || `${msg.role}-${Date.now()}-${Math.random()}`,
+            role: msg.role === "system" ? "assistant" : msg.role,
+            content: msg.message || msg.content,
+            timestamp: new Date(msg.createdAt || Date.now()),
+          }));
+          setMessages(formattedHistory);
+        }
+
         setSelectedPaper(paper);
       } catch (err) {
         console.error("Error generating embeddings:", err);
