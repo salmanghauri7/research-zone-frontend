@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect, memo, useMemo } from "react";
+import React, { useState, useRef, useEffect, memo, useMemo } from "react";
 import { Bell } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useRouter } from "next/navigation";
 import type { PanelNotification } from "@/contexts/NotificationContext";
+import NotificationsModal from "./NotificationsModal";
 
 type NotificationType = "message" | "share" | "comment" | "invite" | "success" | "error" | "info";
 
-const typeIcons: Record<NotificationType, JSX.Element> = {
+const typeIcons: Record<NotificationType, React.ReactNode> = {
   message: (
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -72,6 +73,7 @@ function truncateText(str: string): { text: string; truncated: boolean } {
 
 const Notifications = memo(function Notifications() {
   const [notifOpen, setNotifOpen] = useState<boolean>(false);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -108,14 +110,14 @@ const Notifications = memo(function Notifications() {
 
   const handleNotificationClick = (notif: PanelNotification) => {
     markAsRead(notif.id);
-    
+
     // If notification has a workspaceId, navigate to that workspace chat
     if (notif.workspaceId) {
       // Build URL with messageId query param if available
-      const chatUrl = notif.messageId 
+      const chatUrl = notif.messageId
         ? `/workspace/${notif.workspaceId}/chat?messageId=${notif.messageId}`
         : `/workspace/${notif.workspaceId}/chat`;
-      
+
       router.push(chatUrl);
       setNotifOpen(false);
     }
@@ -129,17 +131,16 @@ const Notifications = memo(function Notifications() {
     <div className="relative">
       <button
         ref={notifButtonRef}
-        className={`p-2 rounded-lg transition-all relative ${
-          notifOpen
-            ? "text-[var(--accent-primary)] bg-[var(--bg-hover)]"
-            : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-        }`}
+        className={`p-2 rounded-lg transition-all relative ${notifOpen
+          ? "text-[var(--accent-primary)] bg-[var(--bg-hover)]"
+          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+          }`}
         title="Notifications"
         onClick={toggleNotifications}
       >
         <Bell size={18} />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center bg-[var(--accent-primary)] text-white text-[9px] font-bold rounded-full border-[1.5px] border-[var(--bg-secondary)]">
+          <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center bg-[var(--accent-primary)] text-white text-[9px] font-bold rounded-full border-[1.5px] border-[var(--bg-secondary)] animate-pulse">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -181,11 +182,10 @@ const Notifications = memo(function Notifications() {
             {(["all", "unread"] as const).map((tab) => (
               <button
                 key={tab}
-                className={`text-[13px] font-medium px-3 py-1.5 pb-2.5 mb-[-1px] border-b-2 transition-colors capitalize ${
-                  filter === tab
-                    ? "text-[var(--accent-primary)] border-[var(--accent-primary)]"
-                    : "text-[var(--text-tertiary)] border-transparent hover:text-[var(--text-secondary)]"
-                }`}
+                className={`text-[13px] font-medium px-3 py-1.5 pb-2.5 mb-[-1px] border-b-2 transition-colors capitalize ${filter === tab
+                  ? "text-[var(--accent-primary)] border-[var(--accent-primary)]"
+                  : "text-[var(--text-tertiary)] border-transparent hover:text-[var(--text-secondary)]"
+                  }`}
                 onClick={() => setFilter(tab)}
               >
                 {tab === "all" ? "All" : `Unread (${unreadCount})`}
@@ -207,11 +207,10 @@ const Notifications = memo(function Notifications() {
                 return (
                   <div
                     key={n.id}
-                    className={`flex items-start gap-3 px-[18px] py-3.5 border-b border-[var(--border-secondary)] cursor-pointer transition-colors group ${
-                      n.read
-                        ? "opacity-75 hover:bg-[var(--bg-hover)]"
-                        : "bg-[var(--accent-subtle)]/30 hover:bg-[var(--accent-subtle)]/50"
-                    }`}
+                    className={`flex items-start gap-3 px-[18px] py-3.5 border-b border-[var(--border-secondary)] cursor-pointer transition-colors group ${n.read
+                      ? "opacity-75 hover:bg-[var(--bg-hover)]"
+                      : "bg-[var(--accent-subtle)]/30 hover:bg-[var(--accent-subtle)]/50"
+                      }`}
                     style={{
                       animation: `fadeSlide 0.25s ease forwards`,
                       animationDelay: `${i * 40}ms`,
@@ -271,7 +270,8 @@ const Notifications = memo(function Notifications() {
                             className="text-[var(--accent-primary)] font-medium ml-1 hover:underline"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setExpanded((prev) => ({ ...prev, [n.id]: true }));
+                              setNotifOpen(false);
+                              setModalOpen(true);
                             }}
                           >
                             see more
@@ -310,15 +310,22 @@ const Notifications = memo(function Notifications() {
           </div>
 
           {/* Footer */}
-          {filteredNotifs.length > 0 && (
-            <div className="px-[18px] py-2.5 border-t border-[var(--border-primary)] flex justify-center">
-              <button className="w-full text-[12.5px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-primary)] hover:border-[var(--border-secondary)] px-5 py-2 rounded-lg transition-all">
-                View all notifications
-              </button>
-            </div>
-          )}
+          <div className="px-[18px] py-2.5 border-t border-[var(--border-primary)] flex justify-center">
+            <button
+              onClick={() => {
+                setNotifOpen(false);
+                setModalOpen(true);
+              }}
+              className="w-full text-[12.5px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-primary)] hover:border-[var(--border-secondary)] px-5 py-2 rounded-lg transition-all"
+            >
+              View all notifications
+            </button>
+          </div>
         </div>
       )}
+
+      {/* Full Screen Notifications Modal */}
+      {modalOpen && <NotificationsModal onClose={() => setModalOpen(false)} />}
 
       {/* Animations */}
       <style jsx>{`
