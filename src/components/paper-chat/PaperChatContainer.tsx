@@ -87,27 +87,21 @@ export default function PaperChatContainer({
       setIsWaitingResponse(true);
 
       try {
-        const response = await paperChatApi.sendMessage(
-          workspaceId,
+        const responseData = await paperChatApi.askQuestion(
           selectedPaper._id,
           content,
-          sessionId || undefined,
         );
 
-        if (response.sessionId) {
-          setSessionId(response.sessionId);
-        }
-
         const assistantMessage: ChatMessage = {
-          id: response.message._id || `ai-${Date.now()}`,
+          id: `ai-${Date.now()}`,
           role: "assistant",
-          content: response.message.content,
-          timestamp: new Date(response.message.createdAt),
+          content: responseData?.answer || "No answer provided.",
+          timestamp: new Date(),
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
       } catch (err) {
-        console.error("Error sending message:", err);
+        console.error("Error asking question:", err);
         showError("Failed to get a response. Please try again.");
 
         // Add error message
@@ -127,16 +121,17 @@ export default function PaperChatContainer({
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-[var(--bg-primary)]">
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-[var(--bg-primary)] overflow-hidden relative">
       <AnimatePresence mode="wait">
         {!selectedPaper ? (
           /* Welcome State — No Paper Selected */
           <motion.div
             key="welcome"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col h-full"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.02 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="flex flex-col h-full absolute inset-0 w-full"
           >
             <WelcomeView
               onOpenPicker={() => setIsPickerOpen(true)}
@@ -147,34 +142,43 @@ export default function PaperChatContainer({
           /* Chat State — Paper Selected */
           <motion.div
             key="chat"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col h-full"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="flex flex-col h-full absolute inset-0 w-full bg-[var(--bg-primary)] z-10"
           >
             {/* Paper Context */}
-            <PaperContextBar
-              paper={selectedPaper}
-              onChangePaper={() => setIsPickerOpen(true)}
-              onClose={handleClosePaper}
-            />
+            <div className="shrink-0 z-20">
+              <PaperContextBar
+                paper={selectedPaper}
+                onChangePaper={() => setIsPickerOpen(true)}
+                onClose={handleClosePaper}
+              />
+            </div>
 
             {/* Chat Area */}
-            {messages.length === 0 && !isWaitingResponse ? (
-              <SuggestedPrompts onSelect={handleSendMessage} />
-            ) : (
-              <ChatMessages
-                messages={messages}
-                isWaitingResponse={isWaitingResponse}
-              />
-            )}
+            <div className="flex-1 min-h-0 relative flex flex-col z-0">
+              {messages.length === 0 && !isWaitingResponse ? (
+                <div className="flex-1 overflow-y-auto w-full custom-scrollbar">
+                  <SuggestedPrompts onSelect={handleSendMessage} />
+                </div>
+              ) : (
+                <ChatMessages
+                  messages={messages}
+                  isWaitingResponse={isWaitingResponse}
+                />
+              )}
+            </div>
 
             {/* Input */}
-            <ChatInput
-              onSend={handleSendMessage}
-              isDisabled={isWaitingResponse}
-              placeholder={`Ask about "${selectedPaper.title.substring(0, 40)}${selectedPaper.title.length > 40 ? "..." : ""}"...`}
-            />
+            <div className="shrink-0 z-20">
+              <ChatInput
+                onSend={handleSendMessage}
+                isDisabled={isWaitingResponse}
+                placeholder={`Ask about "${selectedPaper.title.substring(0, 40)}${selectedPaper.title.length > 40 ? "..." : ""}"...`}
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

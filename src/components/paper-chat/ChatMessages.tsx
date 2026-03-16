@@ -13,28 +13,48 @@ interface ChatMessagesProps {
 
 function TypingIndicator() {
   return (
-    <div className="flex items-start gap-3 px-4 sm:px-6 py-3 max-w-3xl mx-auto">
-      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-500/20 to-emerald-500/20 flex items-center justify-center shrink-0">
-        <Bot size={16} className="text-[var(--accent-primary)]" />
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="flex items-start gap-3 px-4 sm:px-6 py-3 max-w-3xl mx-auto"
+    >
+      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--accent-primary)]/20 to-emerald-500/20 flex items-center justify-center shrink-0 ring-1 ring-[var(--accent-primary)]/20 shadow-sm">
+        <Bot size={15} className="text-[var(--accent-primary)]" />
       </div>
-      <div className="flex items-center gap-1.5 py-3 px-4 rounded-2xl rounded-tl-md bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
+      <div className="flex items-center gap-1.5 py-3.5 px-4 rounded-2xl rounded-tl-sm bg-[var(--bg-secondary)] border border-[var(--border-primary)] shadow-sm">
         <motion.span
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 1.2, repeat: Infinity, delay: 0 }}
+          animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+          transition={{
+            duration: 1,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0,
+          }}
           className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]"
         />
         <motion.span
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 1.2, repeat: Infinity, delay: 0.2 }}
+          animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+          transition={{
+            duration: 1,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.2,
+          }}
           className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]"
         />
         <motion.span
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 1.2, repeat: Infinity, delay: 0.4 }}
+          animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+          transition={{
+            duration: 1,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.4,
+          }}
           className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]"
         />
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -200,44 +220,53 @@ function MessageBubble({ message }: { message: ChatMessageType }) {
 
       {/* Content */}
       <div
-        className={`group relative max-w-[80%] ${isUser ? "items-end" : "items-start"}`}
+        className={`group relative max-w-[85%] sm:max-w-[75%] flex flex-col ${isUser ? "items-end" : "items-start"}`}
       >
         <div
           className={`
-            px-4 py-3 rounded-2xl transition-all
+            px-4 py-3 rounded-2xl shadow-sm transition-all duration-300
             ${
               isUser
-                ? "bg-[var(--accent-primary)] text-white rounded-tr-md"
-                : "bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-tl-md"
+                ? "bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-tr-sm"
+                : "bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-tl-sm hover:border-[var(--border-secondary)]"
             }
           `}
         >
           {isUser ? (
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            <p className="text-[15px] leading-relaxed whitespace-pre-wrap font-medium">
               {message.content}
             </p>
           ) : (
-            <div className="prose-custom">{formatContent(message.content)}</div>
+            <div className="prose-custom space-y-2">
+              {formatContent(message.content)}
+            </div>
           )}
         </div>
 
         {/* Meta row */}
         <div
-          className={`flex items-center gap-2 mt-1 px-1 ${
+          className={`flex items-center gap-2 mt-1.5 px-1 ${
             isUser ? "justify-end" : "justify-start"
           }`}
         >
-          <span className="text-[10px] text-[var(--text-tertiary)]">
+          <span className="text-[11px] font-medium text-[var(--text-tertiary)] select-none">
             {formatTime(message.timestamp)}
           </span>
 
           {!isUser && (
             <button
               onClick={handleCopy}
-              className="p-1 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] opacity-0 group-hover:opacity-100 transition-all"
+              className={`p-1 rounded-md transition-all duration-200 flex items-center gap-1 ${copied ? "text-emerald-500 bg-emerald-500/10 opacity-100" : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] opacity-0 group-hover:opacity-100"}`}
               title="Copy response"
             >
-              {copied ? <Check size={12} /> : <Copy size={12} />}
+              {copied ? (
+                <Check size={12} strokeWidth={2.5} />
+              ) : (
+                <Copy size={12} />
+              )}
+              {copied && (
+                <span className="text-[10px] pr-1 font-medium">Copied</span>
+              )}
             </button>
           )}
         </div>

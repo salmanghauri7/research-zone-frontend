@@ -60,6 +60,17 @@ export const paperChatApi = {
     return response.data.data;
   },
 
+  askQuestion: async (paperId: string, question: string): Promise<any> => {
+    // The endpoint matches /api/paper-chat/question based on user's instruction.
+    const response = await api.post(`/paper-chat/question`, {
+      paperId,
+      question,
+    });
+    // The given success response pattern is: apiResponse.success(res, "Message sent successfully", 200, answer)
+    // The answer object is inside response.data.data
+    return response.data.data;
+  },
+
   // Get chat history for a session
   getHistory: async (sessionId: string): Promise<PaperChatMessage[]> => {
     const response = await api.get(`/paper-chat/history/${sessionId}`);
