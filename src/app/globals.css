@@ -2,58 +2,13 @@
 
 /* 
  * Research Zone Design System
- * Modern Neu-Minimalist aesthetic
+ * Modern Neu-Minimalist aesthetic - ALWAYS DARK MODE
  * Slate tones with Indigo accent, border-led depth, and no heavy shadows
  */
 
 @layer base {
   :root {
-    /* Background colors - Light mode */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #f1f5f9;
-    --bg-elevated: #ffffff;
-    --bg-hover: #f8fafc;
-    --bg-active: #e2e8f0;
-
-    /* Text colors - Light mode */
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-tertiary: #94a3b8;
-    --text-inverse: #f8fafc;
-
-    /* Border colors - Light mode */
-    --border-primary: #e2e8f0;
-    --border-secondary: #cbd5e1;
-    --border-focus: #94a3b8;
-
-    /* Accent colors - Indigo/Action */
-    --accent-primary: #4f46e5;
-    --accent-hover: #4338ca;
-    --accent-light: #e0e7ff;
-    --accent-subtle: #eef2ff;
-
-    /* Status colors */
-    --success: #10b981;
-    --success-light: #d1fae5;
-    --warning: #f59e0b;
-    --warning-light: #fef3c7;
-    --error: #ef4444;
-    --error-light: #fee2e2;
-
-    /* Shadows - Disabled for Neu-Minimalism */
-    --shadow-sm: none;
-    --shadow-md: none;
-    --shadow-lg: none;
-    --shadow-xl: none;
-
-    /* Card specific */
-    --bg-card: #ffffff;
-    --bg-card-dark: #0f172a;
-  }
-
-  .dark {
-    /* Background colors - Dark mode */
+    /* Background colors - Dark mode forced */
     --bg-primary: #020617;
     --bg-secondary: #0f172a;
     --bg-tertiary: #1e293b;
@@ -61,13 +16,13 @@
     --bg-hover: #1e293b;
     --bg-active: #334155;
 
-    /* Text colors - Dark mode */
+    /* Text colors - Dark mode forced */
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-tertiary: #64748b;
     --text-inverse: #020617;
 
-    /* Border colors - Dark mode */
+    /* Border colors - Dark mode forced */
     --border-primary: #1e293b;
     --border-secondary: #334155;
     --border-focus: #64748b;
@@ -94,10 +49,9 @@
 
     /* Card specific */
     --bg-card: #0f172a;
+    --bg-card-dark: #0f172a;
   }
 }
-
-@variant dark (&:where(.dark, .dark *));
 
 @theme {
   --color-slate-950: #020617;
@@ -112,13 +66,19 @@
 
 html {
   scroll-behavior: smooth;
-  font-family: "Inter", "Geist", system-ui, sans-serif;
+  font-family: 'Inter', 'Geist', system-ui, sans-serif;
+  /* Hardcode next-themes default behavior out if it was somehow used */
+  color-scheme: dark;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  line-height: 1.75; /* Increased line-height for readability */
+  line-height: 1.75; 
 }
 
 /* Button reset with smooth transitions */
@@ -142,7 +102,6 @@ textarea:focus,
 select:focus {
   outline: none;
   border-color: var(--accent-primary);
-  /* Removed box-shadow */
 }
 
 /* Custom Scrollbar Styles */
@@ -169,70 +128,38 @@ select:focus {
   scrollbar-color: var(--border-secondary) transparent;
 }
 
-/* Smooth transitions for theme switching */
+/* Smooth transitions stripped to avoid flash of wrong theme */
 html.transitioning,
 html.transitioning *,
 html.transitioning *:before,
 html.transitioning *:after {
-  transition:
-    background-color 0.3s ease,
-    border-color 0.3s ease,
-    color 0.3s ease !important;
-  transition-delay: 0s !important;
+  transition: none !important;
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes scale-in {
-  from {
-    opacity: 0;
-    inline-size: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; inline-size: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.2s ease-out;
-}
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
-}
-.animate-scale-in {
-  animation: scale-in 0.2s ease-out;
-}
+.animate-fade-in { animation: fade-in 0.2s ease-out; }
+.animate-slide-up { animation: slide-up 0.3s ease-out; }
+.animate-scale-in { animation: scale-in 0.2s ease-out; }
 
 /* Subtle Glass morphism effect restricted for header/nav */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-}
-
-.dark .glass {
-  background: rgba(15, 23, 42, 0.7);
 }
 
 .gradient-text {
@@ -242,27 +169,17 @@ html.transitioning *:after {
   background-clip: text;
 }
 
-/* Subtle hover lift effect (Scale instead of shadow) */
 .hover-lift {
-  transition:
-    transform 0.2s ease,
-    background-color 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .hover-lift:hover {
   transform: scale(1.02);
-  /* no shadow */
 }
 
 @keyframes slide-in-right {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .animate-slide-in-right {

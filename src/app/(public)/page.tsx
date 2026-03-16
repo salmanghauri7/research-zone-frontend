@@ -1,44 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Sun, Moon, Monitor, Menu, X, Beaker } from "lucide-react";
-import { useTheme } from "@/contexts/ThemeContext";
-
-// Type for theme options
-type ThemeOption = "light" | "dark" | "system";
+import { ArrowRight, Menu, X, Beaker } from "lucide-react";
 
 // ------------------- Navigation -------------------
 const Navigation: React.FC = () => {
   const router = useRouter();
-  const { theme, setTheme, mounted } = useTheme();
-
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [themeMenuOpen, setThemeMenuOpen] = useState<boolean>(false);
-
-  const themeRef = useRef<HTMLDivElement>(null);
-
-  // Close theme dropdown if clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        themeRef.current &&
-        !themeRef.current.contains(event.target as Node)
-      ) {
-        setThemeMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleSignup = (): void => router.push("/auth/signup");
   const handleSignin = (): void => router.push("/auth/login");
-
-  const handleThemeSelect = (selectedTheme: ThemeOption) => {
-    setTheme(selectedTheme);
-    setThemeMenuOpen(false);
-  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-primary)]/80 backdrop-blur-xl border-b border-[var(--border-primary)]">
@@ -46,7 +18,7 @@ const Navigation: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center gap-2.5 cursor-pointer">
-            <div className="w-9 h-9 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl flex items-center justify-center  -teal-500/20">
+            <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-xl flex items-center justify-center">
               <Beaker size={18} className="text-white" />
             </div>
             <span className="font-bold text-lg tracking-tight text-[var(--text-primary)]">
@@ -69,45 +41,6 @@ const Navigation: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="hidden md:flex items-center space-x-3">
-            {/* Theme Dropdown */}
-            <div className="relative" ref={themeRef}>
-              <button
-                onClick={() => setThemeMenuOpen(!themeMenuOpen)}
-                className="p-2.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-lg transition-all"
-              >
-                {!mounted ? (
-                  <Sun size={18} />
-                ) : (
-                  <>
-                    {theme === "light" && <Sun size={18} />}
-                    {theme === "dark" && <Moon size={18} />}
-                    {theme === "system" && <Monitor size={18} />}
-                  </>
-                )}
-              </button>
-
-              {themeMenuOpen && (
-                <div className="absolute right-0 mt-2 bg-[var(--bg-primary)] border border-[var(--border-primary)]  rounded-xl w-40 p-1.5 animate-fade-in">
-                  {(["light", "dark", "system"] as ThemeOption[]).map(
-                    (option) => (
-                      <button
-                        key={option}
-                        onClick={() => handleThemeSelect(option)}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[var(--bg-secondary)] w-full text-left text-sm transition-colors ${theme === option ? "bg-[var(--bg-secondary)] text-[var(--accent-primary)]" : "text-[var(--text-secondary)]"}`}
-                      >
-                        {option === "light" && <Sun size={15} />}
-                        {option === "dark" && <Moon size={15} />}
-                        {option === "system" && <Monitor size={15} />}
-                        <span>
-                          {option.charAt(0).toUpperCase() + option.slice(1)}
-                        </span>
-                      </button>
-                    ),
-                  )}
-                </div>
-              )}
-            </div>
-
             <button
               onClick={handleSignin}
               className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-4 py-2 transition-colors"
@@ -117,19 +50,19 @@ const Navigation: React.FC = () => {
 
             <button
               onClick={handleSignup}
-              className="bg-[var(--accent-primary)] text-white text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-[var(--accent-secondary)] transition-all"
+              className="bg-[var(--accent-primary)] text-white text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-[var(--accent-hover)] transition-all"
             >
               Get Started
             </button>
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-4">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 text-[var(--text-primary)]"
+              className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             >
-              {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
@@ -137,26 +70,26 @@ const Navigation: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden absolute top-16 left-0 w-full bg-[var(--bg-primary)] border-b border-[var(--border-primary)] p-4 flex flex-col space-y-3  animate-fade-in">
-          <a className="text-base font-medium text-[var(--text-secondary)] py-2">
+        <div className="md:hidden absolute top-16 left-0 w-full bg-[var(--bg-primary)] border-b border-[var(--border-primary)] p-4 flex flex-col space-y-4 animate-fade-in">
+          <a className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium">
             Features
           </a>
-          <a className="text-base font-medium text-[var(--text-secondary)] py-2">
+          <a className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium">
             Pricing
           </a>
-          <a className="text-base font-medium text-[var(--text-secondary)] py-2">
+          <a className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium">
             FAQ
           </a>
-          <div className="h-px bg-[var(--border-primary)]" />
+          <hr className="border-[var(--border-primary)]" />
           <button
             onClick={handleSignin}
-            className="text-base text-[var(--text-primary)] py-2 text-left"
+            className="w-full text-left text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium"
           >
             Sign In
           </button>
           <button
             onClick={handleSignup}
-            className="bg-[var(--accent-primary)] text-white text-center font-medium px-4 py-3 rounded-xl"
+            className="w-full bg-[var(--accent-primary)] text-white font-medium py-2.5 rounded-xl text-center"
           >
             Get Started
           </button>

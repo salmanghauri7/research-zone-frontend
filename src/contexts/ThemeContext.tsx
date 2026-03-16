@@ -7,10 +7,9 @@ import {
   useState,
   useMemo,
   useCallback,
-  useSyncExternalStore,
 } from "react";
 
-type ThemeOption = "light" | "dark" | "system";
+type ThemeOption = "dark";
 
 interface ThemeContextType {
   theme: ThemeOption;
@@ -21,72 +20,21 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-// Get initial theme from localStorage (runs only on client)
-function getInitialTheme(): ThemeOption {
-  if (typeof window === "undefined") return "light";
-  const savedTheme = localStorage.getItem("theme") as ThemeOption | null;
-  if (savedTheme) return savedTheme;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
-
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeOption>("light");
-  const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Memoize setTheme callback
-  const setTheme = useCallback((newTheme: ThemeOption) => {
-    setThemeState(newTheme);
-  }, []);
-
-  // Initialize theme on mount
   useEffect(() => {
     setMounted(true);
-    const initialTheme = getInitialTheme();
-    setThemeState(initialTheme);
+    document.documentElement.classList.add("dark");
+    document.documentElement.style.colorScheme = "dark";
+    localStorage.setItem("theme", "dark");
   }, []);
 
-  // Apply theme changes
-  useEffect(() => {
-    const applyTheme = () => {
-      let shouldBeDark = false;
-
-      if (theme === "dark") {
-        shouldBeDark = true;
-      } else if (theme === "light") {
-        shouldBeDark = false;
-      } else {
-        shouldBeDark = window.matchMedia(
-          "(prefers-color-scheme: dark)",
-        ).matches;
-      }
-
-      setIsDark(shouldBeDark);
-
-      if (shouldBeDark) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-
-      localStorage.setItem("theme", theme);
-    };
-
-    applyTheme();
-
-    if (theme === "system") {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      const handler = () => applyTheme();
-      mediaQuery.addEventListener("change", handler);
-      return () => mediaQuery.removeEventListener("change", handler);
-    }
-  }, [theme]);
+  const setTheme = useCallback(() => {}, []);
 
   const value = useMemo(
-    () => ({ theme, setTheme, isDark, mounted }),
-    [theme, setTheme, isDark, mounted],
+    () => ({ theme: "dark" as ThemeOption, setTheme, isDark: true, mounted }),
+    [mounted],
   );
 
   return <ThemeContext value={value}>{children}</ThemeContext>;
