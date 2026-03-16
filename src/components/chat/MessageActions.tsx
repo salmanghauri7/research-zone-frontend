@@ -42,11 +42,11 @@ function Tooltip({ children, label }: TooltipProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap z-50 bg-stone-800 text-white dark:bg-stone-100 dark:text-stone-900"
+            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap z-50 bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900"
           >
             {label}
             {/* Arrow */}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-800 dark:border-t-stone-100" />
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800 dark:border-t-slate-100" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -82,13 +82,13 @@ export default function MessageActions({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.1 }}
-      className="absolute -top-3 right-6 flex items-center gap-0.5 px-1 py-0.5 rounded-lg border shadow-md bg-white border-stone-200 dark:bg-stone-900 dark:border-white/10"
+      className="absolute -top-3 right-6 flex items-center gap-0.5 px-1 py-0.5 rounded-xl border  bg-white border-slate-200 dark:bg-slate-900 dark:border-white/10"
     >
       {/* Reply Button */}
       <Tooltip label="Reply">
         <button
           onClick={() => onReply?.(message)}
-          className="p-1.5 rounded-md transition-colors hover:bg-stone-100 text-stone-500 hover:text-stone-700 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white"
+          className="p-1.5 rounded-md transition-colors hover:bg-slate-100 text-slate-500 hover:text-slate-700 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white"
         >
           <FiCornerUpLeft className="w-4 h-4" />
         </button>
@@ -98,7 +98,7 @@ export default function MessageActions({
       <Tooltip label="Reply in thread">
         <button
           onClick={() => onThreadOpen?.(message)}
-          className="p-1.5 rounded-md transition-colors hover:bg-stone-100 text-stone-500 hover:text-stone-700 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white"
+          className="p-1.5 rounded-md transition-colors hover:bg-slate-100 text-slate-500 hover:text-slate-700 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white"
         >
           <FiMessageSquare className="w-4 h-4" />
         </button>
@@ -110,7 +110,7 @@ export default function MessageActions({
           <Tooltip label="More actions">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="p-1.5 rounded-md transition-colors hover:bg-stone-100 text-stone-500 hover:text-stone-700 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white"
+              className="p-1.5 rounded-md transition-colors hover:bg-slate-100 text-slate-500 hover:text-slate-700 dark:hover:bg-white/10 dark:text-white/50 dark:hover:text-white"
             >
               <FiMoreHorizontal className="w-4 h-4" />
             </button>
@@ -124,7 +124,7 @@ export default function MessageActions({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.95 }}
                 transition={{ duration: 0.15 }}
-                className="absolute top-full right-0 mt-1 min-w-40 rounded-lg border shadow-lg z-50 overflow-hidden bg-white border-stone-200 dark:bg-stone-900 dark:border-white/10"
+                className="absolute top-full right-0 mt-1 min-w-40 rounded-xl border  z-50 overflow-hidden bg-white border-slate-200 dark:bg-slate-900 dark:border-white/10"
               >
                 {/* Edit Message */}
                 <button
@@ -132,7 +132,7 @@ export default function MessageActions({
                     onEdit?.(message);
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors text-stone-700 hover:bg-stone-50 hover:text-stone-900 dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white"
                 >
                   <FiEdit2 className="w-4 h-4" />
                   <span>Edit message</span>

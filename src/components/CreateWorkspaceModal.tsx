@@ -40,7 +40,7 @@ export default function CreateWorkspaceModal() {
       onClick={closeModal}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-primary)] shadow-2xl overflow-hidden"
+        className="w-full max-w-md rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-primary)]  overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <form onSubmit={handleSubmit(createWorkspace)}>

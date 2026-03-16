@@ -73,7 +73,7 @@ export default function PaperItem({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="group relative p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--accent-primary)]/30 hover:shadow-[var(--shadow-md)] transition-all cursor-pointer"
+          className="group relative p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--accent-primary)]/30 hover: transition-all cursor-pointer"
           onClick={handleOpenLink}
           onContextMenu={handleContextMenu}
         >
@@ -135,7 +135,7 @@ export default function PaperItem({
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="group flex items-center gap-4 p-3 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--accent-primary)]/30 hover:shadow-[var(--shadow-md)] transition-all cursor-pointer"
+        className="group flex items-center gap-4 p-3 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--accent-primary)]/30 hover: transition-all cursor-pointer"
         onClick={handleOpenLink}
         onContextMenu={handleContextMenu}
       >

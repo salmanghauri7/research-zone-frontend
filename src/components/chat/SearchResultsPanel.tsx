@@ -42,15 +42,15 @@ export default function SearchResultsPanel({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 h-full w-full sm:w-96 lg:w-[480px] z-50 lg:z-auto lg:relative lg:h-auto flex flex-col border-l bg-white border-stone-200 dark:bg-stone-950 dark:border-white/6"
+            className="fixed right-0 top-0 h-full w-full sm:w-96 lg:w-[480px] z-50 lg:z-auto lg:relative lg:h-auto flex flex-col border-l bg-white border-slate-200 dark:bg-slate-950 dark:border-white/6"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200 dark:border-white/6">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-white/6">
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-stone-900 dark:text-white text-base">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-base">
                   Search &quot;{searchQuery}&quot;
                   {workspaceTitle && (
-                    <span className="text-stone-500 dark:text-stone-400 font-normal">
+                    <span className="text-slate-500 dark:text-slate-400 font-normal">
                       {" "}
                       in #{workspaceTitle}
                     </span>
@@ -58,7 +58,7 @@ export default function SearchResultsPanel({
                 </h3>
                 {!isLoading && (
                   <div className="flex items-center gap-2 mt-1">
-                    <p className="text-xs text-stone-600 dark:text-stone-400">
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
                       {results.length} result{results.length !== 1 ? "s" : ""}{" "}
                       found
                     </p>
@@ -67,7 +67,7 @@ export default function SearchResultsPanel({
               </div>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg transition-colors hover:bg-stone-100 text-stone-500 hover:text-stone-700 dark:hover:bg-white/5 dark:text-white/50 dark:hover:text-white ml-2 shrink-0"
+                className="p-2 rounded-xl transition-colors hover:bg-slate-100 text-slate-500 hover:text-slate-700 dark:hover:bg-white/5 dark:text-white/50 dark:hover:text-white ml-2 shrink-0"
               >
                 <svg
                   className="w-5 h-5"
@@ -86,8 +86,8 @@ export default function SearchResultsPanel({
             </div>
 
             {/* Sort/Filter Bar */}
-            <div className="px-4 py-3 border-b border-stone-200 dark:border-white/6 bg-stone-50 dark:bg-stone-900/50">
-              <button className="flex items-center gap-2 text-sm text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white transition-colors">
+            <div className="px-4 py-3 border-b border-slate-200 dark:border-white/6 bg-slate-50 dark:bg-slate-900/50">
+              <button className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -122,16 +122,16 @@ export default function SearchResultsPanel({
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-12 px-4">
-                  <div className="w-8 h-8 border-4 border-stone-200 border-t-teal-500 dark:border-stone-700 dark:border-t-teal-400 rounded-full animate-spin" />
-                  <p className="mt-4 text-sm text-stone-500 dark:text-white/40">
+                  <div className="w-8 h-8 border-4 border-slate-200 border-t-indigo-500 dark:border-slate-700 dark:border-t-indigo-400 rounded-full animate-spin" />
+                  <p className="mt-4 text-sm text-slate-500 dark:text-white/40">
                     Searching...
                   </p>
                 </div>
               ) : results.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 px-4">
-                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 bg-stone-100 dark:bg-white/4">
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 bg-slate-100 dark:bg-white/4">
                     <svg
-                      className="w-7 h-7 text-stone-400 dark:text-white/25"
+                      className="w-7 h-7 text-slate-400 dark:text-white/25"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -144,18 +144,18 @@ export default function SearchResultsPanel({
                       />
                     </svg>
                   </div>
-                  <p className="text-sm text-center text-stone-500 dark:text-white/40">
+                  <p className="text-sm text-center text-slate-500 dark:text-white/40">
                     No results found for &quot;{searchQuery}&quot;
                     <br />
                     Try different keywords
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-stone-200 dark:divide-white/6">
+                <div className="divide-y divide-slate-200 dark:divide-white/6">
                   {results.map((result) => (
                     <div
                       key={result.id}
-                      className="hover:bg-stone-50 dark:hover:bg-white/2 transition-colors cursor-pointer"
+                      className="hover:bg-slate-50 dark:hover:bg-white/2 transition-colors cursor-pointer"
                       onClick={() => onMessageClick?.(result.id)}
                     >
                       <ChatMessage
@@ -164,7 +164,7 @@ export default function SearchResultsPanel({
                         disableActions={true}
                       />
                       <div className="px-4 pb-3">
-                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {/* Show if it's a thread reply */}
                           {result.parentMessageId ? (
                             <>

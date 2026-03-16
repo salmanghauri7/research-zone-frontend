@@ -254,7 +254,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting || isGoogleLoading}
-              className="w-full py-3 px-4 rounded-xl font-semibold text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              className="w-full py-3 px-4 rounded-xl font-semibold text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed  hover:"
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">

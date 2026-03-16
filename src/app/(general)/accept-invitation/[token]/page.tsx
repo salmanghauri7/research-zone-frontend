@@ -98,7 +98,7 @@ export default function AcceptInvitationPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950">
-            <div className="w-full max-w-md bg-white dark:bg-gray-800 text-black dark:text-white shadow-xl rounded-2xl p-8">
+            <div className="w-full max-w-md bg-white dark:bg-gray-800 text-black dark:text-white  rounded-2xl p-8">
                 <div className="text-center">
                     {status === "verifying" && (
                         <div className="flex flex-col items-center space-y-4">

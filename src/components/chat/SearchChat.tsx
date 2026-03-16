@@ -41,11 +41,11 @@ export default function SearchChat({
   }, [handleClose, handleSearch]);
 
   return (
-    <div className="border-b border-stone-200 dark:border-white/6 bg-white dark:bg-stone-950 px-4 py-3">
+    <div className="border-b border-slate-200 dark:border-white/6 bg-white dark:bg-slate-950 px-4 py-3">
       <div className="flex items-center gap-3 max-w-2xl">
         {/* Search Icon */}
         <svg
-          className="w-5 h-5 text-stone-400 dark:text-stone-500 shrink-0"
+          className="w-5 h-5 text-slate-400 dark:text-slate-500 shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -65,17 +65,17 @@ export default function SearchChat({
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={`Search in ${workspaceTitle || "workspace"}...`}
           autoFocus
-          className="flex-1 bg-transparent text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 outline-none text-sm"
+          className="flex-1 bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none text-sm"
         />
 
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="p-1.5 rounded hover:bg-stone-100 dark:hover:bg-white/5 transition-colors shrink-0"
+          className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shrink-0"
           title="Close (Esc)"
         >
           <svg
-            className="w-5 h-5 text-stone-600 dark:text-stone-400"
+            className="w-5 h-5 text-slate-600 dark:text-slate-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

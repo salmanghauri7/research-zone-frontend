@@ -34,7 +34,7 @@ export default function FolderContextMenu({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className="fixed z-50 bg-[var(--bg-primary)] rounded-xl shadow-lg border border-[var(--border-primary)] py-2 min-w-40"
+      className="fixed z-50 bg-[var(--bg-primary)] rounded-xl  border border-[var(--border-primary)] py-2 min-w-40"
       style={{
         top: position.y,
         left: position.x,

@@ -62,7 +62,7 @@ function EditMessageModalContent({
   };
 
   return (
-    <div className="w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden bg-white border-gray-200 dark:bg-[#0C0F16] dark:border-white/10">
+    <div className="w-full max-w-lg rounded-2xl border  overflow-hidden bg-white border-gray-200 dark:bg-[#0C0F16] dark:border-white/10">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -70,7 +70,7 @@ function EditMessageModalContent({
         </h2>
         <button
           onClick={onClose}
-          className="p-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-500 hover:text-gray-700 dark:hover:bg-white/10 dark:text-white/60 dark:hover:text-white"
+          className="p-2 rounded-xl transition-colors hover:bg-gray-100 text-gray-500 hover:text-gray-700 dark:hover:bg-white/10 dark:text-white/60 dark:hover:text-white"
         >
           <FiX className="w-5 h-5" />
         </button>
@@ -103,14 +103,14 @@ function EditMessageModalContent({
       <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-white/10">
         <button
           onClick={onClose}
-          className="px-4 py-2 text-sm font-medium rounded-lg transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-white/70 dark:hover:text-white dark:hover:bg-white/5"
+          className="px-4 py-2 text-sm font-medium rounded-xl transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-white/70 dark:hover:text-white dark:hover:bg-white/5"
         >
           Cancel
         </button>
         <button
           onClick={handleSave}
           disabled={!content.trim() || content.trim() === originalContent}
-          className="px-4 py-2 text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 text-white hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400"
+          className="px-4 py-2 text-sm font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 text-white hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400"
         >
           Save changes
         </button>

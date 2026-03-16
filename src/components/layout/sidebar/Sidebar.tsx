@@ -53,12 +53,12 @@ const Sidebar = memo(function Sidebar() {
 
   return (
     <aside
-      className={`relative h-full flex flex-col border-r border-[var(--border-primary)] bg-[var(--bg-secondary)] transition-all duration-300 ${
+      className={`relative h-full flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md transition-all duration-300 ${
         collapsed ? "w-[72px]" : "w-64"
       }`}
     >
       {/* Sidebar Header */}
-      <div className="p-4 flex flex-col gap-3 border-b border-[var(--border-primary)]">
+      <div className="p-4 flex flex-col gap-3 border-b border-slate-200 dark:border-slate-800">
         {/* Workspace selector & collapse button */}
         <div className="flex items-center justify-between">
           <button
@@ -67,7 +67,7 @@ const Sidebar = memo(function Sidebar() {
               collapsed ? "justify-center w-full" : ""
             }`}
           >
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shrink-0 shadow-sm">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shrink-0 ">
               <Layers size={14} className="text-white" />
             </div>
             {!collapsed && (
@@ -172,7 +172,7 @@ const Sidebar = memo(function Sidebar() {
 
               {/* Tooltip for collapsed state */}
               {collapsed && (
-                <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-[var(--bg-elevated)] border border-[var(--border-primary)] shadow-lg text-[var(--text-primary)] text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap">
+                <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-[var(--bg-elevated)] border border-slate-200 dark:border-slate-800  text-[var(--text-primary)] text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap">
                   {item.label}
                 </div>
               )}
@@ -182,12 +182,12 @@ const Sidebar = memo(function Sidebar() {
       </nav>
 
       {/* Profile Section */}
-      <div className="border-t border-[var(--border-primary)] p-3">
+      <div className="border-t border-slate-200 dark:border-slate-800 p-3">
         <div
           className={`flex items-center gap-3 ${collapsed ? "flex-col" : ""}`}
         >
           {/* Avatar */}
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 shadow-sm">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 ">
             Z
           </div>
 

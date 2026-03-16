@@ -37,7 +37,7 @@ export default function DeleteFolderModal({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-sm bg-[var(--bg-primary)] rounded-xl shadow-xl border border-[var(--border-primary)]"
+              className="relative w-full max-w-sm bg-[var(--bg-primary)] rounded-xl  border border-[var(--border-primary)]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}

@@ -125,7 +125,7 @@ export default function Username() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="w-full max-w-md bg-white text-black shadow-xl rounded-2xl p-8 animate-in fade-in zoom-in duration-300">
+      <div className="w-full max-w-md bg-white text-black  rounded-2xl p-8 animate-in fade-in zoom-in duration-300">
         {/* Header Section */}
         <h2 className="text-2xl font-semibold text-center mb-2">
           Choose a Username

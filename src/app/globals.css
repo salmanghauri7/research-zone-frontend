@@ -2,84 +2,81 @@
 
 /* 
  * Research Zone Design System
- * A refined, elegant color palette inspired by premium SaaS applications
- * Neutral stone tones with a sophisticated accent color
+ * Modern Neu-Minimalist aesthetic
+ * Slate tones with Indigo accent, border-led depth, and no heavy shadows
  */
 
 @layer base {
   :root {
     /* Background colors - Light mode */
-    --bg-primary: #fafaf9;
-    --bg-secondary: #ffffff;
-    --bg-tertiary: #f5f5f4;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
     --bg-elevated: #ffffff;
-    --bg-hover: #f5f5f4;
-    --bg-active: #e7e5e4;
+    --bg-hover: #f8fafc;
+    --bg-active: #e2e8f0;
 
     /* Text colors - Light mode */
-    --text-primary: #1c1917;
-    --text-secondary: #57534e;
-    --text-tertiary: #a8a29e;
-    --text-inverse: #fafaf9;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #94a3b8;
+    --text-inverse: #f8fafc;
 
     /* Border colors - Light mode */
-    --border-primary: #e7e5e4;
-    --border-secondary: #d6d3d1;
-    --border-focus: #78716c;
+    --border-primary: #e2e8f0;
+    --border-secondary: #cbd5e1;
+    --border-focus: #94a3b8;
 
-    /* Accent colors - Refined teal/emerald */
-    --accent-primary: #0d9488;
-    --accent-hover: #0f766e;
-    --accent-light: #ccfbf1;
-    --accent-subtle: #f0fdfa;
+    /* Accent colors - Indigo/Action */
+    --accent-primary: #4f46e5;
+    --accent-hover: #4338ca;
+    --accent-light: #e0e7ff;
+    --accent-subtle: #eef2ff;
 
     /* Status colors */
-    --success: #059669;
+    --success: #10b981;
     --success-light: #d1fae5;
-    --warning: #d97706;
+    --warning: #f59e0b;
     --warning-light: #fef3c7;
-    --error: #dc2626;
+    --error: #ef4444;
     --error-light: #fee2e2;
 
-    /* Shadows - Light mode */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.03);
-    --shadow-md:
-      0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-    --shadow-lg:
-      0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
-    --shadow-xl:
-      0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+    /* Shadows - Disabled for Neu-Minimalism */
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
 
     /* Card specific */
     --bg-card: #ffffff;
-    --bg-card-dark: #0c0a09;
+    --bg-card-dark: #0f172a;
   }
 
   .dark {
     /* Background colors - Dark mode */
-    --bg-primary: #0c0a09;
-    --bg-secondary: #1c1917;
-    --bg-tertiary: #292524;
-    --bg-elevated: #1c1917;
-    --bg-hover: #292524;
-    --bg-active: #44403c;
+    --bg-primary: #020617;
+    --bg-secondary: #0f172a;
+    --bg-tertiary: #1e293b;
+    --bg-elevated: #0f172a;
+    --bg-hover: #1e293b;
+    --bg-active: #334155;
 
     /* Text colors - Dark mode */
-    --text-primary: #fafaf9;
-    --text-secondary: #a8a29e;
-    --text-tertiary: #78716c;
-    --text-inverse: #1c1917;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #64748b;
+    --text-inverse: #020617;
 
     /* Border colors - Dark mode */
-    --border-primary: #292524;
-    --border-secondary: #44403c;
-    --border-focus: #78716c;
+    --border-primary: #1e293b;
+    --border-secondary: #334155;
+    --border-focus: #64748b;
 
-    /* Accent colors - Dark mode (brighter for visibility) */
-    --accent-primary: #2dd4bf;
-    --accent-hover: #5eead4;
-    --accent-light: #134e4a;
-    --accent-subtle: #042f2e;
+    /* Accent colors - Indigo (Brighter for dark mode) */
+    --accent-primary: #818cf8;
+    --accent-hover: #a5b4fc;
+    --accent-light: #3730a3;
+    --accent-subtle: #312e81;
 
     /* Status colors - Dark mode */
     --success: #34d399;
@@ -89,25 +86,22 @@
     --error: #f87171;
     --error-light: #7f1d1d;
 
-    /* Shadows - Dark mode (more subtle) */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow-md:
-      0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-    --shadow-lg:
-      0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-    --shadow-xl:
-      0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+    /* Shadows - Disabled */
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
 
     /* Card specific */
-    --bg-card: #1c1917;
+    --bg-card: #0f172a;
   }
 }
 
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-gray-950: #0c0a09;
-  --bg-card-dark: #1c1917;
+  --color-slate-950: #020617;
+  --bg-card-dark: #0f172a;
 }
 
 /* Base styles */
@@ -118,11 +112,13 @@
 
 html {
   scroll-behavior: smooth;
+  font-family: "Inter", "Geist", system-ui, sans-serif;
 }
 
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
+  line-height: 1.75; /* Increased line-height for readability */
 }
 
 /* Button reset with smooth transitions */
@@ -132,6 +128,7 @@ button {
 
 button:hover {
   cursor: pointer;
+  transform: scale(1.02);
 }
 
 button:focus-visible {
@@ -139,13 +136,13 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
-/* Input focus states */
+/* Input focus states - Border only, no heavy shadow */
 input:focus,
 textarea:focus,
 select:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px var(--accent-light);
+  /* Removed box-shadow */
 }
 
 /* Custom Scrollbar Styles */
@@ -167,7 +164,6 @@ select:focus {
   background-color: var(--text-tertiary);
 }
 
-/* Firefox scrollbar */
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: var(--border-secondary) transparent;
@@ -185,7 +181,6 @@ html.transitioning *:after {
   transition-delay: 0s !important;
 }
 
-/* Animation utilities */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -211,7 +206,7 @@ html.transitioning *:after {
 @keyframes scale-in {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    inline-size: scale(0.95);
   }
   to {
     opacity: 1;
@@ -219,28 +214,17 @@ html.transitioning *:after {
   }
 }
 
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
 .animate-fade-in {
   animation: fade-in 0.2s ease-out;
 }
-
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
 }
-
 .animate-scale-in {
   animation: scale-in 0.2s ease-out;
 }
 
-/* Glass morphism effect */
+/* Subtle Glass morphism effect restricted for header/nav */
 .glass {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
@@ -248,30 +232,28 @@ html.transitioning *:after {
 }
 
 .dark .glass {
-  background: rgba(28, 25, 23, 0.8);
+  background: rgba(15, 23, 42, 0.7);
 }
 
-/* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, #0f766e 100%);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, #3730a3 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Subtle hover lift effect */
+/* Subtle hover lift effect (Scale instead of shadow) */
 .hover-lift {
   transition:
     transform 0.2s ease,
-    box-shadow 0.2s ease;
+    background-color 0.2s ease;
 }
 
 .hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  transform: scale(1.02);
+  /* no shadow */
 }
 
-/* Toast slide in animation */
 @keyframes slide-in-right {
   from {
     transform: translateX(100%);

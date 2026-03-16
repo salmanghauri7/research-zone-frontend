@@ -80,7 +80,7 @@ export default function WorkspaceSwitcher({
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -20, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className={`fixed w-80 top-28 bg-[var(--bg-primary)] rounded-xl shadow-2xl z-50 border border-[var(--border-primary)] overflow-hidden ${
+            className={`fixed w-80 top-28 bg-[var(--bg-primary)] rounded-xl  z-50 border border-[var(--border-primary)] overflow-hidden ${
               collapsed ? "left-5" : "left-5"
             }`}
           >

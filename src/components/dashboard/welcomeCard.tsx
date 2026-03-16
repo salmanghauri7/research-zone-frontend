@@ -35,7 +35,7 @@ const WelcomeCard = memo(function WelcomeCard() {
           </p>
 
           <div className="flex items-center gap-3">
-            <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-teal-700 font-semibold rounded-xl hover:bg-white/90 transition-all shadow-lg shadow-black/10">
+            <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-teal-700 font-semibold rounded-xl hover:bg-white/90 transition-all  -black/10">
               <BookOpen size={18} />
               Discover Papers
             </button>

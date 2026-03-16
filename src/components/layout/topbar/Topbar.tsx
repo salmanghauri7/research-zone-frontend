@@ -59,10 +59,10 @@ const Topbar = memo(function Topbar() {
   ];
 
   return (
-    <header className="w-full h-14 fixed top-0 left-0 z-10 bg-[var(--bg-secondary)]/80 backdrop-blur-xl px-4 flex items-center justify-between border-b border-[var(--border-primary)]">
+    <header className="w-full h-14 fixed top-0 left-0 z-10 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
       {/* Left: Logo */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm ">
           R
         </div>
         <span className="text-[var(--text-primary)] text-lg font-semibold tracking-tight">
@@ -80,7 +80,7 @@ const Topbar = memo(function Topbar() {
           <input
             type="text"
             placeholder="Search papers, projects..."
-            className="w-full pl-9 pr-4 py-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border-primary)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] text-sm focus:outline-none focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)] transition-all"
+            className="w-full pl-9 pr-4 py-2 rounded-lg bg-[var(--bg-tertiary)] border border-slate-200 dark:border-slate-800 text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] text-sm focus:outline-none focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)] transition-all"
           />
         </div>
       </div>
@@ -107,7 +107,7 @@ const Topbar = memo(function Topbar() {
           </button>
 
           {themeMenuOpen && (
-            <div className="absolute right-0 mt-2 bg-[var(--bg-elevated)] border border-[var(--border-primary)] shadow-xl rounded-xl w-36 p-1.5 animate-fade-in">
+            <div className="absolute right-0 mt-2 bg-[var(--bg-elevated)] border border-slate-200 dark:border-slate-800  rounded-xl w-36 p-1.5 animate-fade-in">
               {themeOptions.map((option) => (
                 <button
                   key={option.value}

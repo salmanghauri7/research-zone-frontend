@@ -212,7 +212,7 @@ export default function SavePaperModal({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden"
+              className="relative w-full max-w-lg bg-white dark:bg-[#1a1a1a] rounded-2xl  border border-zinc-200 dark:border-zinc-800 overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}

@@ -46,7 +46,7 @@ const Navigation: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center gap-2.5 cursor-pointer">
-            <div className="w-9 h-9 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">
+            <div className="w-9 h-9 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl flex items-center justify-center  -teal-500/20">
               <Beaker size={18} className="text-white" />
             </div>
             <span className="font-bold text-lg tracking-tight text-[var(--text-primary)]">
@@ -87,7 +87,7 @@ const Navigation: React.FC = () => {
               </button>
 
               {themeMenuOpen && (
-                <div className="absolute right-0 mt-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] shadow-xl rounded-xl w-40 p-1.5 animate-fade-in">
+                <div className="absolute right-0 mt-2 bg-[var(--bg-primary)] border border-[var(--border-primary)]  rounded-xl w-40 p-1.5 animate-fade-in">
                   {(["light", "dark", "system"] as ThemeOption[]).map(
                     (option) => (
                       <button
@@ -137,7 +137,7 @@ const Navigation: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden absolute top-16 left-0 w-full bg-[var(--bg-primary)] border-b border-[var(--border-primary)] p-4 flex flex-col space-y-3 shadow-lg animate-fade-in">
+        <div className="md:hidden absolute top-16 left-0 w-full bg-[var(--bg-primary)] border-b border-[var(--border-primary)] p-4 flex flex-col space-y-3  animate-fade-in">
           <a className="text-base font-medium text-[var(--text-secondary)] py-2">
             Features
           </a>
@@ -193,7 +193,7 @@ const Hero: React.FC = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <button className="px-8 py-4 bg-[var(--accent-primary)] text-white font-semibold rounded-xl hover:bg-[var(--accent-secondary)] transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2 justify-center">
+          <button className="px-8 py-4 bg-[var(--accent-primary)] text-white font-semibold rounded-xl hover:bg-[var(--accent-secondary)] transition-all  -teal-500/20 flex items-center gap-2 justify-center">
             Start For Free <ArrowRight size={18} />
           </button>
 

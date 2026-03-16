@@ -41,7 +41,7 @@ export default function FolderControls({
           onClick={() => onViewModeChange("grid")}
           className={`p-2 rounded-md transition-colors ${
             viewMode === "grid"
-              ? "bg-[var(--bg-primary)] text-[var(--accent-primary)] shadow-sm"
+              ? "bg-[var(--bg-primary)] text-[var(--accent-primary)] "
               : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
           }`}
           title="Grid view"
@@ -52,7 +52,7 @@ export default function FolderControls({
           onClick={() => onViewModeChange("list")}
           className={`p-2 rounded-md transition-colors ${
             viewMode === "list"
-              ? "bg-[var(--bg-primary)] text-[var(--accent-primary)] shadow-sm"
+              ? "bg-[var(--bg-primary)] text-[var(--accent-primary)] "
               : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
           }`}
           title="List view"

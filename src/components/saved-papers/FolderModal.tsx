@@ -76,7 +76,7 @@ export default function FolderModal({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-[var(--bg-primary)] rounded-2xl shadow-xl border border-[var(--border-primary)] overflow-hidden"
+              className="relative w-full max-w-md bg-[var(--bg-primary)] rounded-2xl  border border-[var(--border-primary)] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <form onSubmit={handleSubmit}>

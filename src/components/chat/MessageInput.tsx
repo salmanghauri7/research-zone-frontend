@@ -205,7 +205,7 @@ export default function MessageInput({
             transition={{ duration: 0.2 }}
             className="overflow-hidden mb-2"
           >
-            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-500/10">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-500/10">
               <FiAlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
               <p className="flex-1 text-xs text-red-600 dark:text-red-400">
                 {fileError}
@@ -231,7 +231,7 @@ export default function MessageInput({
             transition={{ duration: 0.2 }}
             className="overflow-hidden mb-2"
           >
-            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-amber-50/80 dark:bg-amber-500/10">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-amber-50/80 dark:bg-amber-500/10">
               <FiEdit3 className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
@@ -262,20 +262,20 @@ export default function MessageInput({
             transition={{ duration: 0.2 }}
             className="overflow-hidden mb-2"
           >
-            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-stone-100/80 dark:bg-white/3">
-              <div className="w-0.5 h-8 rounded-full bg-teal-500 dark:bg-teal-400" />
-              <FiCornerUpLeft className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-100/80 dark:bg-white/3">
+              <div className="w-0.5 h-8 rounded-full bg-indigo-500 dark:bg-indigo-400" />
+              <FiCornerUpLeft className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
               <div className="flex-1 min-w-0">
-                <span className="text-xs font-medium text-teal-700 dark:text-teal-400">
+                <span className="text-xs font-medium text-indigo-700 dark:text-indigo-400">
                   Replying to {replyTo.sender.name}
                 </span>
-                <p className="text-xs truncate text-stone-500 dark:text-white/40">
+                <p className="text-xs truncate text-slate-500 dark:text-white/40">
                   {replyTo.content}
                 </p>
               </div>
               <button
                 onClick={onCancelReply}
-                className="p-1 rounded-full transition-colors hover:bg-stone-200 text-stone-400 dark:hover:bg-white/10 dark:text-white/40"
+                className="p-1 rounded-full transition-colors hover:bg-slate-200 text-slate-400 dark:hover:bg-white/10 dark:text-white/40"
               >
                 <FiX className="w-3.5 h-3.5" />
               </button>
@@ -294,7 +294,7 @@ export default function MessageInput({
             transition={{ duration: 0.2 }}
             className="overflow-hidden mb-2"
           >
-            <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-stone-50 dark:bg-white/2">
+            <div className="flex flex-wrap gap-2 p-2 rounded-xl bg-slate-50 dark:bg-white/2">
               {attachments.map((file, index) => (
                 <AttachmentPreview
                   key={index}
@@ -308,7 +308,7 @@ export default function MessageInput({
       </AnimatePresence>
 
       {/* Unified Input Container */}
-      <div className="relative rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/2 transition-colors">
+      <div className="relative rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/2 transition-colors">
         {/* Text Input */}
         <textarea
           ref={textareaRef}
@@ -327,7 +327,7 @@ export default function MessageInput({
           }
           disabled={disabled || isRecording}
           rows={1}
-          className="w-full border-none outline-none resize-none px-4 pt-3 pb-2 bg-transparent text-sm text-stone-800 placeholder-stone-400 dark:text-white dark:placeholder-white/30 focus:ring-0 focus:shadow-none"
+          className="w-full border-none outline-none resize-none px-4 pt-3 pb-2 bg-transparent text-sm text-slate-800 placeholder-slate-400 dark:text-white dark:placeholder-white/30 focus:ring-0 focus:-none"
           style={{ boxShadow: "none" }}
         />
 
@@ -339,7 +339,7 @@ export default function MessageInput({
               <div className="relative" ref={attachMenuRef}>
                 <button
                   onClick={() => setShowAttachMenu(!showAttachMenu)}
-                  className="p-2 rounded-lg transition-all text-stone-400 hover:text-stone-600 hover:bg-stone-100 dark:text-white/40 dark:hover:text-white/70 dark:hover:bg-white/5"
+                  className="p-2 rounded-xl transition-all text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white/70 dark:hover:bg-white/5"
                   title="Add attachment"
                 >
                   <FiPlus
@@ -355,14 +355,14 @@ export default function MessageInput({
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.95 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute bottom-full left-0 mb-2 py-1.5 px-4 rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-stone-900 shadow-lg shadow-stone-900/5 dark:shadow-black/20 min-w-[180px]"
+                      className="absolute bottom-full left-0 mb-2 py-1.5 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900  -slate-900/5 dark:-black/20 min-w-[180px]"
                     >
                       <button
                         onClick={() => {
                           fileInputRef.current?.click();
                           setShowAttachMenu(false);
                         }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-stone-600 dark:text-white/70 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-slate-600 dark:text-white/70 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                       >
                         <FiPaperclip className="w-4 h-4" />
                         <span>Attach file</span>
@@ -372,7 +372,7 @@ export default function MessageInput({
                           imageInputRef.current?.click();
                           setShowAttachMenu(false);
                         }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-stone-600 dark:text-white/70 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-slate-600 dark:text-white/70 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                       >
                         <FiImage className="w-4 h-4" />
                         <span>Upload image</span>
@@ -409,7 +409,7 @@ export default function MessageInput({
                   className="flex items-center gap-2 ml-2"
                 >
                   <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-sm font-medium text-stone-600 dark:text-white/70">
+                  <span className="text-sm font-medium text-slate-600 dark:text-white/70">
                     {formatRecordingTime(recordingTime)}
                   </span>
                 </motion.div>
@@ -429,7 +429,7 @@ export default function MessageInput({
                   transition={{ duration: 0.2 }}
                   className="flex items-center gap-1.5 mr-2"
                 >
-                  <span className="text-xs italic text-stone-400 dark:text-white/40">
+                  <span className="text-xs italic text-slate-400 dark:text-white/40">
                     {typingStatusText}
                   </span>
                   <TypingIndicator />
@@ -446,13 +446,13 @@ export default function MessageInput({
                   ? !message.trim() || message.trim() === editingMessage.content
                   : !message.trim() && attachments.length === 0)
               }
-              className={`p-2.5 rounded-lg transition-all duration-200 ${
+              className={`p-2.5 rounded-xl transition-all duration-200 ${
                 (message.trim() || attachments.length > 0) &&
                 (!editingMessage || message.trim() !== editingMessage.content)
                   ? editingMessage
                     ? "bg-amber-500 text-white hover:bg-amber-600"
-                    : "bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
-                  : "text-stone-300 dark:text-white/20 cursor-not-allowed"
+                    : "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+                  : "text-slate-300 dark:text-white/20 cursor-not-allowed"
               }`}
               title={editingMessage ? "Save changes" : "Send message"}
             >
@@ -464,9 +464,9 @@ export default function MessageInput({
 
       {/* Search Hint */}
       <div className="flex justify-center mt-2">
-        <span className="text-[10px] text-stone-400 dark:text-white/30">
+        <span className="text-[10px] text-slate-400 dark:text-white/30">
           Press{" "}
-          <kbd className="px-1.5 py-0.5 mx-0.5 rounded bg-stone-100 dark:bg-white/5 text-stone-500 dark:text-white/40 font-mono text-[9px]">
+          <kbd className="px-1.5 py-0.5 mx-0.5 rounded bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40 font-mono text-[9px]">
             {searchShortcut}
           </kbd>{" "}
           to search
@@ -497,21 +497,21 @@ function TypingIndicator() {
         initial="initial"
         animate="animate"
         transition={dotTransition(0)}
-        className="w-1 h-1 bg-stone-400 dark:bg-stone-500 rounded-full"
+        className="w-1 h-1 bg-slate-400 dark:bg-slate-500 rounded-full"
       />
       <motion.span
         variants={dotVariants}
         initial="initial"
         animate="animate"
         transition={dotTransition(0.15)}
-        className="w-1 h-1 bg-stone-400 dark:bg-stone-500 rounded-full"
+        className="w-1 h-1 bg-slate-400 dark:bg-slate-500 rounded-full"
       />
       <motion.span
         variants={dotVariants}
         initial="initial"
         animate="animate"
         transition={dotTransition(0.3)}
-        className="w-1 h-1 bg-stone-400 dark:bg-stone-500 rounded-full"
+        className="w-1 h-1 bg-slate-400 dark:bg-slate-500 rounded-full"
       />
     </div>
   );
@@ -549,7 +549,7 @@ function AttachmentPreview({
         <img
           src={preview}
           alt={file.name}
-          className="h-16 w-16 object-cover rounded-lg"
+          className="h-16 w-16 object-cover rounded-xl"
         />
         <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-1 py-0.5 rounded-b-lg">
           {formatFileSize(file.size)}
@@ -565,20 +565,20 @@ function AttachmentPreview({
   }
 
   return (
-    <div className="relative group flex flex-col gap-1 px-3 py-2 rounded-lg bg-stone-100 dark:bg-white/4">
+    <div className="relative group flex flex-col gap-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/4">
       <div className="flex items-center gap-2">
-        <FiPaperclip className="w-4 h-4 text-stone-500 dark:text-white/45" />
-        <span className="text-sm truncate max-w-[120px] text-stone-700 dark:text-white/70">
+        <FiPaperclip className="w-4 h-4 text-slate-500 dark:text-white/45" />
+        <span className="text-sm truncate max-w-[120px] text-slate-700 dark:text-white/70">
           {file.name}
         </span>
         <button
           onClick={onRemove}
-          className="p-0.5 rounded-full transition-colors hover:bg-stone-200 dark:hover:bg-white/10"
+          className="p-0.5 rounded-full transition-colors hover:bg-slate-200 dark:hover:bg-white/10"
         >
-          <FiX className="w-3 h-3 text-stone-500 dark:text-white/45" />
+          <FiX className="w-3 h-3 text-slate-500 dark:text-white/45" />
         </button>
       </div>
-      <span className="text-[10px] text-stone-500 dark:text-white/35">
+      <span className="text-[10px] text-slate-500 dark:text-white/35">
         {formatFileSize(file.size)}
       </span>
     </div>

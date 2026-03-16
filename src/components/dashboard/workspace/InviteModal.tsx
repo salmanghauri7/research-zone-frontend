@@ -83,7 +83,7 @@ export default function InviteModal({
           className="relative w-full max-w-lg transform transition-all"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="bg-[var(--bg-primary)] rounded-2xl shadow-2xl border border-[var(--border-primary)] overflow-hidden">
+          <div className="bg-[var(--bg-primary)] rounded-2xl  border border-[var(--border-primary)] overflow-hidden">
             {/* Header */}
             <div className="px-6 py-5 border-b border-[var(--border-primary)] bg-[var(--bg-secondary)]">
               <div className="flex items-center justify-between">
@@ -176,7 +176,7 @@ export default function InviteModal({
                   className="px-5 py-2.5 text-sm font-semibold text-white 
                                              bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)]
                                              rounded-xl disabled:opacity-50 disabled:cursor-not-allowed
-                                             transition-all duration-200 shadow-lg shadow-teal-500/20"
+                                             transition-all duration-200  -teal-500/20"
                 >
                   {isSending ? "Sending..." : "Send Invite"}
                 </button>

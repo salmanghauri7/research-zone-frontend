@@ -17,7 +17,7 @@ export default function ConfirmEmailPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-white">
-            <div className="w-full max-w-md bg-white text-black shadow-xl rounded-2xl p-8 text-center">
+            <div className="w-full max-w-md bg-white text-black  rounded-2xl p-8 text-center">
                 {/* ✅ Icon */}
                 <div className="text-5xl mb-4">📧</div>
 

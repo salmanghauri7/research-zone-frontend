@@ -147,7 +147,7 @@ export default function VerifyOTPPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] p-4">
-      <div className="w-full max-w-md bg-[var(--bg-secondary)] border border-[var(--border-primary)] shadow-xl rounded-2xl p-8 text-center">
+      <div className="w-full max-w-md bg-[var(--bg-secondary)] border border-[var(--border-primary)]  rounded-2xl p-8 text-center">
         {/* Icon */}
         <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
           <svg

@@ -1159,7 +1159,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-full flex bg-white dark:bg-stone-950">
+    <div className="h-full flex bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
       <div className="flex-1 flex flex-col min-w-0">
         {/* Search Chat Component */}
         {isSearching && (
