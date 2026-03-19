@@ -41,9 +41,10 @@ export const sidebarItems: SidebarItem[] = [
     isDynamic: true,
   },
   {
-    label: "AI Tools",
-    href: "/ai-tools",
+    label: "Paper Chat",
+    href: "/workspace/paper-chat",
     icon: <Sparkles size={20} />,
+    isDynamic: true,
   },
   {
     label: "Settings",
