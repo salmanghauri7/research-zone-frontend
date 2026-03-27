@@ -56,7 +56,7 @@ export default function ChatInput({
       <div className="max-w-3xl mx-auto relative group">
         {/* Glow effect when active */}
         <div
-          className={`absolute -inset-1 bg-gradient-to-r from-[var(--accent-primary)]/10 to-emerald-500/10 rounded-3xl blur transition-opacity duration-500 ${isFocused ? "opacity-100" : "opacity-0 group-hover:opacity-50"}`}
+          className={`absolute -inset-1 rounded-3xl blur transition-opacity duration-500 ${isFocused ? "opacity-100" : "opacity-0 group-hover:opacity-50"}`}
         />
 
         <div
