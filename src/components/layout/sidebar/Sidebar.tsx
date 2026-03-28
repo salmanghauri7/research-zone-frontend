@@ -53,9 +53,8 @@ const Sidebar = memo(function Sidebar() {
 
   return (
     <aside
-      className={`relative h-full flex flex-col border-r border-[var(--border-primary)] bg-[var(--bg-secondary)] transition-all duration-300 ${
-        collapsed ? "w-[72px]" : "w-64"
-      }`}
+      className={`relative h-full flex flex-col border-r border-[var(--border-primary)] bg-[var(--bg-secondary)] transition-all duration-300 ${collapsed ? "w-[72px]" : "w-64"
+        }`}
     >
       {/* Sidebar Header */}
       <div className="p-4 flex flex-col gap-3 border-b border-[var(--border-primary)]">
@@ -63,9 +62,8 @@ const Sidebar = memo(function Sidebar() {
         <div className="flex items-center justify-between">
           <button
             onClick={openWorkspaceSwitcher}
-            className={`flex items-center gap-2.5 overflow-hidden hover:bg-[var(--bg-hover)] rounded-lg px-2 py-1.5 -ml-1 transition-all group ${
-              collapsed ? "justify-center w-full" : ""
-            }`}
+            className={`flex items-center gap-2.5 overflow-hidden hover:bg-[var(--bg-hover)] rounded-lg px-2 py-1.5 -ml-1 transition-all group ${collapsed ? "justify-center w-full" : ""
+              }`}
           >
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shrink-0 shadow-sm">
               <Layers size={14} className="text-white" />
@@ -106,9 +104,8 @@ const Sidebar = memo(function Sidebar() {
         {/* Create Workspace Button */}
         <button
           onClick={openModal}
-          className={`flex items-center gap-2.5 rounded-xl border border-dashed border-[var(--border-secondary)] bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] hover:border-[var(--accent-primary)] text-[var(--text-secondary)] hover:text-[var(--accent-primary)] transition-all duration-200 ${
-            collapsed ? "p-2.5 justify-center" : "px-3 py-2.5"
-          }`}
+          className={`flex items-center gap-2.5 rounded-xl border border-dashed border-[var(--border-secondary)] bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] hover:border-[var(--accent-primary)] text-[var(--text-secondary)] hover:text-[var(--accent-primary)] transition-all duration-200 ${collapsed ? "p-2.5 justify-center" : "px-3 py-2.5"
+            }`}
         >
           <Plus size={18} />
           {!collapsed && (
@@ -123,13 +120,18 @@ const Sidebar = memo(function Sidebar() {
           const dynamicHref =
             item.isDynamic && currentWorkspaceId
               ? item.href.replace(
-                  "/workspace",
-                  `/workspace/${currentWorkspaceId}`,
-                )
+                "/workspace",
+                `/workspace/${currentWorkspaceId}`,
+              )
               : item.href;
 
+          const resolvedHref =
+            item.label === "Dashboard" && !currentWorkspaceId
+              ? "/dashboard"
+              : dynamicHref;
+
           // Check if this item should be active
-          let isActive = pathname === dynamicHref;
+          let isActive = pathname === resolvedHref;
 
           // Special handling for workspace main page - only Dashboard should be active
           if (
@@ -143,18 +145,16 @@ const Sidebar = memo(function Sidebar() {
           return (
             <Link
               key={item.href}
-              href={dynamicHref}
+              href={resolvedHref}
               prefetch={true}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative my-0.5 ${
-                isActive
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative my-0.5 ${isActive
                   ? "bg-[var(--accent-subtle)] text-[var(--accent-primary)]"
                   : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-              } ${collapsed ? "justify-center px-2.5" : ""}`}
+                } ${collapsed ? "justify-center px-2.5" : ""}`}
             >
               <span
-                className={`text-lg shrink-0 ${
-                  isActive ? "text-[var(--accent-primary)]" : ""
-                }`}
+                className={`text-lg shrink-0 ${isActive ? "text-[var(--accent-primary)]" : ""
+                  }`}
               >
                 {item.icon}
               </span>
@@ -203,9 +203,8 @@ const Sidebar = memo(function Sidebar() {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className={`p-2 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--error)] hover:bg-[var(--error-light)] transition-all ${
-              collapsed ? "mt-2" : ""
-            }`}
+            className={`p-2 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--error)] hover:bg-[var(--error-light)] transition-all ${collapsed ? "mt-2" : ""
+              }`}
             title="Sign out"
           >
             <LogOut size={18} />

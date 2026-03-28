@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import {
   clearInvitationData,
   getPendingWorkspaceId,
@@ -76,5 +78,19 @@ export default function WorkspaceIdLayout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, isConnected, workspaceId]);
 
-  return <>{children}</>;
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="-mt-6 mb-1 -ml-4">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2    px-3 py-2 text-sm font-medium text-(--text-secondary) transition-all hover:border-(--accent-primary) hover:text-(--accent-primary)"
+        >
+          <ArrowLeft size={16} />
+          Dashboard
+        </Link>
+      </div>
+
+      <div className="flex-1 min-h-0">{children}</div>
+    </div>
+  );
 }
