@@ -7,6 +7,7 @@ import { ModalProvider } from "@/contexts/ModalContext";
 import { WorkspaceProvider } from "@/contexts/SidebarContext";
 import { SocketProvider } from "@/contexts/SocketContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string;
 
@@ -17,17 +18,19 @@ const Provider = memo(function Provider({
   children: React.ReactNode;
 }) {
   return (
-    <SocketProvider>
-      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-        <ThemeProvider>
-          <NotificationProvider>
-            <ModalProvider>
-              <WorkspaceProvider>{children}</WorkspaceProvider>
-            </ModalProvider>
-          </NotificationProvider>
-        </ThemeProvider>
-      </GoogleOAuthProvider>
-    </SocketProvider>
+    <ErrorBoundary>
+      <SocketProvider>
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+          <ThemeProvider>
+            <NotificationProvider>
+              <ModalProvider>
+                <WorkspaceProvider>{children}</WorkspaceProvider>
+              </ModalProvider>
+            </NotificationProvider>
+          </ThemeProvider>
+        </GoogleOAuthProvider>
+      </SocketProvider>
+    </ErrorBoundary>
   );
 });
 

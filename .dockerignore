@@ -1,0 +1,31 @@
+# Source control
+.git
+.gitignore
+
+# Environment variables
+.env
+
+# Dependencies
+node_modules
+npm-debug.log
+
+# Build outputs
+dist
+
+# Docker-related files
+Dockerfile
+.dockerignore
+
+# Build and IDE-specific files
+.code
+.vscode
+scripts
+
+# OS/editor noise
+.DS_Store
+
+#ignore agents
+.agents
+
+# ignore next js cache
+.next
