@@ -11,8 +11,8 @@ import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { useGoogleLogin } from "@react-oauth/google";
 import Link from "next/link";
-import { useUserStore } from "@/store/userStore";
-
+import { useAppDispatch } from "@/store/hooks";
+import { fetchUser, setUser } from "@/store/slices/authSlice";
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
@@ -20,7 +20,7 @@ export default function LoginPage() {
   const [buttonText, setButtonText] = useState("Sign in");
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
   const router = useRouter();
-  const setUser = useUserStore((state) => state.setUser);
+  const dispatch = useAppDispatch();
 
   const {
     register,
@@ -40,12 +40,9 @@ export default function LoginPage() {
         : { username: data.identifier, password: data.password };
 
       await new Promise((resolve) => setTimeout(resolve, 600));
-      const res = await userApi.login(apiData);
+      dispatch(fetchUser(apiData)).unwrap();
 
-      localStorage.setItem("accessToken", res.data.data.accessToken);
-      setUser(res.data.data.user);
-
-      setButtonText("Success!");
+      setButtonText("Success!");  
       await new Promise((resolve) => setTimeout(resolve, 800));
 
       const {
@@ -158,9 +155,9 @@ export default function LoginPage() {
     apiError || errors.identifier?.message || errors.password?.message || null;
 
   return (
-    <div className="min-h-screen flex bg-[var(--bg-primary)]">
+    <div className="min-h-screen flex bg-(--bg-primary)">
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-linear-to-br from-teal-600 via-teal-700 to-emerald-800">
         {/* Decorative elements */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl" />
@@ -200,27 +197,27 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="w-10 h-10 rounded-xl bg-[var(--accent-primary)] flex items-center justify-center text-white font-bold text-lg">
+            <div className="w-10 h-10 rounded-xl bg-(--accent-primary) flex items-center justify-center text-white font-bold text-lg">
               R
             </div>
-            <span className="text-xl font-semibold text-[var(--text-primary)]">
+            <span className="text-xl font-semibold text-(--text-primary)">
               ResearchZone
             </span>
           </div>
 
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-semibold text-[var(--text-primary)] mb-2">
+            <h2 className="text-2xl font-semibold text-(--text-primary) mb-2">
               Welcome back
             </h2>
-            <p className="text-[var(--text-secondary)]">
+            <p className="text-(--text-secondary)">
               Sign in to continue to your workspace
             </p>
           </div>
 
           {/* Error Alert */}
           {combinedError && (
-            <div className="mb-6 p-4 rounded-xl bg-[var(--error-light)] border border-[var(--error)]/20 animate-fade-in">
-              <p className="text-sm text-[var(--error)] text-center">
+            <div className="mb-6 p-4 rounded-xl bg-(--error-light) border border-(--error)/20 animate-fade-in">
+              <p className="text-sm text-(--error) text-center">
                 {combinedError}
               </p>
             </div>
@@ -228,33 +225,33 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-[var(--text-secondary)]">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 Email or Username
               </label>
               <input
                 type="text"
                 placeholder="Enter your email or username"
                 {...register("identifier")}
-                className="w-full px-4 py-3 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] transition-all duration-200 focus:border-[var(--accent-primary)] focus:ring-2 focus:ring-[var(--accent-light)]"
+                className="w-full px-4 py-3 rounded-xl border border-(--border-primary) bg-(--bg-secondary) text-(--text-primary) placeholder:text-(--text-tertiary) transition-all duration-200 focus:border-(--accent-primary) focus:ring-2 focus:ring-(--accent-light)"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-[var(--text-secondary)]">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 Password
               </label>
               <input
                 type="password"
                 placeholder="Enter your password"
                 {...register("password")}
-                className="w-full px-4 py-3 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] transition-all duration-200 focus:border-[var(--accent-primary)] focus:ring-2 focus:ring-[var(--accent-light)]"
+                className="w-full px-4 py-3 rounded-xl border border-(--border-primary) bg-(--bg-secondary) text-(--text-primary) placeholder:text-(--text-tertiary) transition-all duration-200 focus:border-(--accent-primary) focus:ring-2 focus:ring-(--accent-light)"
               />
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting || isGoogleLoading}
-              className="w-full py-3 px-4 rounded-xl font-semibold text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              className="w-full py-3 px-4 rounded-xl font-semibold text-white bg-(--accent-primary) hover:bg-(--accent-hover) transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">
@@ -287,11 +284,11 @@ export default function LoginPage() {
 
           {/* Divider */}
           <div className="flex items-center my-6">
-            <div className="flex-1 h-px bg-[var(--border-primary)]" />
-            <span className="px-4 text-sm text-[var(--text-tertiary)]">
+            <div className="flex-1 h-px bg-(--border-primary)" />
+            <span className="px-4 text-sm text-(--text-tertiary)">
               or continue with
             </span>
-            <div className="flex-1 h-px bg-[var(--border-primary)]" />
+            <div className="flex-1 h-px bg-(--border-primary)" />
           </div>
 
           {/* Google Login */}
@@ -299,11 +296,11 @@ export default function LoginPage() {
             type="button"
             onClick={() => googleAuth()}
             disabled={isSubmitting || isGoogleLoading}
-            className="w-full py-3 px-4 rounded-xl font-medium border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+            className="w-full py-3 px-4 rounded-xl font-medium border border-(--border-primary) bg-(--bg-secondary) text-(--text-primary) hover:bg-(--bg-hover) transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
           >
             {isGoogleLoading ? (
               <svg
-                className="animate-spin h-5 w-5 text-[var(--text-secondary)]"
+                className="animate-spin h-5 w-5 text-(--text-secondary)"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -345,11 +342,11 @@ export default function LoginPage() {
           </button>
 
           {/* Sign up link */}
-          <p className="text-center mt-8 text-[var(--text-secondary)]">
+          <p className="text-center mt-8 text-(--text-secondary)">
             Don&apos;t have an account?{" "}
             <Link
               href="/auth/signup"
-              className="text-[var(--accent-primary)] font-semibold hover:underline"
+              className="text-(--accent-primary) font-semibold hover:underline"
             >
               Create one
             </Link>

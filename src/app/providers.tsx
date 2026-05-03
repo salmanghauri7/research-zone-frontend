@@ -8,6 +8,7 @@ import { WorkspaceProvider } from "@/contexts/SidebarContext";
 import { SocketProvider } from "@/contexts/SocketContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import StoreProvider from "@/contexts/StoreProvider";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string;
 
@@ -19,17 +20,19 @@ const Provider = memo(function Provider({
 }) {
   return (
     <ErrorBoundary>
-      <SocketProvider>
-        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-          <ThemeProvider>
-            <NotificationProvider>
-              <ModalProvider>
-                <WorkspaceProvider>{children}</WorkspaceProvider>
-              </ModalProvider>
-            </NotificationProvider>
-          </ThemeProvider>
-        </GoogleOAuthProvider>
-      </SocketProvider>
+      <StoreProvider>
+        <SocketProvider>
+          <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+            <ThemeProvider>
+              <NotificationProvider>
+                <ModalProvider>
+                  <WorkspaceProvider>{children}</WorkspaceProvider>
+                </ModalProvider>
+              </NotificationProvider>
+            </ThemeProvider>
+          </GoogleOAuthProvider>
+        </SocketProvider>
+      </StoreProvider>
     </ErrorBoundary>
   );
 });
