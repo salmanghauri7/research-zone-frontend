@@ -3,6 +3,8 @@
 import { ReactNode, memo, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
+import GlobalSocketListener from '@/components/chat/GlobalSocketListener';
+import { useSocket } from "@/contexts/SocketContext";
 
 // Dynamic imports for layout components - they're heavy with animations
 const Sidebar = dynamic(() => import("@/components/layout/sidebar/Sidebar"), {
@@ -26,6 +28,7 @@ const ProtectedLayout = memo(function ProtectedLayout({
   children: ReactNode;
 }) {
   const pathname = usePathname();
+  const { socket } = useSocket();
 
   // Memoize computed values
   const showSidebar = useMemo(() => pathname !== "/dashboard", [pathname]);
@@ -33,6 +36,9 @@ const ProtectedLayout = memo(function ProtectedLayout({
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-black overflow-hidden">
+      {/* Global Socket Listener - doesn't affect layout */}
+      <GlobalSocketListener socket={socket} />
+
       {/* Topbar stays fixed */}
       <Topbar />
 
@@ -40,7 +46,6 @@ const ProtectedLayout = memo(function ProtectedLayout({
       <div className="flex flex-1 pt-16 min-h-0">
         {/* Sidebar - hidden on dashboard route */}
         {showSidebar && <Sidebar />}
-
         {/* Main content */}
         <main
           className={`flex-1 min-h-0 ${isChatPage ? "overflow-hidden" : "overflow-auto p-6"}`}

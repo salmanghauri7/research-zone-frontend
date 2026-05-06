@@ -9,6 +9,7 @@ import {
   useRef,
 } from "react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { Message, User } from "@/components/chat";
 import { useUserStore } from "@/store/userStore";
 import { useWorkspaceStore } from "@/store/workspaceStore";
@@ -84,6 +85,10 @@ const transformBackendMessage = (
 };
 
 export default function ChatPage() {
+  // Get URL search params to check for messageId
+  const searchParams = useSearchParams();
+  const messageIdFromUrl = searchParams.get("messageId");
+  
   // Get user data from store
   const user = useUserStore((state) => state.user);
   const currentWorkspaceId = useWorkspaceStore(
@@ -319,6 +324,27 @@ export default function ChatPage() {
 
     fetchInitialMessages();
   }, [currentWorkspaceId]);
+
+  // Handle messageId from URL - scroll to and highlight message from notification
+  useEffect(() => {
+    // Only run if we have a messageId from URL, messages are loaded, and not currently loading
+    if (messageIdFromUrl && !isLoading && messages.length > 0) {
+      console.log('📍 Message ID from URL detected:', messageIdFromUrl);
+      
+      // Use a small delay to ensure DOM is fully rendered
+      const timer = setTimeout(() => {
+        handleMessageClick(messageIdFromUrl);
+        
+        // Optional: Clear the messageId from URL after scrolling (clean URL)
+        // This prevents re-scrolling on page refresh
+        const url = new URL(window.location.href);
+        url.searchParams.delete('messageId');
+        window.history.replaceState({}, '', url.toString());
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [messageIdFromUrl, isLoading, messages.length, handleMessageClick]);
 
   // Load more messages (pagination)
   const handleLoadMore = useCallback(async () => {
@@ -602,7 +628,7 @@ export default function ChatPage() {
               msg.id.startsWith("reply-") &&
               msg.content === messageData.content &&
               msg.sender.id ===
-                (messageData.sender._id || messageData.sender.id)
+              (messageData.sender._id || messageData.sender.id)
             ) {
               // Build real message, preserving localBlobUrls from optimistic message
               const realMessage: Message = {
@@ -671,7 +697,7 @@ export default function ChatPage() {
               msg.id.startsWith("msg-") &&
               msg.content === messageData.content &&
               msg.sender.id ===
-                (messageData.sender._id || messageData.sender.id)
+              (messageData.sender._id || messageData.sender.id)
             ) {
               // Build real message, preserving localBlobUrls from optimistic message
               const realMessage: Message = {
@@ -770,6 +796,40 @@ export default function ChatPage() {
     onMessageSent: handleMessageSent,
     onMessageDeleted: handleMessageDeleted,
   });
+
+  // Initialize workspace events hook - ONLY for chat room operations
+  // Note: Workspace joining is handled by the workspace layout, not here!
+  const { joinChatRoom, leaveChatRoom } = useWorkspaceEvents({
+    socket,
+    workspaceId: currentWorkspaceId || "",
+  });
+
+  // Join ONLY chat room when component mounts (workspace already joined by layout)
+  useEffect(() => {
+    if (!socket || !isConnected || !currentWorkspaceId) {
+      console.log("⚠️ Chat page: Cannot join chat room - missing socket/workspace");
+      return;
+    }
+
+    console.log("🎯 Chat page mounted - Joining CHAT ROOM only:", currentWorkspaceId);
+    console.log("📌 Workspace membership is handled by workspace layout");
+
+    // Small delay to ensure workspace is joined first
+    const timer = setTimeout(() => {
+      // Join the specific chat room (this marks user as "viewing chat")
+      joinChatRoom();
+      console.log("✅ Chat room join requested for:", currentWorkspaceId);
+    }, 100);
+
+    // Cleanup: leave ONLY chat room when component unmounts
+    // Important: DO NOT leave workspace - user should stay in workspace for notifications!
+    return () => {
+      clearTimeout(timer);
+      console.log("🚪 Chat page unmounting - Leaving CHAT ROOM ONLY (staying in workspace):", currentWorkspaceId);
+      leaveChatRoom();
+      console.log("✅ Should still be in workspace room for notifications");
+    };
+  }, [socket, isConnected, currentWorkspaceId, joinChatRoom, leaveChatRoom]);
 
   const handleSendMessage = useCallback(
     async (content: string, attachments?: File[], replyTo?: Message) => {
@@ -1106,9 +1166,9 @@ export default function ChatPage() {
               prev.map((msg) =>
                 msg.id === parentId
                   ? {
-                      ...msg,
-                      threadCount: Math.max((msg.threadCount || 1) - 1, 0),
-                    }
+                    ...msg,
+                    threadCount: Math.max((msg.threadCount || 1) - 1, 0),
+                  }
                   : msg,
               ),
             );

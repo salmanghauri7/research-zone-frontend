@@ -22,7 +22,7 @@ export default function WorkspaceIdLayout({
     useWorkspaceStore();
   const { socket, isConnected } = useSocket();
   const hasJoinedRef = useRef(false);
-  const { joinWorkspace } = useWorkspaceEvents({
+  const { joinWorkspace, leaveWorkspace } = useWorkspaceEvents({
     socket,
     workspaceId: workspaceId,
   });
@@ -64,14 +64,18 @@ export default function WorkspaceIdLayout({
 
   useEffect(() => {
     if (socket && isConnected && !hasJoinedRef.current) {
-      console.log("🚀 Joining workspace room:", workspaceId);
+      console.log("🚀 Workspace Layout: Joining workspace room:", workspaceId);
       joinWorkspace();
       hasJoinedRef.current = true;
     }
 
-    // Reset ref when workspace changes
+    // Reset ref and leave workspace when workspace changes or component unmounts
     return () => {
-      hasJoinedRef.current = false;
+      if (hasJoinedRef.current) {
+        console.log("🚪 Workspace Layout: Leaving workspace room:", workspaceId);
+        leaveWorkspace();
+        hasJoinedRef.current = false;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, isConnected, workspaceId]);
