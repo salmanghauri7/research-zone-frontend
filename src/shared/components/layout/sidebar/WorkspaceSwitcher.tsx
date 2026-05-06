@@ -148,38 +148,36 @@ export default function WorkspaceSwitcher({
                   key={activeTab}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="max-h-80 overflow-y-auto pr-1 space-y-2 custom-scrollbar"
+                  className="space-y-2"
                 >
                   {currentWorkspaces.map((workspace) => (
-                    <motion.div
+                    <button
                       key={workspace._id}
-                      whileHover={{ x: 2 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 25,
-                      }}
                       onClick={() => {
                         router.push(`/workspace/${workspace._id}`);
                         onClose();
                       }}
-                      className="group relative pl-4 pr-3 py-3 rounded-lg bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] cursor-pointer transition-all duration-200 border border-[var(--border-primary)] hover:border-[var(--accent-primary)]/30"
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-left transition-colors group"
                     >
-                      {/* Colored vertical line */}
                       <div
-                        className="absolute left-0 top-2 bottom-2 w-1 rounded-full transition-all duration-200 group-hover:w-1.5"
-                        style={{ backgroundColor: workspace.color }}
-                      />
-
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-sm text-[var(--text-primary)] truncate group-hover:text-[var(--accent-primary)] transition-colors">
-                            {workspace.title}
-                          </h3>
-                        </div>
+                        className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-white text-sm font-semibold shadow-sm"
+                        style={{
+                          background: `linear-gradient(135deg, ${workspace.color || "#3B82F6"} 0%, ${workspace.color || "#1E40AF"} 100%)`,
+                        }}
+                      >
+                        {workspace.title.charAt(0).toUpperCase()}
                       </div>
-                    </motion.div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--accent-primary)] transition-colors">
+                          {workspace.title}
+                        </p>
+                        <p className="text-xs text-[var(--text-tertiary)]">
+                          {workspace.isOwner ? "Owner" : "Member"}
+                        </p>
+                      </div>
+                    </button>
                   ))}
                 </motion.div>
               )}

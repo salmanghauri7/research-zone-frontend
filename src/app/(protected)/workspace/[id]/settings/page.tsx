@@ -6,7 +6,7 @@ import { ArrowLeft, LogOut, Trash2, AlertTriangle } from "lucide-react";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import workspaceApi from "@/api/workspaceApi";
 import Link from "next/link";
-import Toast, { ToastType } from "@/components/Toast";
+import Toast, { ToastType } from "@/shared/components/Toast";
 
 export default function WorkspaceSettingsPage() {
   const router = useRouter();

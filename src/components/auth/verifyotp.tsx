@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios"; // 👈 Import AxiosError
-import ResendTimer from "@/components/resendTimer";
+import ResendTimer from "@/shared/components/resendTimer";
 import userApi from "@/api/userApi";
 import { useUserStore } from "@/store/userStore";
 
@@ -77,7 +77,7 @@ export default function VerifyOTPPage() {
         getInvitationToken,
         getPendingWorkspaceId,
         clearInvitationData,
-      } = await import("@/utils/invitationStorage");
+      } = await import("@/utils/storage/invitationStorage");
 
       if (isInInvitationFlow()) {
         const invitationToken = getInvitationToken();

@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, memo, useCallback, lazy, Suspense } from "react";
 import { sidebarItems } from "./sidebarItems";
-import { logout } from "@/utils/logout";
+import { logout } from "@/utils/auth/logout";
 import { motion } from "framer-motion";
 import { useModal } from "@/contexts/ModalContext";
-import { getCurrentWorkspaceId } from "@/utils/invitationStorage";
+import { getCurrentWorkspaceId } from "@/utils/storage/invitationStorage";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import {
   PanelLeftClose,
@@ -203,8 +203,8 @@ const Sidebar = memo(function Sidebar() {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className={`p-2 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--error)] hover:bg-[var(--error-light)] transition-all ${
-              collapsed ? "mt-2" : ""
+            className={`p-1.5 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--error)] hover:bg-[var(--error-light)] transition-all shrink-0 ${
+              collapsed ? "" : "ml-auto"
             }`}
             title="Sign out"
           >

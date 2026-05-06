@@ -1,4 +1,4 @@
-import api from "@/utils/axios";
+import api from "@/utils/http/axios";
 
 // Types
 export interface PaperChatMessage {

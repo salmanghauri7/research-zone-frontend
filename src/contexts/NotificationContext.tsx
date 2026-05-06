@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback } from "react";
-import Toast, { ToastType } from "@/components/Toast";
+import Toast, { ToastType } from "@/shared/components/Toast";
 
 interface Notification {
   id: string;

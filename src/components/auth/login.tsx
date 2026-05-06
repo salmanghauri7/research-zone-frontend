@@ -53,7 +53,7 @@ export default function LoginPage() {
         getInvitationToken,
         getPendingWorkspaceId,
         clearInvitationData,
-      } = await import("@/utils/invitationStorage");
+      } = await import("@/utils/storage/invitationStorage");
 
       if (isInInvitationFlow()) {
         const invitationToken = getInvitationToken();
@@ -111,7 +111,7 @@ export default function LoginPage() {
         getInvitationToken,
         getPendingWorkspaceId,
         clearInvitationData,
-      } = await import("@/utils/invitationStorage");
+      } = await import("@/utils/storage/invitationStorage");
 
       if (isInInvitationFlow()) {
         const invitationToken = getInvitationToken();

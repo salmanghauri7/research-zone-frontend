@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, memo, useCallback, useMemo } from "react";
 import { Sun, Moon, Monitor, LogOut, Search, Bell } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { logout } from "@/utils/logout";
+import { logout } from "@/utils/auth/logout";
 
 type ThemeOption = "light" | "dark" | "system";
 

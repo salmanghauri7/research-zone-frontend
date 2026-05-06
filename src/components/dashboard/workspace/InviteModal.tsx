@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import workspaceApi from "@/api/workspaceApi";
-import Toast, { ToastType } from "@/components/Toast";
+import Toast, { ToastType } from "@/shared/components/Toast";
 import { X, Mail } from "lucide-react";
 
 interface InviteModalProps {
