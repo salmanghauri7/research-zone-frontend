@@ -1,12 +1,6 @@
-"use client"
-import SignupPage from "@/components/auth/signup";
+"use client";
+import SignupPage from "@/modules/auth/components/SignupPage";
 
-const page = () => {
-  return (
-    <div>
-      <SignupPage />
-    </div>
-  );
-};
+const page = () => <SignupPage />;
 
 export default page;
