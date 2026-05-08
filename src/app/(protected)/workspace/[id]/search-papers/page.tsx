@@ -1,9 +1,6 @@
 "use client";
-import PaperLibrary from "@/components/dashboard/papersLibrary";
+import SearchPapersPage from "@/modules/workspace/search-papers/components/SearchPapersPage";
 
 export default function page() {
-
-    return (
-        <PaperLibrary />
-    )
+  return <SearchPapersPage />;
 }
