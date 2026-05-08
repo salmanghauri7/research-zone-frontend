@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import Dashboard from "@/components/dashboard/dashboard";
+import DashboardPage from "@/modules/dashboard/components/DashboardPage";
 import DashboardLoading from "./loading";
 
 export default function page() {
   return (
     <Suspense fallback={<DashboardLoading />}>
-      <Dashboard />
+      <DashboardPage />
     </Suspense>
   );
 }
