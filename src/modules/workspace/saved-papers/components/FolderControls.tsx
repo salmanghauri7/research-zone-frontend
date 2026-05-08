@@ -2,6 +2,7 @@
 
 import { Grid3X3, List, SortAsc } from "lucide-react";
 import { SortOption, ViewMode } from "./types";
+import { Button } from "@/shared/components/ui";
 
 interface FolderControlsProps {
   sortBy: SortOption;
@@ -26,7 +27,7 @@ export default function FolderControls({
           <select
             value={sortBy}
             onChange={(e) => onSortChange(e.target.value as SortOption)}
-            className="bg-transparent text-[var(--accent-primary)] font-medium focus:outline-none cursor-pointer"
+            className="rounded-md border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2 text-[var(--accent-primary)] font-medium focus:outline-none cursor-pointer"
           >
             <option value="dateAdded">Date Added</option>
             <option value="dateModified">Date Modified</option>
@@ -37,8 +38,9 @@ export default function FolderControls({
 
       {/* View Mode Toggle */}
       <div className="flex items-center gap-1 p-1 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
-        <button
+        <Button
           onClick={() => onViewModeChange("grid")}
+          variant="ghost"
           className={`p-2 rounded-md transition-colors ${
             viewMode === "grid"
               ? "bg-[var(--bg-primary)] text-[var(--accent-primary)] shadow-sm"
@@ -47,9 +49,10 @@ export default function FolderControls({
           title="Grid view"
         >
           <Grid3X3 size={16} />
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => onViewModeChange("list")}
+          variant="ghost"
           className={`p-2 rounded-md transition-colors ${
             viewMode === "list"
               ? "bg-[var(--bg-primary)] text-[var(--accent-primary)] shadow-sm"
@@ -58,7 +61,7 @@ export default function FolderControls({
           title="List view"
         >
           <List size={16} />
-        </button>
+        </Button>
       </div>
     </div>
   );

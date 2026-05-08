@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, Loader2 } from "lucide-react";
+import { Button } from "@/shared/components/ui";
 
 interface ErrorStateProps {
   message: string;
@@ -19,12 +20,7 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
       <p className="text-sm text-[var(--text-secondary)] text-center mb-4">
         {message}
       </p>
-      <button
-        onClick={onRetry}
-        className="px-4 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-medium text-sm hover:bg-[var(--accent-hover)] transition-colors"
-      >
-        Try Again
-      </button>
+      <Button onClick={onRetry}>Try Again</Button>
     </div>
   );
 }

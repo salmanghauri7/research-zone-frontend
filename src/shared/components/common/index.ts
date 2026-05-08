@@ -1,7 +1,5 @@
-// Common Components (domain-specific components)
-// Import and export all common components here as needed
-
-// Example:
-// export { ConfirmDialog } from "./ConfirmDialog";
-// export { SearchBar } from "./SearchBar";
-// export { UserAvatar } from "./UserAvatar";
+export { default as CreateWorkspaceModal } from "./CreateWorkspaceModal";
+export { default as ErrorBoundary } from "./ErrorBoundary";
+export { default as Loading, Loader } from "./loading";
+export { default as NextProgress } from "./NextProgress";
+export { default as ResendTimer } from "./resendTimer";

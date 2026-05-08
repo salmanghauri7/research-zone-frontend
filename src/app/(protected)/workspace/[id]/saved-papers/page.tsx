@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { SavedPapersContent } from "@/components/saved-papers";
+import { SavedPapersContent } from "@/modules/workspace/saved-papers";
 
 export default function SavedPapersPage() {
   const params = useParams();

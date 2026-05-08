@@ -3,8 +3,8 @@ import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Provider from "./providers";
-import NextProgress from "@/shared/components/NextProgress";
-import CreateWorkspaceModal from "@/shared/components/CreateWorkspaceModal";
+import { NextProgress, CreateWorkspaceModal } from "@/shared/components/common";
+import { Toaster } from "@/shared/components/ui";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -37,6 +37,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <NextProgress />
+        <Toaster />
         <Analytics />
         <Provider>
           {children}

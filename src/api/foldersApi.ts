@@ -3,7 +3,7 @@ import {
   FolderItem,
   BreadcrumbItem,
   Folder,
-} from "@/components/saved-papers/types";
+} from "@/modules/workspace/saved-papers/types";
 
 export const folderApi = {
   getFolderContents: async (

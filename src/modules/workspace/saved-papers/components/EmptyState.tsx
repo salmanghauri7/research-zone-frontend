@@ -1,6 +1,7 @@
 "use client";
 
 import { FolderPlus, FolderOpen } from "lucide-react";
+import { Button } from "@/shared/components/ui";
 
 interface EmptyStateProps {
   onCreateFolder: () => void;
@@ -19,13 +20,10 @@ export default function EmptyState({ onCreateFolder }: EmptyStateProps) {
         Create folders to organize your saved research papers. You can nest
         folders to build a hierarchical structure.
       </p>
-      <button
-        onClick={onCreateFolder}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-medium text-sm hover:bg-[var(--accent-hover)] transition-colors"
-      >
+      <Button onClick={onCreateFolder} className="flex items-center gap-2">
         <FolderPlus size={18} />
         Create Your First Folder
-      </button>
+      </Button>
     </div>
   );
 }

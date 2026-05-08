@@ -1,7 +1,8 @@
-"use client";
-
 import { useState, useEffect, useCallback, useRef } from "react";
+import { AxiosError } from "axios";
 import { useNotification } from "@/contexts/NotificationContext";
+import { folderApi } from "@/api/foldersApi";
+import { deletePaper } from "@/api/papersApi";
 import {
   FolderItem,
   Folder,
@@ -9,29 +10,51 @@ import {
   BreadcrumbItem,
   SortOption,
   ViewMode,
-} from "./types";
-import { folderApi } from "@/api/foldersApi";
-import { deletePaper } from "@/api/papersApi";
-import { AxiosError } from "axios";
-import FolderBreadcrumb from "./FolderBreadcrumb";
-import FolderHeader from "./FolderHeader";
-import FolderControls from "./FolderControls";
-import FolderList from "./FolderList";
-import EmptyState from "./EmptyState";
-import { ErrorState, LoadingState } from "./FolderStates";
-import FolderModal from "./FolderModal";
-import DeleteFolderModal from "./DeleteFolderModal";
+} from "../components/types";
 
-interface SavedPapersContentProps {
-  workspaceId: string;
+interface UseSavedPapersResult {
+  items: FolderItem[];
+  currentFolderId: string | null;
+  breadcrumbs: BreadcrumbItem[];
+  isLoading: boolean;
+  error: string | null;
+  viewMode: ViewMode;
+  sortBy: SortOption;
+  currentFolderName: string;
+  folderCount: number;
+  paperCount: number;
+  isCreateModalOpen: boolean;
+  isEditModalOpen: boolean;
+  isDeleteModalOpen: boolean;
+  isDeletePaperModalOpen: boolean;
+  selectedFolder: Folder | null;
+  selectedPaper: Paper | null;
+  isSubmitting: boolean;
+  sortedItems: FolderItem[];
+  setIsCreateModalOpen: (open: boolean) => void;
+  setIsEditModalOpen: (open: boolean) => void;
+  setIsDeleteModalOpen: (open: boolean) => void;
+  setIsDeletePaperModalOpen: (open: boolean) => void;
+  setViewMode: (mode: ViewMode) => void;
+  setSortBy: (sort: SortOption) => void;
+  setSelectedFolder: (folder: Folder | null) => void;
+  setSelectedPaper: (paper: Paper | null) => void;
+  handleCreateFolder: (name: string) => Promise<void>;
+  handleEditFolder: (name: string) => Promise<void>;
+  handleDeleteFolder: () => Promise<void>;
+  handleDeletePaper: () => Promise<void>;
+  handleNavigateToFolder: (folder: Folder) => void;
+  handleBreadcrumbClick: (item: BreadcrumbItem) => void;
+  openEditModal: (folder: Folder) => void;
+  openDeleteModal: (folder: Folder) => void;
+  openDeletePaperModal: (paper: Paper) => void;
+  fetchFolderContents: () => Promise<void>;
 }
 
-export default function SavedPapersContent({
-  workspaceId,
-}: SavedPapersContentProps) {
+export default function useSavedPapers(
+  workspaceId: string,
+): UseSavedPapersResult {
   const { showSuccess, showError } = useNotification();
-
-  // State
   const [items, setItems] = useState<FolderItem[]>([]);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
@@ -39,11 +62,8 @@ export default function SavedPapersContent({
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [sortBy, setSortBy] = useState<SortOption>("dateAdded");
-
-  // Cache for folder contents - key is folderId (or 'root' for null)
   const cacheRef = useRef<Map<string, FolderItem[]>>(new Map());
 
-  // Modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -52,28 +72,27 @@ export default function SavedPapersContent({
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch folder contents with caching
+  const invalidateCache = useCallback((folderId: string | null) => {
+    const cacheKey = folderId || "root";
+    cacheRef.current.delete(cacheKey);
+  }, []);
+
   const fetchFolderContents = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
       const cacheKey = currentFolderId || "root";
-
-      // Check cache first
       if (cacheRef.current.has(cacheKey)) {
         setItems(cacheRef.current.get(cacheKey)!);
         setIsLoading(false);
         return;
       }
 
-      // Fetch from API
       const data = await folderApi.getFolderContents(
         workspaceId,
         currentFolderId,
       );
-
-      // Update cache and state
       cacheRef.current.set(cacheKey, data);
       setItems(data);
     } catch (err) {
@@ -84,13 +103,6 @@ export default function SavedPapersContent({
     }
   }, [workspaceId, currentFolderId]);
 
-  // Invalidate cache for a specific folder
-  const invalidateCache = useCallback((folderId: string | null) => {
-    const cacheKey = folderId || "root";
-    cacheRef.current.delete(cacheKey);
-  }, []);
-
-  // Fetch breadcrumb path
   const fetchBreadcrumbs = useCallback(async () => {
     if (!currentFolderId) {
       setBreadcrumbs([]);
@@ -110,18 +122,16 @@ export default function SavedPapersContent({
     fetchBreadcrumbs();
   }, [fetchFolderContents, fetchBreadcrumbs]);
 
-  // Sort items (folders first, then papers)
   const sortedItems = [...items].sort((a, b) => {
-    // Folders always come before papers
     if (a.itemType === "folder" && b.itemType === "paper") return -1;
     if (a.itemType === "paper" && b.itemType === "folder") return 1;
 
-    // Sort within the same type
     switch (sortBy) {
-      case "name":
+      case "name": {
         const nameA = a.itemType === "folder" ? a.name : a.title;
         const nameB = b.itemType === "folder" ? b.name : b.title;
         return nameA.localeCompare(nameB);
+      }
       case "dateModified":
         return (
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
@@ -134,7 +144,6 @@ export default function SavedPapersContent({
     }
   });
 
-  // Handlers
   const handleCreateFolder = async (name: string) => {
     try {
       setIsSubmitting(true);
@@ -143,8 +152,6 @@ export default function SavedPapersContent({
         name,
         currentFolderId,
       );
-
-      // Invalidate cache and add to current view
       invalidateCache(currentFolderId);
       setItems((prev) => [newFolder, ...prev]);
       setIsCreateModalOpen(false);
@@ -170,8 +177,6 @@ export default function SavedPapersContent({
         selectedFolder._id,
         name,
       );
-
-      // Invalidate cache and update current view
       invalidateCache(currentFolderId);
       setItems((prev) =>
         prev.map((item) =>
@@ -182,7 +187,7 @@ export default function SavedPapersContent({
       );
       setIsEditModalOpen(false);
       setSelectedFolder(null);
-      showSuccess(`Folder renamed successfully`);
+      showSuccess("Folder renamed successfully");
     } catch (err) {
       console.error("Error updating folder:", err);
       showError("Failed to update folder. Please try again.");
@@ -197,15 +202,13 @@ export default function SavedPapersContent({
     try {
       setIsSubmitting(true);
       await folderApi.deleteFolder(selectedFolder._id);
-
-      // Invalidate cache and remove from current view
       invalidateCache(currentFolderId);
       setItems((prev) =>
         prev.filter((item) => item._id !== selectedFolder._id),
       );
       setIsDeleteModalOpen(false);
       setSelectedFolder(null);
-      showSuccess(`Folder deleted successfully`);
+      showSuccess("Folder deleted successfully");
     } catch (err) {
       console.error("Error deleting folder:", err);
       showError("Failed to delete folder. Please try again.");
@@ -243,13 +246,11 @@ export default function SavedPapersContent({
     try {
       setIsSubmitting(true);
       await deletePaper(selectedPaper._id);
-
-      // Invalidate cache and remove from current view
       invalidateCache(currentFolderId);
       setItems((prev) => prev.filter((item) => item._id !== selectedPaper._id));
       setIsDeletePaperModalOpen(false);
       setSelectedPaper(null);
-      showSuccess(`Paper deleted successfully`);
+      showSuccess("Paper deleted successfully");
     } catch (err) {
       console.error("Error deleting paper:", err);
       showError("Failed to delete paper. Please try again.");
@@ -258,109 +259,47 @@ export default function SavedPapersContent({
     }
   };
 
-  // Get current folder name for header
   const currentFolderName =
     breadcrumbs[breadcrumbs.length - 1]?.name || "Saved Papers";
-
-  // Get counts for header
   const folderCount = items.filter((item) => item.itemType === "folder").length;
   const paperCount = items.filter((item) => item.itemType === "paper").length;
 
-  // Render content based on state
-  const renderContent = () => {
-    if (isLoading) {
-      return <LoadingState />;
-    }
-
-    if (error) {
-      return <ErrorState message={error} onRetry={fetchFolderContents} />;
-    }
-
-    if (sortedItems.length === 0) {
-      return <EmptyState onCreateFolder={() => setIsCreateModalOpen(true)} />;
-    }
-
-    return (
-      <FolderList
-        items={sortedItems}
-        viewMode={viewMode}
-        onNavigate={handleNavigateToFolder}
-        onEdit={openEditModal}
-        onDelete={openDeleteModal}
-        onDeletePaper={openDeletePaperModal}
-      />
-    );
+  return {
+    items,
+    currentFolderId,
+    breadcrumbs,
+    isLoading,
+    error,
+    viewMode,
+    sortBy,
+    currentFolderName,
+    folderCount,
+    paperCount,
+    isCreateModalOpen,
+    isEditModalOpen,
+    isDeleteModalOpen,
+    isDeletePaperModalOpen,
+    selectedFolder,
+    selectedPaper,
+    isSubmitting,
+    sortedItems,
+    setIsCreateModalOpen,
+    setIsEditModalOpen,
+    setIsDeleteModalOpen,
+    setIsDeletePaperModalOpen,
+    setSelectedFolder,
+    setSelectedPaper,
+    setViewMode,
+    setSortBy,
+    handleCreateFolder,
+    handleEditFolder,
+    handleDeleteFolder,
+    handleDeletePaper,
+    handleNavigateToFolder,
+    handleBreadcrumbClick,
+    openEditModal,
+    openDeleteModal,
+    openDeletePaperModal,
+    fetchFolderContents,
   };
-
-  return (
-    <div className="space-y-4">
-      {/* Breadcrumb Navigation */}
-      <FolderBreadcrumb
-        items={breadcrumbs}
-        onNavigate={handleBreadcrumbClick}
-      />
-
-      {/* Header */}
-      <FolderHeader
-        title={currentFolderName}
-        folderCount={folderCount}
-        paperCount={paperCount}
-        onCreateFolder={() => setIsCreateModalOpen(true)}
-      />
-
-      {/* Controls Bar */}
-      <FolderControls
-        sortBy={sortBy}
-        viewMode={viewMode}
-        onSortChange={setSortBy}
-        onViewModeChange={setViewMode}
-      />
-
-      {/* Content */}
-      {renderContent()}
-
-      {/* Modals */}
-      <FolderModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreateFolder}
-        isSubmitting={isSubmitting}
-        mode="create"
-      />
-
-      <FolderModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedFolder(null);
-        }}
-        onSubmit={handleEditFolder}
-        isSubmitting={isSubmitting}
-        mode="edit"
-        initialName={selectedFolder?.name || ""}
-      />
-
-      <DeleteFolderModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setSelectedFolder(null);
-        }}
-        onConfirm={handleDeleteFolder}
-        isDeleting={isSubmitting}
-        folderName={selectedFolder?.name || ""}
-      />
-
-      <DeleteFolderModal
-        isOpen={isDeletePaperModalOpen}
-        onClose={() => {
-          setIsDeletePaperModalOpen(false);
-          setSelectedPaper(null);
-        }}
-        onConfirm={handleDeletePaper}
-        isDeleting={isSubmitting}
-        folderName={selectedPaper?.title || ""}
-      />
-    </div>
-  );
 }

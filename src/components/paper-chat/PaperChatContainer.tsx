@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Paper } from "@/components/saved-papers/types";
+import { Paper } from "@/modules/workspace/saved-papers/types";
 import { ChatMessage } from "./types";
 import { paperChatApi } from "@/api/paperChatApi";
 import { useNotification } from "@/contexts/NotificationContext";

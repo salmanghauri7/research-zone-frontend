@@ -9,6 +9,7 @@ import {
   Calendar,
   User,
 } from "lucide-react";
+import { Button } from "@/shared/components/ui";
 import { Paper, ViewMode } from "./types";
 import FolderContextMenu from "./FolderContextMenu";
 
@@ -79,12 +80,13 @@ export default function PaperItem({
         >
           {/* More Button */}
           {(onEdit || onDelete) && (
-            <button
+            <Button
               onClick={handleMoreClick}
-              className="absolute top-2 right-2 p-1 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] opacity-0 group-hover:opacity-100 transition-all"
+              variant="ghost"
+              className="absolute top-2 right-2 p-1 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] opacity-0 group-hover:opacity-100 transition-all h-8 w-8"
             >
               <MoreVertical size={14} />
-            </button>
+            </Button>
           )}
 
           {/* Paper Icon */}
@@ -164,21 +166,23 @@ export default function PaperItem({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-1 shrink-0">
-          <button
+          <Button
             onClick={handleOpenLink}
-            className="p-2 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--accent-primary)] hover:bg-[var(--bg-hover)] transition-all"
+            variant="ghost"
+            className="p-2 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--accent-primary)] transition-all h-9 w-9"
             title="Open paper"
           >
             <ExternalLink size={16} />
-          </button>
+          </Button>
 
           {(onEdit || onDelete) && (
-            <button
+            <Button
               onClick={handleMoreClick}
-              className="p-2 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] opacity-0 group-hover:opacity-100 transition-all"
+              variant="ghost"
+              className="p-2 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-primary)] opacity-0 group-hover:opacity-100 transition-all h-9 w-9"
             >
               <MoreVertical size={16} />
-            </button>
+            </Button>
           )}
         </div>
       </motion.div>

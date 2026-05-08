@@ -26,6 +26,18 @@ export type {
 } from "./Card";
 
 export {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  BreadcrumbEllipsis,
+} from "./breadcrumb";
+
+export { Toaster, toast } from "@/components/ui/sonner";
+
+export {
   Form,
   FormField,
   FormItem,

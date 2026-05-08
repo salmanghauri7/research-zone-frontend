@@ -1,6 +1,7 @@
 "use client";
 
 import { FolderPlus } from "lucide-react";
+import { Button } from "@/shared/components/ui";
 
 interface FolderHeaderProps {
   title: string;
@@ -39,13 +40,14 @@ export default function FolderHeader({
       </div>
 
       <div className="flex items-center gap-3">
-        <button
+        <Button
           onClick={onCreateFolder}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] font-medium text-sm hover:bg-[var(--bg-hover)] hover:border-[var(--accent-primary)]/30 transition-all"
+          variant="outline"
+          className="flex items-center gap-2"
         >
           <FolderPlus size={16} className="text-[var(--accent-primary)]" />
           Create Folder
-        </button>
+        </Button>
       </div>
     </div>
   );

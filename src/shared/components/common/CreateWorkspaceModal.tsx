@@ -4,7 +4,14 @@ import { useModal } from "@/contexts/ModalContext";
 import { useForm } from "react-hook-form";
 import workspaceApi from "@/api/workspaceApi";
 import { useRouter } from "next/navigation";
-import { X, FolderPlus, Info } from "lucide-react";
+import { FolderPlus, Info, X } from "lucide-react";
+import {
+  Button,
+  Card,
+  CardContent,
+  Input,
+  Label,
+} from "@/shared/components/ui";
 
 type CreateWorkspaceFormData = {
   title: string;
@@ -39,15 +46,14 @@ export default function CreateWorkspaceModal() {
       aria-modal="true"
       onClick={closeModal}
     >
-      <div
-        className="w-full max-w-md rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-primary)] shadow-2xl overflow-hidden"
+      <Card
+        className="w-full max-w-md overflow-hidden border border-[var(--border-primary)] bg-[var(--bg-primary)] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <form onSubmit={handleSubmit(createWorkspace)}>
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--border-primary)]">
+          <div className="flex items-center justify-between border-b border-[var(--border-primary)] px-6 py-5">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-[var(--accent-primary)]/10">
+              <div className="rounded-xl bg-[var(--accent-primary)]/10 p-2">
                 <FolderPlus
                   size={20}
                   className="text-[var(--accent-primary)]"
@@ -62,27 +68,32 @@ export default function CreateWorkspaceModal() {
                 </p>
               </div>
             </div>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               onClick={closeModal}
-              className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
+              className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             >
               <X size={18} />
-            </button>
+            </Button>
           </div>
 
-          {/* Body */}
-          <div className="px-6 py-5 space-y-5">
+          <CardContent className="space-y-5 px-6 py-5">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-[var(--text-secondary)]">
+              <Label
+                htmlFor="workspace-title"
+                className="text-[var(--text-secondary)]"
+              >
                 Workspace Name
-              </label>
-              <input
+              </Label>
+              <Input
+                id="workspace-title"
                 type="text"
                 placeholder="e.g. AI Research Group"
-                className="w-full rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-4 py-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/30 focus:border-[var(--accent-primary)] transition-colors"
                 autoFocus
                 disabled={isSubmitting}
+                className="bg-[var(--bg-secondary)]"
                 {...register("title", {
                   required: "Title is required",
                 })}
@@ -92,13 +103,12 @@ export default function CreateWorkspaceModal() {
               )}
             </div>
 
-            {/* Info Box */}
             <div className="flex gap-3 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-4 py-3">
               <Info
                 size={16}
-                className="text-[var(--accent-primary)] shrink-0 mt-0.5"
+                className="mt-0.5 shrink-0 text-[var(--accent-primary)]"
               />
-              <div className="text-xs text-[var(--text-muted)] leading-relaxed">
+              <div className="text-xs leading-relaxed text-[var(--text-muted)]">
                 <p>
                   Workspaces keep research, discussions, and files together.
                 </p>
@@ -107,28 +117,27 @@ export default function CreateWorkspaceModal() {
                 </p>
               </div>
             </div>
-          </div>
+          </CardContent>
 
-          {/* Footer */}
-          <div className="flex justify-end gap-3 px-6 py-4 border-t border-[var(--border-primary)] bg-[var(--bg-secondary)]">
-            <button
+          <div className="flex justify-end gap-3 border-t border-[var(--border-primary)] bg-[var(--bg-secondary)] px-6 py-4">
+            <Button
               type="button"
+              variant="outline"
               onClick={closeModal}
-              className="px-4 py-2.5 text-sm font-medium rounded-xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors"
               disabled={isSubmitting}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-5 py-2.5 text-sm font-semibold rounded-xl bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-secondary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSubmitting}
+              className="bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-secondary)]"
             >
               {isSubmitting ? "Creating..." : "Create Workspace"}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

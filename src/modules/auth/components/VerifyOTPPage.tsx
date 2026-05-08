@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2 } from "lucide-react";
-import ResendTimer from "@/shared/components/resendTimer";
+import { ResendTimer } from "@/shared/components/common";
 import useVerifyOTPForm from "@/modules/auth/hooks/useVerifyOTPForm";
 import { Button, Card, CardContent, Input } from "@/shared/components/ui";
 
