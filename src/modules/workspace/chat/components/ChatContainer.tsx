@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Message, User } from "./types";
+import { Loader2 } from "lucide-react";
+import { Message, User } from "../types";
 import ChatMessage from "./ChatMessage";
 import MessageInput from "./MessageInput";
 import ThreadPanel from "./ThreadPanel";
 import { getTypingText } from "./typingHelper";
 import { useSocket } from "@/contexts/SocketContext";
-import { useChatEvents } from "@/hooks/websocket/useChatEvents";
+import { useChatEvents } from "../hooks/useChatEvents";
+import { Button } from "@/components/ui/button";
 
 interface ChatContainerProps {
   messages: Message[];
   currentUser: User;
-  channelName?: string;
   onSendMessage: (
     content: string,
     attachments?: File[],
@@ -30,12 +31,14 @@ interface ChatContainerProps {
   workspaceId?: string;
   isUploadingAttachments?: boolean;
   highlightedMessageId?: string | null;
+  hasMoreMessages?: boolean;
+  isLoadingMoreMessages?: boolean;
+  onLoadMoreMessages?: () => Promise<void> | void;
 }
 
 export default function ChatContainer({
   messages,
   currentUser,
-  channelName = "General",
   onSendMessage,
   onEditMessage,
   onDeleteMessage,
@@ -44,13 +47,18 @@ export default function ChatContainer({
   workspaceId,
   isUploadingAttachments = false,
   highlightedMessageId = null,
+  hasMoreMessages = false,
+  isLoadingMoreMessages = false,
+  onLoadMoreMessages,
 }: ChatContainerProps) {
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [activeThread, setActiveThread] = useState<Message | null>(null);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [isLoadingOlderMessages, setIsLoadingOlderMessages] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  console.log(messages, "these are messages");
 
   // Get socket connection
   const { socket } = useSocket();
@@ -71,8 +79,12 @@ export default function ChatContainer({
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
+    if (isLoadingOlderMessages) {
+      return;
+    }
+
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isLoadingOlderMessages]);
 
   // THE KILL SWITCH: Remove sender from typingUsers when new message arrives
   // This ensures instant hiding of typing indicator when message is sent
@@ -83,12 +95,14 @@ export default function ChatContainer({
     const latestMessage = messages[messages.length - 1];
     const senderName = latestMessage.sender.name;
 
-    // If this sender was typing, remove them immediately
-    setTypingUsers((prev) => {
-      if (prev.includes(senderName)) {
-        return prev.filter((name) => name !== senderName);
-      }
-      return prev;
+    // If this sender was typing, remove them on the next microtask
+    queueMicrotask(() => {
+      setTypingUsers((prev) => {
+        if (prev.includes(senderName)) {
+          return prev.filter((name) => name !== senderName);
+        }
+        return prev;
+      });
     });
   }, [messages]);
 
@@ -122,6 +136,20 @@ export default function ChatContainer({
     setActiveThread(message);
   };
 
+  const handleLoadOlderMessages = async () => {
+    if (!onLoadMoreMessages || isLoadingMoreMessages || !hasMoreMessages) {
+      return;
+    }
+
+    setIsLoadingOlderMessages(true);
+
+    try {
+      await onLoadMoreMessages();
+    } finally {
+      setIsLoadingOlderMessages(false);
+    }
+  };
+
   const handleCloseThread = () => {
     setActiveThread(null);
   };
@@ -131,7 +159,7 @@ export default function ChatContainer({
     attachments?: File[],
     replyTo?: Message,
   ) => {
-    if (activeThread) {
+    if (activeThread?.id) {
       onSendThreadReply(activeThread.id, content, attachments, replyTo);
     }
   };
@@ -147,7 +175,6 @@ export default function ChatContainer({
           activeThread ? "hidden lg:flex" : "flex"
         }`}
       >
-        {/* Messages Area */}
         <div
           ref={messagesContainerRef}
           className="flex-1 min-h-0 overflow-y-auto custom-scrollbar"
@@ -156,6 +183,28 @@ export default function ChatContainer({
             <EmptyState />
           ) : (
             <div className="py-4">
+              {hasMoreMessages && onLoadMoreMessages && (
+                <div className="flex justify-center px-6 pb-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLoadOlderMessages}
+                    disabled={isLoadingMoreMessages || isLoadingOlderMessages}
+                    className="gap-2 rounded-full border-stone-200 bg-white/90 text-stone-700 shadow-sm hover:bg-stone-50 dark:border-white/10 dark:bg-stone-950/80 dark:text-white/80 dark:hover:bg-white/5"
+                  >
+                    {isLoadingMoreMessages || isLoadingOlderMessages ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        Loading older messages
+                      </>
+                    ) : (
+                      "Load older messages"
+                    )}
+                  </Button>
+                </div>
+              )}
+
               {Object.entries(groupedMessages).map(([date, msgs]) => (
                 <div key={date}>
                   {/* Date Separator */}
@@ -168,9 +217,9 @@ export default function ChatContainer({
                   </div>
 
                   {/* Messages */}
-                  {msgs.map((message) => (
+                  {msgs.map((message, index) => (
                     <ChatMessage
-                      key={message.id}
+                      key={message.clientId || message.id || `message-${index}`}
                       message={message}
                       isOwn={message.sender.id === currentUser.id}
                       onReply={handleReply}
@@ -205,7 +254,7 @@ export default function ChatContainer({
       {/* Thread Panel */}
       <ThreadPanel
         parentMessage={activeThread}
-        replies={activeThread ? threadReplies[activeThread.id] || [] : []}
+        replies={activeThread?.id ? threadReplies[activeThread.id] || [] : []}
         isOpen={!!activeThread}
         onClose={handleCloseThread}
         onSendReply={handleSendThreadReply}

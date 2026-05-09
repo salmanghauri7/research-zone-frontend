@@ -3,7 +3,11 @@
 import { useEffect, useCallback, useRef } from "react";
 import { Socket } from "socket.io-client";
 import { useNotification } from "@/contexts/NotificationContext";
-import { SendMessagePayload, MessageData, AttachmentPayload } from "./types";
+import {
+  SendMessagePayload,
+  MessageData,
+  AttachmentPayload,
+} from "@/hooks/websocket/types";
 
 interface UseChatEventsProps {
   socket: Socket | null;
@@ -28,16 +32,12 @@ export const useChatEvents = ({
   const isTypingRef = useRef(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle new message
   useEffect(() => {
     if (!socket) return;
-
     const handleNewMessage = (data: MessageData) => {
       console.log("💬 New message received in useChatEvents:", data);
-      console.log("🔍 Socket ID:", socket.id);
       onMessageReceived?.(data);
     };
-
     socket.on("new-message", handleNewMessage);
     return () => {
       socket.off("new-message", handleNewMessage);
@@ -49,7 +49,6 @@ export const useChatEvents = ({
     if (!socket) return;
 
     const handleMessageSent = (data: MessageData) => {
-      console.log("✅ Message sent confirmation received:", data);
       onMessageSent?.(data);
     };
 
@@ -117,12 +116,14 @@ export const useChatEvents = ({
       attachments,
       parentMessageId,
       quotedMessageId,
+      clientId,
     }: {
       content: string;
       messageType?: "text" | "file" | "image";
       attachments?: AttachmentPayload[];
       parentMessageId?: string;
       quotedMessageId?: string;
+      clientId?: string;
     }) => {
       if (!socket) {
         showError("Not connected to chat");
@@ -142,6 +143,7 @@ export const useChatEvents = ({
         ...(attachments && attachments.length > 0 && { attachments }),
         ...(parentMessageId && { parentMessageId }),
         ...(quotedMessageId && { quotedMessageId }),
+        ...(clientId && { clientId }),
       };
 
       console.log("📤 Sending message:", payload);

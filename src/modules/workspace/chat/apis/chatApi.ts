@@ -1,6 +1,5 @@
 import api from "@/utils/http/axios";
 
-// Types for API requests and responses
 export interface FetchMessagesParams {
   workspaceId: string;
   limit?: number;
@@ -13,7 +12,6 @@ export interface BackendMessage {
   sender: {
     _id: string;
     firstName: string;
-    lastName?: string;
     avatar?: string;
   };
   parentMessageId?: string | null;
@@ -35,6 +33,7 @@ export interface BackendMessage {
   }>;
   createdAt: string;
   updatedAt: string;
+  clientId?: string;
 }
 
 export interface FetchMessagesResponse {
@@ -65,14 +64,7 @@ export interface SearchMessagesResponse {
   hasMore: boolean;
 }
 
-/**
- * Chat API Module
- * Centralized API calls for all chat-related endpoints
- */
 class ChatApi {
-  /**
-   * Fetch messages for a workspace with pagination support
-   */
   async fetchMessages({
     workspaceId,
     limit = 50,
@@ -92,9 +84,7 @@ class ChatApi {
       statusCode: number;
       data: FetchMessagesResponse;
     }>(`/chat/workspace/${workspaceId}/messages?${params.toString()}`);
-    console.log(response, "response from message api");
 
-    // Ensure we always return a valid structure even if backend response is incomplete
     const data = response.data.data;
     return {
       messages: data?.messages || [],
@@ -103,9 +93,6 @@ class ChatApi {
     };
   }
 
-  /**
-   * Upload attachments to S3 and get URLs back
-   */
   async uploadAttachments(
     workspaceId: string,
     files: File[],
@@ -131,20 +118,13 @@ class ChatApi {
       },
     });
 
-    console.log("Upload response:", response.data);
-
-    // Validate response structure
     if (!response.data?.data?.attachments) {
-      console.error("Invalid upload response structure:", response.data);
       throw new Error("Invalid response from upload API");
     }
 
     return response.data.data.attachments;
   }
 
-  /**
-   * Search messages in a workspace
-   */
   async searchMessages({
     workspaceId,
     query,
@@ -163,9 +143,6 @@ class ChatApi {
       ...(cursor && { cursor }),
     });
 
-    console.log("Search response:", response.data);
-
-    // Ensure we always return a valid structure
     const data = response.data.data;
     return {
       results: data?.results || [],
@@ -175,5 +152,4 @@ class ChatApi {
   }
 }
 
-// Export singleton instance
 export const chatApi = new ChatApi();

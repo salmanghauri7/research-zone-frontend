@@ -293,8 +293,11 @@ export default function ChatMessages({
       className="flex-1 overflow-y-auto custom-scrollbar py-4"
     >
       <AnimatePresence mode="popLayout">
-        {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} />
+        {messages.map((msg, index) => (
+          <MessageBubble
+            key={msg.clientId || msg.id || `paper-msg-${index}`}
+            message={msg}
+          />
         ))}
       </AnimatePresence>
 

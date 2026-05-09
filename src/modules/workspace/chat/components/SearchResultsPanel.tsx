@@ -1,8 +1,11 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Message } from "./types";
+import { Message } from "../types";
 import ChatMessage from "./ChatMessage";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { X, Loader2, Search, MessageSquare } from "lucide-react";
 
 interface SearchResultsPanelProps {
   isOpen: boolean;
@@ -65,29 +68,22 @@ export default function SearchResultsPanel({
                   </div>
                 )}
               </div>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={onClose}
-                className="p-2 rounded-lg transition-colors hover:bg-stone-100 text-stone-500 hover:text-stone-700 dark:hover:bg-white/5 dark:text-white/50 dark:hover:text-white ml-2 shrink-0"
+                className="h-8 w-8 ml-2 shrink-0"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+                <X className="w-5 h-5" />
+              </Button>
             </div>
 
             {/* Sort/Filter Bar */}
             <div className="px-4 py-3 border-b border-stone-200 dark:border-white/6 bg-stone-50 dark:bg-stone-900/50">
-              <button className="flex items-center gap-2 text-sm text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white transition-colors">
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2 text-sm h-auto p-0"
+              >
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -115,14 +111,14 @@ export default function SearchResultsPanel({
                     d="M19 9l-7 7-7-7"
                   />
                 </svg>
-              </button>
+              </Button>
             </div>
 
             {/* Results */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <ScrollArea className="flex-1">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-12 px-4">
-                  <div className="w-8 h-8 border-4 border-stone-200 border-t-teal-500 dark:border-stone-700 dark:border-t-teal-400 rounded-full animate-spin" />
+                  <Loader2 className="w-8 h-8 text-teal-500 dark:text-teal-400 animate-spin" />
                   <p className="mt-4 text-sm text-stone-500 dark:text-white/40">
                     Searching...
                   </p>
@@ -130,19 +126,7 @@ export default function SearchResultsPanel({
               ) : results.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 px-4">
                   <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 bg-stone-100 dark:bg-white/4">
-                    <svg
-                      className="w-7 h-7 text-stone-400 dark:text-white/25"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
+                    <Search className="w-7 h-7 text-stone-400 dark:text-white/25" />
                   </div>
                   <p className="text-sm text-center text-stone-500 dark:text-white/40">
                     No results found for &quot;{searchQuery}&quot;
@@ -156,7 +140,9 @@ export default function SearchResultsPanel({
                     <div
                       key={result.id}
                       className="hover:bg-stone-50 dark:hover:bg-white/2 transition-colors cursor-pointer"
-                      onClick={() => onMessageClick?.(result.id)}
+                      onClick={() => {
+                        if (result.id != null) onMessageClick?.(result.id);
+                      }}
                     >
                       <ChatMessage
                         message={result}
@@ -167,24 +153,10 @@ export default function SearchResultsPanel({
                         <p className="text-xs text-stone-500 dark:text-stone-400">
                           {/* Show if it's a thread reply */}
                           {result.parentMessageId ? (
-                            <>
-                              <span className="inline-flex items-center gap-1">
-                                <svg
-                                  className="w-3 h-3"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                                  />
-                                </svg>
-                                Reply in a thread
-                              </span>
-                            </>
+                            <span className="inline-flex items-center gap-1">
+                              <MessageSquare className="w-3 h-3" />
+                              Reply in a thread
+                            </span>
                           ) : null}
                         </p>
                       </div>
@@ -192,7 +164,7 @@ export default function SearchResultsPanel({
                   ))}
                 </div>
               )}
-            </div>
+            </ScrollArea>
           </motion.div>
         </>
       )}

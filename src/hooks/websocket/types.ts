@@ -36,6 +36,7 @@ export interface SendMessagePayload {
   attachments?: AttachmentPayload[];
   parentMessageId?: string; // For thread replies
   quotedMessageId?: string; // For quote replies
+  clientId?: string; // Optional client-generated id to match optimistic messages
 }
 
 export interface MessageData {
@@ -47,6 +48,7 @@ export interface MessageData {
     username?: string;
   };
   content: string;
+  clientId?: string;
   messageType: "text" | "file" | "image";
   attachments?: AttachmentPayload[];
   parentMessageId?: string;

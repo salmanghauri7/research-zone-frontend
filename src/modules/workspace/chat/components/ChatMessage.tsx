@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Message, Attachment } from "./types";
+import { Message, Attachment } from "../types";
 import MessageActions from "./MessageActions";
 import { FiCornerUpLeft } from "react-icons/fi";
 import Image from "next/image";

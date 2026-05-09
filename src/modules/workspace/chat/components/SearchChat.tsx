@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useWorkspaceStore } from "@/store/workspaceStore";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search, X } from "lucide-react";
 
 interface SearchChatProps {
   workspaceTitle?: string;
@@ -43,51 +46,28 @@ export default function SearchChat({
   return (
     <div className="border-b border-stone-200 dark:border-white/6 bg-white dark:bg-stone-950 px-4 py-3">
       <div className="flex items-center gap-3 max-w-2xl">
-        {/* Search Icon */}
-        <svg
-          className="w-5 h-5 text-stone-400 dark:text-stone-500 shrink-0"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
+        <Search className="w-5 h-5 text-stone-400 dark:text-stone-500 shrink-0" />
 
         {/* Search Input */}
-        <input
+        <Input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={`Search in ${workspaceTitle || "workspace"}...`}
           autoFocus
-          className="flex-1 bg-transparent text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 outline-none text-sm"
+          className="flex-1 border-0 bg-transparent text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
         />
 
         {/* Close Button */}
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={handleClose}
-          className="p-1.5 rounded hover:bg-stone-100 dark:hover:bg-white/5 transition-colors shrink-0"
+          className="h-8 w-8 shrink-0"
           title="Close (Esc)"
         >
-          <svg
-            className="w-5 h-5 text-stone-600 dark:text-stone-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+          <X className="w-5 h-5" />
+        </Button>
       </div>
     </div>
   );

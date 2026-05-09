@@ -18,7 +18,8 @@ export interface Attachment {
 }
 
 export interface Message {
-  id: string;
+  id: string | null;
+  clientId?: string | null;
   content: string;
   sender: User;
   timestamp: Date;

@@ -2,10 +2,12 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Message } from "./types";
+import { Message } from "../types";
 import ChatMessage from "./ChatMessage";
 import MessageInput from "./MessageInput";
-import { FiX } from "react-icons/fi";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ThreadPanelProps {
   parentMessage: Message | null;
@@ -45,7 +47,7 @@ export default function ThreadPanel({
   // Clear replyTo when panel closes
   useEffect(() => {
     if (!isOpen) {
-      setReplyTo(null);
+      queueMicrotask(() => setReplyTo(null));
     }
   }, [isOpen]);
 
@@ -92,14 +94,15 @@ export default function ThreadPanel({
                 <h3 className="font-semibold text-stone-800 dark:text-white">
                   Thread
                 </h3>
-               
               </div>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={onClose}
-                className="p-2 rounded-lg transition-colors hover:bg-stone-100 text-stone-500 hover:text-stone-700 dark:hover:bg-white/5 dark:text-white/50 dark:hover:text-white"
+                className="h-8 w-8"
               >
-                <FiX className="w-5 h-5" />
-              </button>
+                <X className="w-5 h-5" />
+              </Button>
             </div>
 
             {/* Parent Message */}
@@ -114,7 +117,7 @@ export default function ThreadPanel({
             </div>
 
             {/* Replies */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <ScrollArea className="flex-1">
               <div className="px-4 py-3 text-stone-400 dark:text-white/35">
                 <span className="text-xs font-medium uppercase tracking-wider">
                   {replies.length} {replies.length === 1 ? "Reply" : "Replies"}
@@ -146,9 +149,9 @@ export default function ThreadPanel({
                 </div>
               ) : (
                 <div className="divide-y divide-transparent">
-                  {replies.map((reply) => (
+                  {replies.map((reply, index) => (
                     <ChatMessage
-                      key={reply.id}
+                      key={reply.clientId || reply.id || `reply-${index}`}
                       message={reply}
                       isOwn={reply.sender.id === currentUserId}
                       onReply={handleReply}
@@ -159,7 +162,7 @@ export default function ThreadPanel({
                 </div>
               )}
               <div ref={messagesEndRef} />
-            </div>
+            </ScrollArea>
 
             {/* Reply Input */}
             <MessageInput
