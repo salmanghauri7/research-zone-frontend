@@ -1,4 +1,4 @@
-import api from "@/utils/axios";
+import api from "@/utils/http/axios";
 
 // Types for API requests
 export interface CreateWorkspaceData {

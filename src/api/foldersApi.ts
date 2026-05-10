@@ -1,9 +1,9 @@
-import axios from "@/utils/axios";
+import axios from "@/utils/http/axios";
 import {
   FolderItem,
   BreadcrumbItem,
   Folder,
-} from "@/components/saved-papers/types";
+} from "@/modules/workspace/saved-papers/types";
 
 export const folderApi = {
   getFolderContents: async (

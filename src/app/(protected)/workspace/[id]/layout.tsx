@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import {
   clearInvitationData,
   getPendingWorkspaceId,
-} from "@/utils/invitationStorage";
+} from "@/utils/storage/invitationStorage";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import workspaceApi from "@/api/workspaceApi";
 import { useSocket } from "@/contexts/SocketContext";

@@ -3,7 +3,7 @@ import {
   Folder,
   FolderItem,
   BreadcrumbItem,
-} from "@/components/saved-papers/types";
+} from "@/modules/workspace/saved-papers/types";
 
 // Re-export useful types from saved-papers
 export type { Paper, Folder, FolderItem, BreadcrumbItem };

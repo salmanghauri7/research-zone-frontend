@@ -2,7 +2,7 @@
 
 import { useState, useEffect, memo, useCallback, lazy, Suspense } from "react";
 import { useParams } from "next/navigation";
-import { saveCurrentWorkspaceId } from "@/utils/invitationStorage";
+import { saveCurrentWorkspaceId } from "@/utils/storage/invitationStorage";
 
 // Lazy load the modal since it's not always needed
 const InviteModal = lazy(() => import("./InviteModal"));
@@ -22,7 +22,6 @@ const WorkSpace = memo(function WorkSpace() {
       saveCurrentWorkspaceId(id as string);
     }
   }, [id]);
-
 
   const openModal = useCallback(() => {
     setIsModalOpen(true);

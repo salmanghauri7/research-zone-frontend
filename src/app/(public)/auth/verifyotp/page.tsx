@@ -1,12 +1,7 @@
-import VerifyOTPPage from '@/components/auth/verifyotp'
-import React from 'react'
+import VerifyOTPPage from "@/modules/auth/components/VerifyOTPPage";
 
 const page = () => {
-    return (
-        <div>
-            <VerifyOTPPage />
-        </div>
-    )
-}
+  return <VerifyOTPPage />;
+};
 
-export default page
+export default page;

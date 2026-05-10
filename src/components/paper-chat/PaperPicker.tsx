@@ -20,7 +20,7 @@ import {
   Folder,
   FolderItem,
   BreadcrumbItem,
-} from "@/components/saved-papers/types";
+} from "@/modules/workspace/saved-papers/types";
 
 interface PaperPickerProps {
   workspaceId: string;

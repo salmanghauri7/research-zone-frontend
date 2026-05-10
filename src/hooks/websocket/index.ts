@@ -1,6 +1,5 @@
 // Export all websocket hooks
 export { useWorkspaceEvents } from "./useWorkspaceEvents";
-export { useChatEvents } from "./useChatEvents";
 export type {
   JoinedWorkspaceData,
   UserJoinedWorkspaceData,

@@ -3,8 +3,8 @@ import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Provider from "./providers";
-import NextProgress from "@/components/NextProgress";
-import CreateWorkspaceModal from "@/components/CreateWorkspaceModal";
+import { NextProgress, CreateWorkspaceModal } from "@/shared/components/common";
+import { Toaster } from "@/shared/components/ui";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,8 +32,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
+      <body
+        className={`${inter.className} antialiased`}
+        suppressHydrationWarning
+      >
         <NextProgress />
+        <Toaster />
         <Analytics />
         <Provider>
           {children}

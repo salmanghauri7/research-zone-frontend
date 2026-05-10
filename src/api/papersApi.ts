@@ -1,4 +1,4 @@
-import axios from "@/utils/axios";
+import axios from "@/utils/http/axios";
 
 export const searchPapers = async (query: string, page: number = 1) => {
   try {

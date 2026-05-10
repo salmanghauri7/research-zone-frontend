@@ -7,7 +7,7 @@ import { ModalProvider } from "@/contexts/ModalContext";
 import { WorkspaceProvider } from "@/contexts/SidebarContext";
 import { SocketProvider } from "@/contexts/SocketContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
-import ErrorBoundary from "@/components/ErrorBoundary";
+import { ErrorBoundary } from "@/shared/components/common";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string;
 

@@ -10,7 +10,7 @@ import {
   User,
   Sparkles,
 } from "lucide-react";
-import { Paper } from "@/components/saved-papers/types";
+import { Paper } from "@/modules/workspace/saved-papers/types";
 
 interface PaperContextBarProps {
   paper: Paper;
