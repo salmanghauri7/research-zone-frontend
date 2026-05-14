@@ -133,7 +133,7 @@ export const useChatActions = ({
             content,
             messageType,
             attachments: attachmentPayload,
-            quotedMessageId: replyTo?.id,
+            quotedMessageId: replyTo?.id || undefined,
             clientId,
           });
         }
@@ -281,7 +281,7 @@ export const useChatActions = ({
             messageType,
             attachments: attachmentPayload,
             parentMessageId: parentId,
-            quotedMessageId: replyTo?.id,
+            quotedMessageId: replyTo?.id || undefined,
             clientId,
           });
         }
