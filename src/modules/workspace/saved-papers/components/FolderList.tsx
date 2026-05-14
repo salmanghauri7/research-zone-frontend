@@ -7,6 +7,7 @@ import PaperItem from "./PaperItem";
 interface FolderListProps {
   items: FolderItem[];
   viewMode: ViewMode;
+  highlightedPaperId?: string | null;
   onNavigate: (folder: Folder) => void;
   onEdit: (folder: Folder) => void;
   onDelete: (folder: Folder) => void;
@@ -16,6 +17,7 @@ interface FolderListProps {
 export default function FolderList({
   items,
   viewMode,
+  highlightedPaperId,
   onNavigate,
   onEdit,
   onDelete,
@@ -47,6 +49,7 @@ export default function FolderList({
               key={item._id}
               paper={item}
               viewMode={viewMode}
+              isHighlighted={highlightedPaperId === item._id}
               onDelete={() => onDeletePaper(item)}
             />
           );

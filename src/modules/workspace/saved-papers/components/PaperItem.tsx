@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FileText,
@@ -16,6 +16,7 @@ import FolderContextMenu from "./FolderContextMenu";
 interface PaperItemProps {
   paper: Paper;
   viewMode: ViewMode;
+  isHighlighted?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -23,13 +24,21 @@ interface PaperItemProps {
 export default function PaperItem({
   paper,
   viewMode,
+  isHighlighted = false,
   onEdit,
   onDelete,
 }: PaperItemProps) {
+  const paperRef = useRef<HTMLDivElement | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
   } | null>(null);
+
+  useEffect(() => {
+    if (isHighlighted) {
+      paperRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [isHighlighted]);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -72,12 +81,22 @@ export default function PaperItem({
     return (
       <>
         <motion.div
+          ref={paperRef}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="group relative p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--accent-primary)]/30 hover:shadow-[var(--shadow-md)] transition-all cursor-pointer"
+          className="group relative cursor-pointer overflow-hidden rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3 transition-all hover:border-[var(--accent-primary)]/30 hover:shadow-[var(--shadow-md)]"
           onClick={handleOpenLink}
           onContextMenu={handleContextMenu}
         >
+          {isHighlighted && (
+            <motion.div
+              className="pointer-events-none absolute inset-0 rounded-lg bg-teal-400/30"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.55, 0.25, 0] }}
+              transition={{ duration: 2.2, ease: "easeOut" }}
+            />
+          )}
+
           {/* More Button */}
           {(onEdit || onDelete) && (
             <Button
@@ -135,12 +154,22 @@ export default function PaperItem({
   return (
     <>
       <motion.div
+        ref={paperRef}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="group flex items-center gap-4 p-3 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--accent-primary)]/30 hover:shadow-[var(--shadow-md)] transition-all cursor-pointer"
+        className="group relative flex cursor-pointer items-center gap-4 overflow-hidden rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-3 transition-all hover:border-[var(--accent-primary)]/30 hover:shadow-[var(--shadow-md)]"
         onClick={handleOpenLink}
         onContextMenu={handleContextMenu}
       >
+        {isHighlighted && (
+          <motion.div
+            className="pointer-events-none absolute inset-0 rounded-xl bg-teal-400/30"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.55, 0.25, 0] }}
+            transition={{ duration: 2.2, ease: "easeOut" }}
+          />
+        )}
+
         {/* Paper Icon */}
         <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
           <FileText size={20} className="text-blue-500" />
