@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useRef, useEffect, memo, useCallback, useMemo } from "react";
 import { Sun, Moon, Monitor, LogOut, Search, Bell } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -61,14 +62,18 @@ const Topbar = memo(function Topbar() {
   return (
     <header className="w-full h-14 fixed top-0 left-0 z-10 bg-[var(--bg-secondary)]/80 backdrop-blur-xl px-4 flex items-center justify-between border-b border-[var(--border-primary)]">
       {/* Left: Logo */}
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+      <Link
+        href="/dashboard"
+        aria-label="Go to dashboard"
+        className="flex items-center gap-3 cursor-pointer group"
+      >
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm transition-transform group-hover:scale-105">
           R
         </div>
-        <span className="text-[var(--text-primary)] text-lg font-semibold tracking-tight">
+        <span className="text-[var(--text-primary)] text-lg font-semibold tracking-tight group-hover:text-[var(--accent-primary)] transition-colors">
           ResearchZone
         </span>
-      </div>
+      </Link>
 
       {/* Center: Search (optional - hidden on mobile) */}
       <div className="hidden md:flex flex-1 max-w-md mx-8">

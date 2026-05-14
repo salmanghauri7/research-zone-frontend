@@ -12,10 +12,12 @@ import useSavedPapers from "@/modules/workspace/saved-papers/hooks/useSavedPaper
 
 interface SavedPapersContentProps {
   workspaceId: string;
+  highlightedPaperId?: string | null;
 }
 
 export default function SavedPapersContent({
   workspaceId,
+  highlightedPaperId,
 }: SavedPapersContentProps) {
   const {
     breadcrumbs,
@@ -71,6 +73,7 @@ export default function SavedPapersContent({
       <FolderList
         items={sortedItems}
         viewMode={viewMode}
+        highlightedPaperId={highlightedPaperId}
         onNavigate={handleNavigateToFolder}
         onEdit={openEditModal}
         onDelete={openDeleteModal}

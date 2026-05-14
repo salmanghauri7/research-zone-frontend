@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Folder } from "lucide-react";
 import workspaceApi from "@/api/workspaceApi";
 import { useRouter } from "next/navigation";
+import { saveCurrentWorkspaceId } from "@/utils/storage/invitationStorage";
 
 interface Workspace {
   _id: string;
@@ -156,6 +157,7 @@ export default function WorkspaceSwitcher({
                     <button
                       key={workspace._id}
                       onClick={() => {
+                        saveCurrentWorkspaceId(workspace._id);
                         router.push(`/workspace/${workspace._id}`);
                         onClose();
                       }}

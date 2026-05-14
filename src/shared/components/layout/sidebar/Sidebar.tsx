@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, memo, useCallback, lazy, Suspense } from "react";
+import {
+  useState,
+  useEffect,
+  memo,
+  useCallback,
+  lazy,
+  Suspense,
+  useMemo,
+} from "react";
 import { sidebarItems } from "./sidebarItems";
 import { logout } from "@/utils/auth/logout";
 import { motion } from "framer-motion";
@@ -29,6 +37,12 @@ const Sidebar = memo(function Sidebar() {
   );
   const { openModal } = useModal();
   const { currentWorkspaceId: storeWorkspaceId } = useWorkspaceStore();
+  const routeWorkspaceId = useMemo(() => {
+    const match = pathname.match(/^\/workspace\/([^/]+)/);
+    return match?.[1] || null;
+  }, [pathname]);
+  const resolvedWorkspaceId =
+    routeWorkspaceId || storeWorkspaceId || currentWorkspaceId;
 
   useEffect(() => {
     const workspaceId = getCurrentWorkspaceId();
@@ -121,10 +135,10 @@ const Sidebar = memo(function Sidebar() {
       <nav className="flex-1 flex flex-col p-2 overflow-x-hidden overflow-y-auto custom-scrollbar">
         {sidebarItems.map((item) => {
           const dynamicHref =
-            item.isDynamic && currentWorkspaceId
+            item.isDynamic && resolvedWorkspaceId
               ? item.href.replace(
                   "/workspace",
-                  `/workspace/${currentWorkspaceId}`,
+                  `/workspace/${resolvedWorkspaceId}`,
                 )
               : item.href;
 
@@ -134,8 +148,8 @@ const Sidebar = memo(function Sidebar() {
           // Special handling for workspace main page - only Dashboard should be active
           if (
             item.label === "Dashboard" &&
-            currentWorkspaceId &&
-            pathname === `/workspace/${currentWorkspaceId}`
+            resolvedWorkspaceId &&
+            pathname === `/workspace/${resolvedWorkspaceId}`
           ) {
             isActive = true;
           }
