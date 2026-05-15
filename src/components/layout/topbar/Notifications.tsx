@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, memo, useMemo } from "react";
+import React, { useState, useRef, useEffect, memo, useMemo } from "react";
 import { Bell } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useRouter } from "next/navigation";
@@ -8,7 +8,7 @@ import type { PanelNotification } from "@/contexts/NotificationContext";
 
 type NotificationType = "message" | "share" | "comment" | "invite" | "success" | "error" | "info";
 
-const typeIcons: Record<NotificationType, JSX.Element> = {
+const typeIcons: Record<NotificationType, React.ReactElement> = {
   message: (
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
