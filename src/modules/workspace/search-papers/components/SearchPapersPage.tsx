@@ -31,7 +31,6 @@ const SearchPapersPage = memo(function SearchPapersPage() {
     selectedPaper,
     handleCloseModal,
   } = useSearchPapers();
-  console.log(searchQuery);
 
   return (
     <div className="p-4 md:p-6 w-full max-w-4xl mx-auto text-black dark:text-white min-h-screen flex flex-col gap-5">

@@ -4,6 +4,7 @@ import {
   FileText,
   MessageSquare,
   Sparkles,
+  Radar,
   Settings,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -44,6 +45,12 @@ export const sidebarItems: SidebarItem[] = [
     label: "Paper Chat",
     href: "/workspace/paper-chat",
     icon: <Sparkles size={20} />,
+    isDynamic: true,
+  },
+  {
+    label: "Radar",
+    href: "/workspace/radar",
+    icon: <Radar size={20} />,
     isDynamic: true,
   },
   {
