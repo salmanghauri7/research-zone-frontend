@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AxiosError } from "axios";
 import { useNotification } from "@/contexts/NotificationContext";
 import { folderApi } from "@/api/foldersApi";
@@ -9,7 +9,6 @@ import {
   Paper,
   BreadcrumbItem,
   SortOption,
-  ViewMode,
 } from "../components/types";
 
 interface UseSavedPapersResult {
@@ -18,7 +17,6 @@ interface UseSavedPapersResult {
   breadcrumbs: BreadcrumbItem[];
   isLoading: boolean;
   error: string | null;
-  viewMode: ViewMode;
   sortBy: SortOption;
   currentFolderName: string;
   folderCount: number;
@@ -35,7 +33,6 @@ interface UseSavedPapersResult {
   setIsEditModalOpen: (open: boolean) => void;
   setIsDeleteModalOpen: (open: boolean) => void;
   setIsDeletePaperModalOpen: (open: boolean) => void;
-  setViewMode: (mode: ViewMode) => void;
   setSortBy: (sort: SortOption) => void;
   setSelectedFolder: (folder: Folder | null) => void;
   setSelectedPaper: (paper: Paper | null) => void;
@@ -60,9 +57,7 @@ export default function useSavedPapers(
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [sortBy, setSortBy] = useState<SortOption>("dateAdded");
-  const cacheRef = useRef<Map<string, FolderItem[]>>(new Map());
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -72,28 +67,15 @@ export default function useSavedPapers(
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const invalidateCache = useCallback((folderId: string | null) => {
-    const cacheKey = folderId || "root";
-    cacheRef.current.delete(cacheKey);
-  }, []);
-
   const fetchFolderContents = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const cacheKey = currentFolderId || "root";
-      if (cacheRef.current.has(cacheKey)) {
-        setItems(cacheRef.current.get(cacheKey)!);
-        setIsLoading(false);
-        return;
-      }
-
       const data = await folderApi.getFolderContents(
         workspaceId,
         currentFolderId,
       );
-      cacheRef.current.set(cacheKey, data);
       setItems(data);
     } catch (err) {
       setError("Failed to load contents. Please try again.");
@@ -152,7 +134,6 @@ export default function useSavedPapers(
         name,
         currentFolderId,
       );
-      invalidateCache(currentFolderId);
       setItems((prev) => [newFolder, ...prev]);
       setIsCreateModalOpen(false);
       showSuccess(`Folder "${name}" created successfully`);
@@ -177,7 +158,6 @@ export default function useSavedPapers(
         selectedFolder._id,
         name,
       );
-      invalidateCache(currentFolderId);
       setItems((prev) =>
         prev.map((item) =>
           item._id === selectedFolder._id && item.itemType === "folder"
@@ -202,7 +182,6 @@ export default function useSavedPapers(
     try {
       setIsSubmitting(true);
       await folderApi.deleteFolder(selectedFolder._id);
-      invalidateCache(currentFolderId);
       setItems((prev) =>
         prev.filter((item) => item._id !== selectedFolder._id),
       );
@@ -246,7 +225,6 @@ export default function useSavedPapers(
     try {
       setIsSubmitting(true);
       await deletePaper(selectedPaper._id);
-      invalidateCache(currentFolderId);
       setItems((prev) => prev.filter((item) => item._id !== selectedPaper._id));
       setIsDeletePaperModalOpen(false);
       setSelectedPaper(null);
@@ -270,7 +248,6 @@ export default function useSavedPapers(
     breadcrumbs,
     isLoading,
     error,
-    viewMode,
     sortBy,
     currentFolderName,
     folderCount,
@@ -289,7 +266,6 @@ export default function useSavedPapers(
     setIsDeletePaperModalOpen,
     setSelectedFolder,
     setSelectedPaper,
-    setViewMode,
     setSortBy,
     handleCreateFolder,
     handleEditFolder,

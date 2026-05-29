@@ -31,8 +31,6 @@ const SearchPapersPage = memo(function SearchPapersPage() {
     selectedPaper,
     handleCloseModal,
   } = useSearchPapers();
-  console.log(searchQuery);
-
   return (
     <div className="p-4 md:p-6 w-full max-w-4xl mx-auto text-black dark:text-white min-h-screen flex flex-col gap-5">
       <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
@@ -117,13 +115,6 @@ const SearchPapersPage = memo(function SearchPapersPage() {
                       {paper.summary}
                     </p>
                     <div className="flex items-center gap-3 mt-3">
-                      <a
-                        href={`${paper.link}.pdf`}
-                        target="_blank"
-                        className="flex items-center gap-1.5 text-[12px] font-medium text-teal-700 dark:text-teal-400 hover:underline"
-                      >
-                        <Download className="w-3.5 h-3.5" /> PDF
-                      </a>
                       <Button
                         onClick={() => handleSavePaper(paper)}
                         variant="ghost"

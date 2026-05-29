@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* Performance optimizations */
   reactCompiler: true,
+  reactStrictMode: false,
 
   async rewrites() {
     const apiUrl =
