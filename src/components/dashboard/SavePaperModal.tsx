@@ -180,9 +180,10 @@ export default function SavePaperModal({
       await savePaper(saveData);
       onSuccess?.();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error saving paper:", err);
-      setError("Failed to save paper. Please try again.");
+      const errorMessage = err?.response?.data?.message || err?.customMessage || "Failed to save paper. Please try again.";
+      setError(errorMessage);
     } finally {
       setIsSaving(false);
     }
