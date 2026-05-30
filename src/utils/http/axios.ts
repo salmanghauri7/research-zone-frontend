@@ -3,11 +3,12 @@ import axios from "axios";
 // const baseUrl = "/api";
 // const baseUrl = "http://localhost:5000/api";
 let baseUrl: string;
-if (process.env.NODE_ENV == "production") {
-  baseUrl = "/api";
+if (process.env.NODE_ENV === "production") {
+  const prodUrl = process.env.NEXT_PUBLIC_BASE_URL_API_PROD || "/api";
+  baseUrl = prodUrl.endsWith('/api') ? prodUrl : `${prodUrl}/api`;
 } else {
-  baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL_API_DEV || "http://localhost:5000/api";
+  const envUrl = process.env.NEXT_PUBLIC_BASE_URL_API_DEV || "http://localhost:5000";
+  baseUrl = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
 }
 
 if (!baseUrl) {

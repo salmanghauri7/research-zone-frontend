@@ -1,6 +1,18 @@
 import { gql } from "graphql-request";
 
 /**
+ * Fetches global stats for the authenticated user's dashboard.
+ */
+export const USER_DASHBOARD_STATS_QUERY = gql`
+  query UserDashboardStats {
+    userDashboardStats {
+      totalWorkspaces
+      totalPapers
+    }
+  }
+`;
+
+/**
  * Fetches all workspaces the user belongs to (owned + member).
  * Used by the main dashboard's ActiveWorkspaces component.
  */

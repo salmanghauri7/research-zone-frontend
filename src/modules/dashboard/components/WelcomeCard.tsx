@@ -6,7 +6,7 @@ import { Card, CardContent, Button } from "@/shared/components/ui";
 import useWelcomeCard from "@/modules/dashboard/hooks/useWelcomeCard";
 
 const WelcomeCard = memo(function WelcomeCard() {
-  const { handleCreateWorkspace } = useWelcomeCard();
+  const { handleCreateWorkspace, stats, isLoadingStats } = useWelcomeCard();
 
   return (
     <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800">
@@ -51,11 +51,15 @@ const WelcomeCard = memo(function WelcomeCard() {
           {/* Stats area */}
           <div className="hidden lg:flex items-center gap-6">
             <div className="text-center px-6 py-4 rounded-2xl bg-white/10 backdrop-blur">
-              <p className="text-3xl font-bold text-white">12</p>
+              <p className="text-3xl font-bold text-white">
+                {isLoadingStats ? "..." : stats.totalPapers}
+              </p>
               <p className="text-sm text-white/60">Papers saved</p>
             </div>
             <div className="text-center px-6 py-4 rounded-2xl bg-white/10 backdrop-blur">
-              <p className="text-3xl font-bold text-white">3</p>
+              <p className="text-3xl font-bold text-white">
+                {isLoadingStats ? "..." : stats.totalWorkspaces}
+              </p>
               <p className="text-sm text-white/60">Workspaces</p>
             </div>
           </div>

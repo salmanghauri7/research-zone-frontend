@@ -114,14 +114,22 @@ const SearchPapersPage = memo(function SearchPapersPage() {
                     <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-normal line-clamp-2 mt-2">
                       {paper.summary}
                     </p>
-                    <div className="flex items-center gap-3 mt-3">
+                    <div className="flex items-center gap-2 mt-3">
                       <Button
                         onClick={() => handleSavePaper(paper)}
                         variant="ghost"
-                        className="flex items-center gap-1.5 text-[12px] font-medium text-zinc-600 dark:text-zinc-400"
+                        className="flex items-center gap-1.5 text-[12px] font-medium text-zinc-600 dark:text-zinc-400 hover:text-teal-600 dark:hover:text-teal-500 hover:bg-teal-50 dark:hover:bg-teal-500/10 transition-colors px-3 py-1.5 h-auto rounded-md"
                       >
                         <Bookmark className="w-3.5 h-3.5" /> Save Paper
                       </Button>
+                      <a
+                        href={paper.link.replace("/abs/", "/pdf/") + ".pdf"}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-1.5 text-[12px] font-medium text-zinc-600 dark:text-zinc-400 hover:text-teal-600 dark:hover:text-teal-500 hover:bg-teal-50 dark:hover:bg-teal-500/10 transition-colors px-3 py-1.5 rounded-md"
+                      >
+                        <Download className="w-3.5 h-3.5" /> Download PDF
+                      </a>
                     </div>
                   </CardContent>
                 </Card>
