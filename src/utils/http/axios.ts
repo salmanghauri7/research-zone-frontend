@@ -1,7 +1,15 @@
 import axios from "axios";
 
 // const baseUrl = "/api";
-const baseUrl = "http://localhost:5000/api";
+// const baseUrl = "http://localhost:5000/api";
+let baseUrl: string;
+if (process.env.NODE_ENV == "production") {
+  baseUrl = "/api";
+} else {
+  baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL_API_DEV || "http://localhost:5000/api";
+}
+
 if (!baseUrl) {
   throw new Error(
     "Environment variable BASE_URL_API_PROD is not set. Please define it to use the API client. ",

@@ -23,9 +23,7 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react", "react-icons", "framer-motion"],
   },
 
-  // Reduce JavaScript sent to client
   compiler: {
-    // Remove console logs in production
     removeConsole: process.env.NODE_ENV === "production",
   },
 
@@ -36,7 +34,6 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
   },
 
-  // Enable gzip compression headers
   compress: true,
 
   // Reduce powered-by header for security and smaller response
