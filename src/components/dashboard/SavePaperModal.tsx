@@ -174,6 +174,7 @@ export default function SavePaperModal({
         link: paper.link,
         authors: paper.authors,
         published: paper.published,
+        category: paper.category ?? "",
       };
 
       await savePaper(saveData);

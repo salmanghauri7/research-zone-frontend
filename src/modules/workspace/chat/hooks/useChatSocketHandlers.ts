@@ -39,30 +39,32 @@ const toBackendMessage = (
 
 const buildQuotedMessagesMap = (messages: Message[]) =>
   new Map<string, BackendMessage>(
-    messages.map((msg) => [
-      msg.id,
-      {
-        _id: msg.id,
-        workspaceId: "",
-        sender: {
-          _id: msg.sender.id,
-          firstName: msg.sender.name,
-          avatar: msg.sender.avatar,
-        },
-        content: msg.content,
-        isEdited: msg.isEdited,
-        isDeleted: msg.isDeleted,
-        replyCount: msg.threadCount,
-        quotedMessageId: msg.replyTo?.id,
-        parentMessageId: msg.parentMessageId,
-        attachments: msg.attachments?.map((att) => ({
-          url: att.url,
-          fileName: att.name,
-          mimeType:
-            att.type === "image" ? "image/*" : "application/octet-stream",
-        })),
-        createdAt: msg.timestamp.toISOString(),
-        updatedAt: msg.timestamp.toISOString(),
+    messages
+      .filter((msg) => msg.id !== null)
+      .map((msg) => [
+        msg.id as string,
+        {
+          _id: msg.id as string,
+          workspaceId: "",
+          sender: {
+            _id: msg.sender.id,
+            firstName: msg.sender.name,
+            avatar: msg.sender.avatar,
+          },
+          content: msg.content,
+          isEdited: msg.isEdited,
+          isDeleted: msg.isDeleted,
+          replyCount: msg.threadCount,
+          quotedMessageId: msg.replyTo?.id || undefined,
+          parentMessageId: msg.parentMessageId || undefined,
+          attachments: msg.attachments?.map((att) => ({
+            url: att.url,
+            fileName: att.name,
+            mimeType:
+              att.type === "image" ? "image/*" : "application/octet-stream",
+          })),
+          createdAt: msg.timestamp.toISOString(),
+          updatedAt: msg.timestamp.toISOString(),
         messageType: msg.attachments?.some((att) => att.type === "image")
           ? "image"
           : "text",

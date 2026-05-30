@@ -1,12 +1,11 @@
 "use client";
 
-import { FolderItem, ViewMode, Folder, Paper } from "./types";
+import { FolderItem, Folder, Paper } from "./types";
 import FolderItemComponent from "./FolderItem";
 import PaperItem from "./PaperItem";
 
 interface FolderListProps {
   items: FolderItem[];
-  viewMode: ViewMode;
   highlightedPaperId?: string | null;
   onNavigate: (folder: Folder) => void;
   onEdit: (folder: Folder) => void;
@@ -16,28 +15,20 @@ interface FolderListProps {
 
 export default function FolderList({
   items,
-  viewMode,
-  highlightedPaperId,
+   highlightedPaperId,
   onNavigate,
   onEdit,
   onDelete,
   onDeletePaper,
 }: FolderListProps) {
   return (
-    <div
-      className={
-        viewMode === "grid"
-          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-          : "space-y-2"
-      }
-    >
+    <div className="space-y-2">
       {items.map((item) => {
         if (item.itemType === "folder") {
           return (
             <FolderItemComponent
               key={item._id}
               folder={item}
-              viewMode={viewMode}
               onNavigate={() => onNavigate(item)}
               onEdit={() => onEdit(item)}
               onDelete={() => onDelete(item)}
@@ -48,7 +39,6 @@ export default function FolderList({
             <PaperItem
               key={item._id}
               paper={item}
-              viewMode={viewMode}
               isHighlighted={highlightedPaperId === item._id}
               onDelete={() => onDeletePaper(item)}
             />

@@ -285,7 +285,7 @@ export default function MessageInput({
       </AnimatePresence>
 
       {/* Unified Input Container */}
-      <div className="relative rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-stone-950 transition-colors focus-within:ring-2 focus-within:ring-blue-500/20">
+      <div className="relative rounded-lg chat-message-input">
         {/* Text Input */}
         <Textarea
           ref={textareaRef}
@@ -303,7 +303,7 @@ export default function MessageInput({
                 : "Write a message..."
           }
           disabled={disabled}
-          className="resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-3 min-h-11 max-h-[150px]"
+          className="resize-none border-0 px-4 py-3 min-h-11 max-h-[150px] focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none focus:border-transparent focus-visible:border-transparent"
         />
 
         {/* Actions Bar */}

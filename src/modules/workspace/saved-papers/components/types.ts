@@ -32,4 +32,3 @@ export interface BreadcrumbItem {
 }
 
 export type SortOption = "name" | "dateAdded" | "dateModified";
-export type ViewMode = "list" | "grid";

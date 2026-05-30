@@ -23,7 +23,6 @@ export default function SavedPapersContent({
     breadcrumbs,
     isLoading,
     error,
-    viewMode,
     sortBy,
     currentFolderName,
     folderCount,
@@ -42,7 +41,6 @@ export default function SavedPapersContent({
     setIsDeletePaperModalOpen,
     setSelectedFolder,
     setSelectedPaper,
-    setViewMode,
     setSortBy,
     handleCreateFolder,
     handleEditFolder,
@@ -72,7 +70,6 @@ export default function SavedPapersContent({
     return (
       <FolderList
         items={sortedItems}
-        viewMode={viewMode}
         highlightedPaperId={highlightedPaperId}
         onNavigate={handleNavigateToFolder}
         onEdit={openEditModal}
@@ -99,12 +96,7 @@ export default function SavedPapersContent({
       />
 
       {/* Controls Bar */}
-      <FolderControls
-        sortBy={sortBy}
-        viewMode={viewMode}
-        onSortChange={setSortBy}
-        onViewModeChange={setViewMode}
-      />
+      <FolderControls sortBy={sortBy} onSortChange={setSortBy} />
 
       {/* Content */}
       {renderContent()}

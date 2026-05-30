@@ -7,7 +7,6 @@ export const searchPapers = async (query: string, page: number = 1) => {
     });
     return response.data.data;
   } catch (error) {
-    console.error("Error searching papers:", error);
     throw error;
   }
 };
@@ -31,7 +30,6 @@ export const getFolderTree = async (
     const response = await axios.get(`/folders/workspace/${workspaceId}/tree`);
     return response.data.data;
   } catch (error) {
-    console.error("Error fetching folder tree:", error);
     throw error;
   }
 };
@@ -44,6 +42,7 @@ export interface SavePaperData {
   link: string;
   authors: string;
   published: string;
+  category: string;
 }
 
 export const savePaper = async (data: SavePaperData) => {
@@ -51,7 +50,6 @@ export const savePaper = async (data: SavePaperData) => {
     const response = await axios.post(`/saved-papers`, data);
     return response.data;
   } catch (error) {
-    console.error("Error saving paper:", error);
     throw error;
   }
 };
@@ -61,7 +59,6 @@ export const deletePaper = async (paperId: string) => {
   try {
     await axios.delete(`/saved-papers/${paperId}`);
   } catch (error) {
-    console.error("Error deleting paper:", error);
     throw error;
   }
 };
