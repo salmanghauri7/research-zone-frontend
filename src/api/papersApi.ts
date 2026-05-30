@@ -42,6 +42,7 @@ export interface SavePaperData {
   link: string;
   authors: string;
   published: string;
+  category: string;
 }
 
 export const savePaper = async (data: SavePaperData) => {

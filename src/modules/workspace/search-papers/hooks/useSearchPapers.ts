@@ -10,6 +10,7 @@ export type Paper = {
   published: string;
   summary: string;
   link: string;
+  category: string;
 };
 
 export default function useSearchPapers() {
