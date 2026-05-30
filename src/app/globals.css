@@ -163,6 +163,12 @@ select:focus {
   box-shadow: 0 0 0 3px var(--accent-light);
 }
 
+.chat-message-input textarea:focus,
+.chat-message-input textarea:focus-visible {
+  border-color: transparent;
+  box-shadow: none;
+}
+
 /* Custom Scrollbar Styles */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
