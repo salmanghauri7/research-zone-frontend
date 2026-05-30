@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
-import workspaceApi from "@/api/workspaceApi";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { graphqlRequest } from "@/lib/graphqlClient";
+import { ALL_WORKSPACES_QUERY } from "@/graphql/queries/dashboard";
 import { useModal } from "@/contexts/ModalContext";
 
 interface Workspace {
@@ -16,14 +17,20 @@ export default function useActiveWorkspaces() {
   const [memberWorkspaces, setMemberWorkspaces] = useState<Workspace[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { openModal } = useModal();
+  const fetchInitiated = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchWorkspaces = async () => {
+      if (fetchInitiated.current) return;
+      fetchInitiated.current = true;
+
       try {
-        const response = await workspaceApi.getWorkspaces();
-        const workspaces = response.data.data || [];
+        const data = await graphqlRequest<{ allWorkspaces: Workspace[] }>(
+          ALL_WORKSPACES_QUERY,
+        );
+        const workspaces = data.allWorkspaces || [];
 
         if (isMounted) {
           const owned = workspaces.filter((ws: Workspace) => ws.isOwner);
