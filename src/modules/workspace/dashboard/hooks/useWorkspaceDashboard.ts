@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import workspaceDashboardApi, {
-  type ActivityPoint,
-  type WorkspaceDashboardData,
+import { graphqlRequest } from "@/lib/graphqlClient";
+import { WORKSPACE_DASHBOARD_QUERY } from "@/graphql/queries/dashboard";
+import type {
+  ActivityPoint,
+  WorkspaceDashboardData,
 } from "@/api/workspaceDashboardApi";
 
 const DEFAULT_ACTIVITY_DATA: ActivityPoint[] = [
@@ -26,18 +28,26 @@ export default function useWorkspaceDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const fetchInitiated = useRef(false);
 
-  const fetchDashboard = useCallback(async () => {
+  const fetchDashboard = useCallback(async (forceRefetch = false) => {
     if (!workspaceId) {
       return;
     }
+    
+    // Prevent double fetch on mount (React StrictMode), unless forced (e.g. retry button)
+    if (fetchInitiated.current && !forceRefetch) return;
+    fetchInitiated.current = true;
 
     setLoading(true);
     setError(null);
 
     try {
-      const result = await workspaceDashboardApi.getDashboard(workspaceId);
-      setData(result);
+      const result = await graphqlRequest<{
+        workspaceDashboard: WorkspaceDashboardData;
+      }>(WORKSPACE_DASHBOARD_QUERY, { workspaceId });
+      
+      setData(result.workspaceDashboard);
     } catch (err) {
       console.error("Failed to load workspace dashboard:", err);
       setError("Failed to load workspace dashboard. Please try again.");
@@ -57,7 +67,7 @@ export default function useWorkspaceDashboard() {
   );
 
   const handleRetry = useCallback(() => {
-    void fetchDashboard();
+    void fetchDashboard(true);
   }, [fetchDashboard]);
 
   const handleOpenSearchPapers = useCallback(() => {
