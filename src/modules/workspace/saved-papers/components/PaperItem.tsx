@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FileText,
@@ -10,26 +10,33 @@ import {
   User,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui";
-import { Paper, ViewMode } from "./types";
+import { Paper } from "./types";
 import FolderContextMenu from "./FolderContextMenu";
 
 interface PaperItemProps {
   paper: Paper;
-  viewMode: ViewMode;
+  isHighlighted?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
 }
 
 export default function PaperItem({
   paper,
-  viewMode,
+  isHighlighted = false,
   onEdit,
   onDelete,
 }: PaperItemProps) {
+  const paperRef = useRef<HTMLDivElement | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
   } | null>(null);
+
+  useEffect(() => {
+    if (isHighlighted) {
+      paperRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [isHighlighted]);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,84 +70,24 @@ export default function PaperItem({
     });
   };
 
-  const truncateAuthors = (authors: string, maxLength = 50) => {
-    if (authors.length <= maxLength) return authors;
-    return authors.substring(0, maxLength) + "...";
-  };
-
-  if (viewMode === "grid") {
-    return (
-      <>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="group relative p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--accent-primary)]/30 hover:shadow-[var(--shadow-md)] transition-all cursor-pointer"
-          onClick={handleOpenLink}
-          onContextMenu={handleContextMenu}
-        >
-          {/* More Button */}
-          {(onEdit || onDelete) && (
-            <Button
-              onClick={handleMoreClick}
-              variant="ghost"
-              className="absolute top-2 right-2 p-1 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] opacity-0 group-hover:opacity-100 transition-all h-8 w-8"
-            >
-              <MoreVertical size={14} />
-            </Button>
-          )}
-
-          {/* Paper Icon */}
-          <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center mb-2">
-            <FileText size={20} className="text-blue-500" />
-          </div>
-
-          {/* Paper Title */}
-          <h3 className="font-medium text-[var(--text-primary)] line-clamp-2 mb-1.5 text-sm leading-snug">
-            {paper.title}
-          </h3>
-
-          {/* Authors */}
-          <p className="text-xs text-[var(--text-tertiary)] truncate mb-1.5">
-            {truncateAuthors(paper.authors, 40)}
-          </p>
-
-          {/* Metadata */}
-          <div className="flex items-center gap-2 text-xs text-[var(--text-tertiary)]">
-            <span className="flex items-center gap-1">
-              <Calendar size={11} />
-              {formatDate(paper.published)}
-            </span>
-          </div>
-
-          {/* Saved By */}
-          <div className="flex items-center gap-1 text-xs text-[var(--text-tertiary)] mt-1.5">
-            <User size={11} />
-            <span>{paper.savedBy}</span>
-          </div>
-        </motion.div>
-
-        {(onEdit || onDelete) && (
-          <FolderContextMenu
-            isOpen={!!contextMenu}
-            onClose={() => setContextMenu(null)}
-            onEdit={onEdit || (() => {})}
-            onDelete={onDelete || (() => {})}
-            position={contextMenu || { x: 0, y: 0 }}
-          />
-        )}
-      </>
-    );
-  }
+  
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="group flex items-center gap-4 p-3 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:border-[var(--accent-primary)]/30 hover:shadow-[var(--shadow-md)] transition-all cursor-pointer"
         onClick={handleOpenLink}
         onContextMenu={handleContextMenu}
       >
+        {isHighlighted && (
+          <motion.div
+            className="pointer-events-none absolute inset-0 rounded-xl bg-teal-400/30"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.55, 0.25, 0] }}
+            transition={{ duration: 2.2, ease: "easeOut" }}
+          />
+        )}
+
         {/* Paper Icon */}
         <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
           <FileText size={20} className="text-blue-500" />
@@ -185,7 +132,7 @@ export default function PaperItem({
             </Button>
           )}
         </div>
-      </motion.div>
+      </div>
 
       {(onEdit || onDelete) && (
         <FolderContextMenu

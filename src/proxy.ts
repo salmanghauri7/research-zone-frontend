@@ -4,7 +4,6 @@ import type { NextRequest } from "next/server";
 export function proxy(req: NextRequest) {
   const token = req.cookies.get("authCookie")?.value;
 
-  console.log("cookie", token);
 
   const publicRoutes = [
     "/",

@@ -12,16 +12,17 @@ import useSavedPapers from "@/modules/workspace/saved-papers/hooks/useSavedPaper
 
 interface SavedPapersContentProps {
   workspaceId: string;
+  highlightedPaperId?: string | null;
 }
 
 export default function SavedPapersContent({
   workspaceId,
+  highlightedPaperId,
 }: SavedPapersContentProps) {
   const {
     breadcrumbs,
     isLoading,
     error,
-    viewMode,
     sortBy,
     currentFolderName,
     folderCount,
@@ -40,7 +41,6 @@ export default function SavedPapersContent({
     setIsDeletePaperModalOpen,
     setSelectedFolder,
     setSelectedPaper,
-    setViewMode,
     setSortBy,
     handleCreateFolder,
     handleEditFolder,
@@ -70,7 +70,7 @@ export default function SavedPapersContent({
     return (
       <FolderList
         items={sortedItems}
-        viewMode={viewMode}
+        highlightedPaperId={highlightedPaperId}
         onNavigate={handleNavigateToFolder}
         onEdit={openEditModal}
         onDelete={openDeleteModal}
@@ -96,12 +96,7 @@ export default function SavedPapersContent({
       />
 
       {/* Controls Bar */}
-      <FolderControls
-        sortBy={sortBy}
-        viewMode={viewMode}
-        onSortChange={setSortBy}
-        onViewModeChange={setViewMode}
-      />
+      <FolderControls sortBy={sortBy} onSortChange={setSortBy} />
 
       {/* Content */}
       {renderContent()}

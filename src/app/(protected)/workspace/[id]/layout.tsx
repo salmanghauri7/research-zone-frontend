@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import {
   clearInvitationData,
   getPendingWorkspaceId,
+  saveCurrentWorkspaceId,
 } from "@/utils/storage/invitationStorage";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import workspaceApi from "@/api/workspaceApi";
@@ -28,6 +29,8 @@ export default function WorkspaceIdLayout({
   });
 
   useEffect(() => {
+    saveCurrentWorkspaceId(workspaceId);
+
     // Clean up invitation data if this is the workspace user was invited to
     const pendingWorkspaceId = getPendingWorkspaceId();
 

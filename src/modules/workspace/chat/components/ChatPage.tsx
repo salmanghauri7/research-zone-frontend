@@ -34,7 +34,7 @@ export default function ChatPage() {
   // Create currentUser object from store data with fallback
   const currentUser: User = useMemo(
     () => ({
-      id: user?.id,
+      id: user?.id || "",
       name: user?.firstName || "Guest User",
       avatar: undefined,
       isOnline: true,

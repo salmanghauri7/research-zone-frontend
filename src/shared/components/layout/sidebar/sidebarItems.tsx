@@ -19,7 +19,7 @@ export interface SidebarItem {
 export const sidebarItems: SidebarItem[] = [
   {
     label: "Dashboard",
-    href: "/dashboard",
+    href: "/workspace",
     icon: <LayoutDashboard size={20} />,
     isDynamic: true,
   },

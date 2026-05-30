@@ -48,7 +48,6 @@ export default function InviteModal({
     onClose();
     setEmail("");
     setDescription("");
-    setToast(null);
   };
 
   return (

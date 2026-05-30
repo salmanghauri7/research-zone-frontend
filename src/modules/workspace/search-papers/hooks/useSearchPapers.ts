@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { searchPapers } from "@/api/papersApi";
 import { useWorkspaceStore } from "@/store/workspaceStore";
+import { toast } from "@/shared/components/ui";
 
 export type Paper = {
   id: string;
@@ -65,6 +66,10 @@ export default function useSearchPapers() {
       }
     } catch (error) {
       console.error("Error searching papers:", error);
+      const message =
+        (error as { customMessage?: string })?.customMessage ||
+        "Failed to search papers.";
+      toast.error(message);
       setResults([]);
     } finally {
       setIsLoading(false);

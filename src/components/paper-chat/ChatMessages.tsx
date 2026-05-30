@@ -295,7 +295,7 @@ export default function ChatMessages({
       <AnimatePresence mode="popLayout">
         {messages.map((msg, index) => (
           <MessageBubble
-            key={msg.clientId || msg.id || `paper-msg-${index}`}
+            key={msg.id || `paper-msg-${index}`}
             message={msg}
           />
         ))}
