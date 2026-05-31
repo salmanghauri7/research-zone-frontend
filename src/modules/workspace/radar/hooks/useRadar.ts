@@ -128,9 +128,10 @@ export default function useRadar() {
 
   const handleCategoryDone = useCallback(
     (payload: RadarCategoryDonePayload) => {
-      setCompletedCategories((prev) =>
-        prev.includes(payload.category) ? prev : [...prev, payload.category],
-      );
+      console.log("Category done:", payload);
+      // setCompletedCategories((prev) =>
+      //   prev.includes(payload.category) ? prev : [...prev, payload.category],
+      // );
     },
     [],
   );

@@ -14,6 +14,10 @@ export interface RadarNotificationsResponse {
   nextCursor: string | null;
 }
 
+export interface RadarSaveNotificationResponse {
+  item: Record<string, unknown>;
+}
+
 export const startRadarRun = async (
   workspaceId: string,
   categories?: string[],
@@ -60,6 +64,18 @@ export const getRadarNotifications = async (
     return response.data.data as RadarNotificationsResponse;
   } catch (error) {
     console.error("Error fetching radar notifications:", error);
+    throw error;
+  }
+};
+
+export const saveRadarNotification = async (
+  payload: Record<string, unknown>,
+): Promise<RadarSaveNotificationResponse> => {
+  try {
+    const response = await api.post("/radar/notifications", payload);
+    return response.data.data as RadarSaveNotificationResponse;
+  } catch (error) {
+    console.error("Error saving radar notification:", error);
     throw error;
   }
 };

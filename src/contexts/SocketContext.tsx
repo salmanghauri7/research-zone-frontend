@@ -46,8 +46,16 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Initialize the persistent instance in the Ref
     if (!socketRef.current) {
-      console.log("✅ Creating socket connection to:", config.SERVER_URL);
-      socketRef.current = io(config.SERVER_URL, {
+      const socketUrl = (() => {
+        try {
+          return new URL(config.SERVER_URL).origin;
+        } catch {
+          return config.SERVER_URL;
+        }
+      })();
+
+      console.log("✅ Creating socket connection to:", socketUrl);
+      socketRef.current = io(socketUrl, {
         withCredentials: true,
         autoConnect: true,
         auth: {
