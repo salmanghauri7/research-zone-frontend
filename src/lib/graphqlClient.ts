@@ -47,6 +47,7 @@ export async function graphqlRequest<T>(
   document: string,
   variables?: Record<string, unknown>,
 ): Promise<T> {
+  const apiBaseUrl = baseUrl;
   try {
     const client = getGraphQLClient();
     return await client.request<T>(document, variables);
@@ -63,7 +64,6 @@ export async function graphqlRequest<T>(
 
     // Attempt token refresh
     try {
-      const apiBaseUrl = baseUrl;
       const res = await fetch(`${apiBaseUrl}/users/refresh`, {
         credentials: "include",
       });
