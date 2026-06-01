@@ -7,8 +7,7 @@ const nextConfig: NextConfig = {
 
   async rewrites() {
     const apiUrl =
-      process.env.NEXT_PUBLIC_BASE_URL_API_PROD ||
-      "https://research-zone-backend.onrender.com";
+      process.env.NEXT_PUBLIC_BASE_URL_API_PROD;
     return [
       {
         source: "/api/:path*", // When the browser requests /api/...

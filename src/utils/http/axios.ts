@@ -1,7 +1,5 @@
 import axios from "axios";
 
-// const baseUrl = "/api";
-// const baseUrl = "http://localhost:5000/api";
 let baseUrl: string;
 if (process.env.NODE_ENV === "production") {
   const prodUrl = process.env.NEXT_PUBLIC_BASE_URL_API_PROD || "/api";
@@ -24,7 +22,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  if (typeof window != undefined) {
+  if (typeof window !== "undefined") {
     const token = localStorage.getItem("accessToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -38,6 +36,9 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
 
     // Don't retry if this is already the refresh endpoint to prevent infinite loop
     const isRefreshEndpoint = originalRequest.url?.includes("/users/refresh");
@@ -58,11 +59,10 @@ api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       try {
-        const res = await axios.get(`${baseUrl}/users/refresh`, {
-          withCredentials: true,
-        });
+        const res = await api.get("/users/refresh", { withCredentials: true });
         localStorage.setItem("accessToken", res.data.data.accessToken);
 
+        originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers.Authorization = `Bearer ${res.data.data.accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
