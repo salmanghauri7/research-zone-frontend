@@ -11,8 +11,7 @@ const buildBaseUrl = () => {
     return prodUrl;
   }
 
-  const envUrl =
-    process.env.NEXT_PUBLIC_BASE_URL_API_DEV;
+  const envUrl = process.env.NEXT_PUBLIC_BASE_URL_API_DEV;
   return envUrl;
 };
 

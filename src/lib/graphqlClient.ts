@@ -18,12 +18,6 @@ const baseUrl = buildBaseUrl();
 const graphQlBaseUrl = baseUrl?.replace(/\/api\/?$/, "");
 const GRAPHQL_ENDPOINT = `${graphQlBaseUrl}/graphql`;
 
-/**
- * Creates a GraphQL client with the current auth token.
- *
- * We build a fresh client per request so the Authorization header
- * always reflects the latest token from localStorage.
- */
 function getGraphQLClient(): GraphQLClient {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -69,7 +63,7 @@ export async function graphqlRequest<T>(
 
     // Attempt token refresh
     try {
-      const apiBaseUrl = baseUrl.endsWith("/api") ? baseUrl : `${baseUrl}/api`;
+      const apiBaseUrl = baseUrl;
       const res = await fetch(`${apiBaseUrl}/users/refresh`, {
         credentials: "include",
       });
