@@ -1,19 +1,22 @@
 import axios from "axios";
 
-let baseUrl: string;
-if (process.env.NODE_ENV === "production") {
-  const prodUrl = process.env.NEXT_PUBLIC_BASE_URL_API_PROD || "/api";
-  baseUrl = prodUrl.endsWith('/api') ? prodUrl : `${prodUrl}/api`;
-} else {
-  const envUrl = process.env.NEXT_PUBLIC_BASE_URL_API_DEV || "http://localhost:5000";
-  baseUrl = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
-}
+const buildBaseUrl = () => {
+  if (process.env.NODE_ENV === "production") {
+    const prodUrl = process.env.NEXT_PUBLIC_BASE_URL_API_PROD;
+    if (!prodUrl) {
+      throw new Error(
+        "Environment variable NEXT_PUBLIC_BASE_URL_API_PROD is not set. Please define it to use the API client.",
+      );
+    }
+    return prodUrl;
+  }
 
-if (!baseUrl) {
-  throw new Error(
-    "Environment variable BASE_URL_API_PROD is not set. Please define it to use the API client. ",
-  );
-}
+  const envUrl =
+    process.env.NEXT_PUBLIC_BASE_URL_API_DEV;
+  return envUrl;
+};
+
+const baseUrl = buildBaseUrl();
 
 const api = axios.create({
   baseURL: baseUrl,
@@ -40,17 +43,14 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Don't retry if this is already the refresh endpoint to prevent infinite loop
     const isRefreshEndpoint = originalRequest.url?.includes("/users/refresh");
 
-    // Don't retry token refresh for authentication endpoints
     const isAuthEndpoint =
       originalRequest.url?.includes("/users/login") ||
       originalRequest.url?.includes("/users/signup") ||
       originalRequest.url?.includes("/users/google-login") ||
       originalRequest.url?.includes("/users/verifyOtp");
 
-    // Handle token refresh
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
@@ -71,7 +71,7 @@ api.interceptors.response.use(
 
         // Call logout API to clear cookies on backend
         try {
-          await fetch("/api/logout", {
+          await fetch(`${baseUrl}/logout`, {
             method: "POST",
             credentials: "include",
           });

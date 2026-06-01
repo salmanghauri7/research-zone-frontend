@@ -1,9 +1,22 @@
 import { GraphQLClient } from "graphql-request";
 
-const GRAPHQL_ENDPOINT =
-  process.env.NODE_ENV === "production"
-    ? `${process.env.NEXT_PUBLIC_BASE_URL_API_PROD || "https://13.205.7.218.sslip.io"}/graphql`
-    : "http://localhost:5000/graphql";
+const buildBaseUrl = () => {
+  if (process.env.NODE_ENV === "production") {
+    const prodUrl = process.env.NEXT_PUBLIC_BASE_URL_API_PROD;
+    if (!prodUrl) {
+      throw new Error(
+        "Environment variable NEXT_PUBLIC_BASE_URL_API_PROD is not set. Please define it to use the API client.",
+      );
+    }
+    return prodUrl;
+  }
+
+  return process.env.NEXT_PUBLIC_BASE_URL_API_DEV;
+};
+
+const baseUrl = buildBaseUrl();
+const graphQlBaseUrl = baseUrl?.replace(/\/api\/?$/, "");
+const GRAPHQL_ENDPOINT = `${graphQlBaseUrl}/graphql`;
 
 /**
  * Creates a GraphQL client with the current auth token.
@@ -56,8 +69,8 @@ export async function graphqlRequest<T>(
 
     // Attempt token refresh
     try {
-      const baseUrl = "http://localhost:5000/api";
-      const res = await fetch(`${baseUrl}/users/refresh`, {
+      const apiBaseUrl = baseUrl.endsWith("/api") ? baseUrl : `${baseUrl}/api`;
+      const res = await fetch(`${apiBaseUrl}/users/refresh`, {
         credentials: "include",
       });
 
@@ -74,7 +87,7 @@ export async function graphqlRequest<T>(
       localStorage.removeItem("accessToken");
 
       try {
-        await fetch("/api/logout", {
+        await fetch(`${apiBaseUrl}/logout`, {
           method: "POST",
           credentials: "include",
         });

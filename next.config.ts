@@ -5,17 +5,6 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   reactStrictMode: false,
 
-  async rewrites() {
-    const apiUrl =
-      process.env.NEXT_PUBLIC_BASE_URL_API_PROD;
-    return [
-      {
-        source: "/api/:path*", // When the browser requests /api/...
-        destination: `${apiUrl}/api/:path*`, // ...Next.js forwards it here
-      },
-    ];
-  },
-
   // Enable modern bundler optimizations
   experimental: {
     // Optimize package imports to reduce bundle size
