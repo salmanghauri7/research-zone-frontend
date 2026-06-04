@@ -29,6 +29,36 @@ const nextConfig: NextConfig = {
 
   // Generate ETags for caching
   generateEtags: true,
+
+  async rewrites() {
+    if (process.env.NODE_ENV !== "production") {
+      return [];
+    }
+
+    const apiBase = process.env.NEXT_PUBLIC_BASE_URL_API_PROD;
+    if (!apiBase) {
+      return [];
+    }
+
+    const normalizedApiBase = apiBase.replace(/\/$/, "");
+    const graphqlBase = normalizedApiBase.replace(/\/api\/?$/, "");
+
+    return {
+      beforeFiles: [
+        {
+          source: "/graphql",
+          destination: `${graphqlBase}/graphql`,
+        },
+      ],
+      afterFiles: [],
+      fallback: [
+        {
+          source: "/:path*",
+          destination: `${normalizedApiBase}/:path*`,
+        },
+      ],
+    };
+  },
 };
 
 export default nextConfig;

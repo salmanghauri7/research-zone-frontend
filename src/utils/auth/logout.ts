@@ -2,17 +2,10 @@ import { useUserStore } from "@/store/userStore";
 
 const buildApiBaseUrl = () => {
   if (process.env.NODE_ENV === "production") {
-    const prodUrl = process.env.NEXT_PUBLIC_BASE_URL_API_PROD;
-    if (!prodUrl) {
-      throw new Error(
-        "Environment variable NEXT_PUBLIC_BASE_URL_API_PROD is not set. Please define it to use the API client.",
-      );
-    }
-    return prodUrl;
+    return "";
   }
 
-  const envUrl =
-    process.env.NEXT_PUBLIC_BASE_URL_API_DEV;
+  const envUrl = process.env.NEXT_PUBLIC_BASE_URL_API_DEV;
   return envUrl;
 };
 

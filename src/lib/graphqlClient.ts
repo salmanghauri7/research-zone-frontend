@@ -2,13 +2,7 @@ import { GraphQLClient } from "graphql-request";
 
 const buildBaseUrl = () => {
   if (process.env.NODE_ENV === "production") {
-    const prodUrl = process.env.NEXT_PUBLIC_BASE_URL_API_PROD;
-    if (!prodUrl) {
-      throw new Error(
-        "Environment variable NEXT_PUBLIC_BASE_URL_API_PROD is not set. Please define it to use the API client.",
-      );
-    }
-    return prodUrl;
+    return "";
   }
 
   return process.env.NEXT_PUBLIC_BASE_URL_API_DEV;
