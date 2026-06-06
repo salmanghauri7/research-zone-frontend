@@ -4,9 +4,9 @@ import api from "../http/axios";
 export async function logout() {
   try {
     localStorage.removeItem("accessToken");
-    await api.post("/users/logout", {
+    await api.post("/users/logout", {}, {
       method: "POST",
-      credentials: "include",
+      withCredentials: true,
     });
     useUserStore.getState().clearUser();
 
