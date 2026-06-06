@@ -6,7 +6,6 @@ export async function POST() {
     { status: 200 },
   );
 
-  // Delete the authCookie by setting it to empty with past expiration
   response.cookies.set("authCookie", "", {
     path: "/",
     httpOnly: true,

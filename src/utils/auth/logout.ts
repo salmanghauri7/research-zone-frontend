@@ -1,20 +1,10 @@
 import { useUserStore } from "@/store/userStore";
 
-const buildApiBaseUrl = () => {
-  if (process.env.NODE_ENV === "production") {
-    return "";
-  }
-
-  const envUrl = process.env.NEXT_PUBLIC_BASE_URL_API_DEV;
-  return envUrl;
-};
-
-const apiBaseUrl = buildApiBaseUrl();
 
 export async function logout() {
   try {
     localStorage.removeItem("accessToken");
-    const response = await fetch(`${apiBaseUrl}/logout`, {
+    const response = await fetch(`/api/logout`, {
       method: "POST",
       credentials: "include",
     });
