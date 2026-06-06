@@ -40,21 +40,13 @@ const nextConfig: NextConfig = {
       return [];
     }
 
-    const normalizedApiBase = apiBase.replace(/\/$/, "");
-    const graphqlBase = normalizedApiBase.replace(/\/api\/?$/, "");
+    const normalizedApiBase = apiBase.trimEnd();
 
     return {
-      beforeFiles: [
-        {
-          source: "/graphql",
-          destination: `${graphqlBase}/graphql`,
-        },
-      ],
-      afterFiles: [],
       fallback: [
         {
           source: "/:path*",
-          destination: `${normalizedApiBase}/:path*`,
+          destination: `${normalizedApiBase}/api/:path*`,
         },
       ],
     };

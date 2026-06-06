@@ -1,18 +1,11 @@
+import { buildBaseUrl } from "@/config/config";
 import axios from "axios";
 
-const buildBaseUrl = () => {
-  if (process.env.NODE_ENV === "production") {
-    return "";
-  }
-
-  const envUrl = process.env.NEXT_PUBLIC_BASE_URL_API_DEV;
-  return envUrl;
-};
 
 const baseUrl = buildBaseUrl();
 
 const api = axios.create({
-  baseURL: baseUrl,
+  baseURL: `${baseUrl}/api`,
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
 });

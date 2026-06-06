@@ -1,16 +1,9 @@
+import { buildBaseUrl } from "@/config/config";
 import { GraphQLClient } from "graphql-request";
 
-const buildBaseUrl = () => {
-  if (process.env.NODE_ENV === "production") {
-    return "";
-  }
+const baseUrl = buildBaseUrl(true);
 
-  return process.env.NEXT_PUBLIC_BASE_URL_API_DEV;
-};
-
-const baseUrl = buildBaseUrl();
-const graphQlBaseUrl = baseUrl?.replace(/\/api\/?$/, "");
-const GRAPHQL_ENDPOINT = `${graphQlBaseUrl}/graphql`;
+const GRAPHQL_ENDPOINT = `${baseUrl}/graphql`;
 
 function getGraphQLClient(): GraphQLClient {
   const headers: Record<string, string> = {
@@ -30,13 +23,6 @@ function getGraphQLClient(): GraphQLClient {
   });
 }
 
-/**
- * Execute a GraphQL request with automatic token-refresh retry.
- *
- * If the first request fails with a 401-like error, we attempt to
- * refresh the access token (same flow as the Axios interceptor) and
- * retry once. If the refresh also fails, the user is redirected to login.
- */
 export async function graphqlRequest<T>(
   document: string,
   variables?: Record<string, unknown>,
@@ -46,7 +32,6 @@ export async function graphqlRequest<T>(
     const client = getGraphQLClient();
     return await client.request<T>(document, variables);
   } catch (error: unknown) {
-    // Check if this is an authentication error
     const isAuthError =
       error instanceof Error &&
       (error.message.includes("Authentication required") ||

@@ -1,6 +1,6 @@
 "use client";
 
-import { config } from "@/config/config";
+import { buildBaseUrl } from "@/config/config";
 import React, {
   createContext,
   useContext,
@@ -35,19 +35,13 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     // Access localStorage only on the client
     const token = localStorage.getItem("accessToken");
 
-    console.log("🔌 SocketProvider: Initializing...");
-    console.log("🔑 Token exists:", !!token);
-
-    // Only initialize socket if user is authenticated
     if (!token) {
       console.log("❌ No token found, skipping socket initialization");
       return;
     }
-
-    // Initialize the persistent instance in the Ref
+    const baseUrl = buildBaseUrl(true);
     if (!socketRef.current) {
-      console.log("✅ Creating socket connection to:", config.SERVER_URL);
-      socketRef.current = io(config.SERVER_URL, {
+      socketRef.current = io(baseUrl, {
         withCredentials: true,
         autoConnect: true,
         auth: {
