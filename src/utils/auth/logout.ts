@@ -1,22 +1,15 @@
 import { useUserStore } from "@/store/userStore";
-
+import api from "../http/axios";
 
 export async function logout() {
   try {
     localStorage.removeItem("accessToken");
-    const response = await fetch(`/api/logout`, {
+    await api.post("/users/logout", {
       method: "POST",
       credentials: "include",
     });
-
-    if (!response.ok) {
-      throw new Error("Logout failed");
-    }
-
-    // Clear user data from store
     useUserStore.getState().clearUser();
 
-    // Redirect to login page
     window.location.href = "/auth/login";
   } catch (error) {
     console.error("Error during logout:", error);
