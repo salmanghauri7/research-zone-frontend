@@ -252,7 +252,7 @@ export default function SignupPage() {
             </form>
           </Form>
 
-          <div className="flex items-center my-6">
+          {/* <div className="flex items-center my-6">
             <div className="flex-1 h-px bg-[var(--border-primary)]" />
             <span className="px-4 text-sm text-[var(--text-tertiary)]">
               or continue with
@@ -273,7 +273,7 @@ export default function SignupPage() {
               <FcGoogle className="h-5 w-5" aria-hidden="true" />
             )}
             <span>{isGoogleLoading ? "Connecting..." : "Google"}</span>
-          </Button>
+          </Button> */}
 
           <p className="text-center mt-8 text-[var(--text-secondary)]">
             Already have an account?{" "}
