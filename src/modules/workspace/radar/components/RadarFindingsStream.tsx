@@ -1,12 +1,23 @@
 "use client";
 
-import { Activity, ExternalLink, Radar as RadarIcon } from "lucide-react";
+import { useState } from "react";
 import {
+  Activity,
+  BookmarkPlus,
+  Check,
+  ExternalLink,
+  Radar as RadarIcon,
+} from "lucide-react";
+import {
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui";
+import { saveRadarNotification } from "@/api/radarApi";
+import { useNotification } from "@/contexts/NotificationContext";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 import { RadarFinding } from "../types";
 import { RadarStatus } from "../hooks";
 
@@ -23,6 +34,13 @@ export default function RadarFindingsStream({
   totalCategories,
   completedCategories,
 }: RadarFindingsStreamProps) {
+  const { showError, showSuccess } = useNotification();
+  const currentWorkspaceId = useWorkspaceStore(
+    (state) => state.currentWorkspaceId,
+  );
+  const [savingIds, setSavingIds] = useState<Record<string, boolean>>({});
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+
   const formatAuthors = (authors?: string[] | string) =>
     Array.isArray(authors) ? authors.join(", ") : authors || "";
   const hasFindings = findings.length > 0;
@@ -45,6 +63,7 @@ export default function RadarFindingsStream({
         paper,
         explanation,
         savedPaperTitle: finding.contradictionDetail?.savedPaperTitle,
+        finding,
       };
     })
     .filter((item) => item.paper);
@@ -54,8 +73,46 @@ export default function RadarFindingsStream({
     (item) => item.type === "contradiction",
   );
 
+  const handleSaveFinding = async (item: (typeof items)[number]) => {
+    if (!currentWorkspaceId) {
+      showError("Select a workspace before saving this alert.");
+      return;
+    }
+
+    const finding = item.finding;
+    if (!finding) {
+      showError("This alert could not be saved right now.");
+      return;
+    }
+
+    try {
+      setSavingIds((prev) => ({ ...prev, [item.id]: true }));
+
+      await saveRadarNotification({
+        workspaceId: currentWorkspaceId,
+        category: finding.category,
+        alertType: finding.alertType,
+        papersScanned: finding.papersScanned,
+        newPapers: finding.newPapers || [],
+        relevanceExplanation: finding.relevanceExplanation,
+        contradictionDetail: finding.contradictionDetail,
+        confidence: finding.confidence,
+      });
+
+      setSavedIds((prev) =>
+        prev.includes(item.id) ? prev : [...prev, item.id],
+      );
+      showSuccess("Alert saved successfully.");
+    } catch (error) {
+      console.error("Failed to save radar alert:", error);
+      showError("Unable to save this alert. Please try again.");
+    } finally {
+      setSavingIds((prev) => ({ ...prev, [item.id]: false }));
+    }
+  };
+
   return (
-    <Card className="rounded-2xl border border-(--border-primary) h-full">
+    <Card className="rounded-2xl border border-(--border-primary) h-full ">
       <CardHeader className="space-y-1">
         <CardTitle className="text-base font-semibold text-(--text-primary) flex items-center gap-2">
           <Activity className="w-4 h-4 text-(--accent-primary)" />
@@ -144,15 +201,34 @@ export default function RadarFindingsStream({
                             {formatAuthors(item.paper?.authors)}
                           </p>
                         </div>
-                        <a
-                          href={item.paper?.link}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-(--accent-primary) hover:text-(--accent-primary)/80 shrink-0"
-                          aria-label="Open paper"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-(--accent-primary) hover:bg-(--bg-primary)"
+                            onClick={() => handleSaveFinding(item)}
+                            disabled={
+                              savingIds[item.id] || savedIds.includes(item.id)
+                            }
+                            aria-label="Save this alert"
+                          >
+                            {savedIds.includes(item.id) ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              <BookmarkPlus className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <a
+                            href={item.paper?.link}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-(--accent-primary) hover:text-(--accent-primary)/80"
+                            aria-label="Open paper"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </div>
                       </div>
                       <p className="text-xs text-(--text-secondary) mt-2">
                         {item.explanation}
@@ -187,15 +263,34 @@ export default function RadarFindingsStream({
                             {formatAuthors(item.paper?.authors)}
                           </p>
                         </div>
-                        <a
-                          href={item.paper?.link}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-(--accent-primary) hover:text-(--accent-primary)/80 shrink-0"
-                          aria-label="Open paper"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-(--accent-primary) hover:bg-(--bg-primary)"
+                            onClick={() => handleSaveFinding(item)}
+                            disabled={
+                              savingIds[item.id] || savedIds.includes(item.id)
+                            }
+                            aria-label="Save this alert"
+                          >
+                            {savedIds.includes(item.id) ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              <BookmarkPlus className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <a
+                            href={item.paper?.link}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-(--accent-primary) hover:text-(--accent-primary)/80"
+                            aria-label="Open paper"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </div>
                       </div>
                       {item.savedPaperTitle && (
                         <p className="text-[11px] text-(--text-tertiary) mt-2">
