@@ -21,6 +21,16 @@ export default function RadarFindingCard({ finding }: RadarFindingCardProps) {
   const papers = finding.newPapers || [];
   const previewPapers = papers.slice(0, 3);
   const remainingCount = Math.max(papers.length - previewPapers.length, 0);
+  const primaryAlert = alertTypes.includes("contradiction")
+    ? "contradiction"
+    : "relevance";
+  const message =
+    primaryAlert === "contradiction"
+      ? finding.contradictionDetail?.explanation ||
+        "This paper appears to conflict with a claim in your saved work."
+      : finding.relevanceExplanation ||
+        "This paper aligns with topics in your saved library.";
+  const savedPaperTitle = finding.contradictionDetail?.savedPaperTitle;
 
   return (
     <Card className="rounded-xl border border-(--border-primary)">
@@ -46,6 +56,15 @@ export default function RadarFindingCard({ finding }: RadarFindingCardProps) {
 
         <div className="text-xs text-(--text-secondary)">
           Papers scanned: {finding.papersScanned || 0}
+        </div>
+
+        <div className="rounded-lg border border-(--border-secondary) bg-(--bg-secondary) px-3 py-2 text-xs text-(--text-secondary)">
+          {savedPaperTitle && primaryAlert === "contradiction" && (
+            <p className="text-[11px] text-(--text-tertiary) mb-1">
+              Conflicts with: {savedPaperTitle}
+            </p>
+          )}
+          <p>{message}</p>
         </div>
 
         <div className="space-y-2">

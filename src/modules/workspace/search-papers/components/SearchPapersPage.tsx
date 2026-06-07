@@ -90,7 +90,7 @@ const SearchPapersPage = memo(function SearchPapersPage() {
                       </h2>
                       <div className="flex gap-1 shrink-0">
                         <a
-                          href={paper.link.replace("/abs/", "/pdf/") + ".pdf"}
+                          href={paper.link}
                           target="_blank"
                           rel="noreferrer"
                           className="p-1.5 rounded-md text-zinc-400 hover:text-teal-500"

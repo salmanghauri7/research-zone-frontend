@@ -1,13 +1,12 @@
 "use client";
 
-import { Activity, Radar as RadarIcon } from "lucide-react";
+import { Activity, ExternalLink, Radar as RadarIcon } from "lucide-react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui";
-import RadarFindingCard from "./RadarFindingCard";
 import { RadarFinding } from "../types";
 import { RadarStatus } from "../hooks";
 
@@ -24,7 +23,36 @@ export default function RadarFindingsStream({
   totalCategories,
   completedCategories,
 }: RadarFindingsStreamProps) {
+  const formatAuthors = (authors?: string[] | string) =>
+    Array.isArray(authors) ? authors.join(", ") : authors || "";
   const hasFindings = findings.length > 0;
+  const items = findings
+    .map((finding, index) => {
+      const alertTypes = Array.isArray(finding.alertType)
+        ? finding.alertType
+        : [finding.alertType];
+      const isContradiction = alertTypes.includes("contradiction");
+      const paper = finding.newPapers?.[0];
+      const explanation = isContradiction
+        ? finding.contradictionDetail?.explanation ||
+          "This paper appears to conflict with a claim in your saved work."
+        : finding.relevanceExplanation ||
+          "This paper aligns with topics in your saved library.";
+
+      return {
+        id: finding._id || paper?.link || `${finding.category}-${index}`,
+        type: isContradiction ? "contradiction" : "relevance",
+        paper,
+        explanation,
+        savedPaperTitle: finding.contradictionDetail?.savedPaperTitle,
+      };
+    })
+    .filter((item) => item.paper);
+
+  const relevanceItems = items.filter((item) => item.type === "relevance");
+  const contradictionItems = items.filter(
+    (item) => item.type === "contradiction",
+  );
 
   return (
     <Card className="rounded-2xl border border-(--border-primary) h-full">
@@ -91,10 +119,97 @@ export default function RadarFindingsStream({
         )}
 
         {hasFindings && (
-          <div className="space-y-3">
-            {findings.map((finding) => (
-              <RadarFindingCard key={finding._id} finding={finding} />
-            ))}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs text-(--text-secondary)">
+                <span>Relevance ({relevanceItems.length})</span>
+              </div>
+              {relevanceItems.length === 0 ? (
+                <p className="text-xs text-(--text-tertiary)">
+                  No relevant papers detected yet.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {relevanceItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-lg border border-(--border-secondary) bg-(--bg-secondary) px-3 py-2"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-(--text-primary) truncate">
+                            {item.paper?.title}
+                          </p>
+                          <p className="text-xs text-(--text-tertiary) truncate">
+                            {formatAuthors(item.paper?.authors)}
+                          </p>
+                        </div>
+                        <a
+                          href={item.paper?.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-(--accent-primary) hover:text-(--accent-primary)/80 shrink-0"
+                          aria-label="Open paper"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </div>
+                      <p className="text-xs text-(--text-secondary) mt-2">
+                        {item.explanation}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs text-(--text-secondary)">
+                <span>Contradictions ({contradictionItems.length})</span>
+              </div>
+              {contradictionItems.length === 0 ? (
+                <p className="text-xs text-(--text-tertiary)">
+                  No contradictions detected yet.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {contradictionItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-lg border border-(--border-secondary) bg-(--bg-secondary) px-3 py-2"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-(--text-primary) truncate">
+                            {item.paper?.title}
+                          </p>
+                          <p className="text-xs text-(--text-tertiary) truncate">
+                            {formatAuthors(item.paper?.authors)}
+                          </p>
+                        </div>
+                        <a
+                          href={item.paper?.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-(--accent-primary) hover:text-(--accent-primary)/80 shrink-0"
+                          aria-label="Open paper"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </div>
+                      {item.savedPaperTitle && (
+                        <p className="text-[11px] text-(--text-tertiary) mt-2">
+                          Conflicts with: {item.savedPaperTitle}
+                        </p>
+                      )}
+                      <p className="text-xs text-(--text-secondary) mt-1">
+                        {item.explanation}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </CardContent>

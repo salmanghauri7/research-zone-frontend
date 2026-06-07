@@ -1,7 +1,6 @@
 import { buildBaseUrl } from "@/config/config";
 import axios from "axios";
 
-
 const baseUrl = buildBaseUrl();
 
 const api = axios.create({
